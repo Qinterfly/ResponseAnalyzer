@@ -75,7 +75,6 @@ namespace ResponseAnalyzer
         {
             glWindow.MakeCurrent();
             modelRender_.setControl(glWindow);
-            GL.ClearColor(Color.White);
             // -- Debug only --
             testRender();
             // ----------------
@@ -142,12 +141,12 @@ namespace ResponseAnalyzer
 
         private void testRender()
         {
-            string path = Path.GetFullPath(@"..\..\examples\Plate.lms");
+            //string path = Path.GetFullPath(@"..\..\examples\Plate.lms");
             //string path = Path.GetFullPath(@"..\..\examples\Rib.lms");
-            //string path = Path.GetFullPath(@"..\..\examples\Airplane.lms");
+            string path = Path.GetFullPath(@"..\..\examples\Airplane.lms");
             LMSProject project = new LMSProject(path);
             modelRender_.setGeometry(project.geometry_);
-            modelRender_.setScale(1.0f);
+            modelRender_.setView(Views.UP);
         }
 
         private void glWindow_KeyDown(object sender, KeyEventArgs e)

@@ -14,7 +14,7 @@ namespace ResponseAnalyzer
     using ArrayDictionary = Dictionary<string, Array>;
     using ElementDictionary = Dictionary<ElementType, Dictionary<string, Array>>;
     using ColorDictionary = Dictionary<string, Color4>;
-    public enum ElementType { LINES, TRIAS, QUADS }
+    public enum ElementType { QUADS, TRIAS, LINES}
 
     public class LMSRender
     {
@@ -30,15 +30,13 @@ namespace ResponseAnalyzer
             // Defining all the colors for further selection
             availableColors_ = new List<Color4>()
             {
-                Color4.Blue,
-                Color4.Green,
-                Color4.Yellow,
-                Color4.DarkCyan,
-                Color4.OrangeRed
+                Color4.Blue, Color4.Green, Color4.Yellow,
+                Color4.Red, Color4.Orange, Color4.Purple,
+                Color4.Aquamarine, Color4.Coral, Color4.Chocolate
             };
             // Transformations
             position_ = Vector3.Zero;
-            modelScale_ = Matrix4.Identity;
+            modelScale_ = Matrix4.CreateScale(DrawParameters.defaultScale, DrawParameters.defaultScale, 0.0f);
             modelTranslation_ = Matrix4.Identity;
             modelRotation_ = Matrix4.Identity;
         }
@@ -54,7 +52,7 @@ namespace ResponseAnalyzer
         {
             if (geometry == null)
                 return;
-            Array X, Y, Z, rotX, rotY, rotZ;
+            Array X, Y, Z, rotXY, rotXZ, rotYZ;
             Array nodeNamesA, nodeNamesB, nodeNamesC, nodeNamesD;
             componentNames_ = new List<string>();
             componentSet_ = new ComponentGeometry(elementTypes_);
@@ -62,6 +60,15 @@ namespace ResponseAnalyzer
             Array componentNames = geometry.ComponentNames;
             int nColors = availableColors_.Count;
             int indexCurrentColor = 0;
+            Vector4d globalNodeLocation = Vector4d.UnitW;
+            Matrix4d transform = Matrix4d.Identity;
+            // Limits of the coordinates
+            float[,] limits = new float[3, 2];
+            float tempVal = float.MaxValue;
+            for (int i = 0; i != 3; ++i) {
+                limits[i, 0] = tempVal;
+                limits[i, 1] = -tempVal;
+            }
             foreach (string component in componentNames)
             {
                 componentNames_.Add(component);
@@ -72,26 +79,47 @@ namespace ResponseAnalyzer
                 for (uint iNode = 0; iNode != nNodes; ++iNode)
                     mapNodes.Add((string)nodeNames.GetValue(iNode), iNode);
                 componentSet_.nodeNames.Add(component, mapNodes);
-                // Nodal angles
-                geometry.ComponentNodesValues(component, nodeNames, out X, out Y, out Z, out rotX, out rotY, out rotZ);
+                // Component positions
+                double tX, tY, tZ, tRotXY, tRotXZ, tRotYZ;
+                geometry.ComponentValues(component, out tX, out tY, out tZ, out tRotXY, out tRotXZ, out tRotYZ);
+                double[] componentPosition = new double[6] { tX, tY, tZ, tRotXY, -tRotXZ, tRotYZ }; // (!) -rotY
+                componentSet_.positions_.Add(component, componentPosition);
+                // Nodal positions and angles of the local coordinate systems
+                geometry.ComponentNodesValues(component, nodeNames, out X, out Y, out Z, out rotXY, out rotXZ, out rotYZ);
                 double[,] angles = new double[nNodes, 3];
                 float[] vertices = new float[nNodes * 3];
                 int insertInd = 0;
-                double tX, tY, tZ;
                 for (int iNode = 0; iNode != nNodes; ++iNode)
                 {
-                    tX = (double)X.GetValue(iNode);
-                    tY = (double)Y.GetValue(iNode);
-                    tZ = (double)Z.GetValue(iNode);
-                    vertices[insertInd] = (float)tX;
-                    vertices[insertInd + 1] = (float)tY;
-                    vertices[insertInd + 2] = (float)tZ;
-                    angles[iNode, 0] = (double)rotX.GetValue(iNode);
-                    angles[iNode, 1] = (double)rotY.GetValue(iNode);
-                    angles[iNode, 2] = (double)rotZ.GetValue(iNode);
+                    globalNodeLocation[0] = (double)X.GetValue(iNode);
+                    globalNodeLocation[1] = (double)Y.GetValue(iNode);
+                    globalNodeLocation[2] = (double)Z.GetValue(iNode);
+                    globalNodeLocation[3] = 1.0;
+                    // Conversion from the component's local to the global coordinate system
+                    transform = Matrix4d.CreateRotationX(componentPosition[5])
+                              * Matrix4d.CreateRotationY(componentPosition[4])
+                              * Matrix4d.CreateRotationZ(componentPosition[3]);
+                    transform *= Matrix4d.CreateTranslation(componentPosition[0], componentPosition[1], componentPosition[2]);
+                    globalNodeLocation = Vector4d.Transform(globalNodeLocation, transform);
+                    for (int k = 0; k != 3; ++k)
+                        vertices[insertInd + k] = (float)globalNodeLocation[k];
+                    // Saving the nodal angles
+                    angles[iNode, 0] = (double)rotXY.GetValue(iNode);
+                    angles[iNode, 1] = -(double)rotXZ.GetValue(iNode); // (!) -rotY
+                    angles[iNode, 2] = (double)rotYZ.GetValue(iNode);
                     insertInd = insertInd + 3;
                 }
-                normalizeVertices(vertices);
+                // Finding the maximum and minimum of the nodal coordinates { (:, 1) -- minimum, (:, 2) -- maximum }
+                int lenVertices = vertices.Length;
+                for (int i = 0; i != lenVertices; i = i + 3)
+                {
+                    for (int j = 0; j != 3; ++j)
+                    {
+                        tempVal = vertices[i + j];
+                        if (tempVal < limits[j, 0]) limits[j, 0] = tempVal;
+                        if (tempVal > limits[j, 1]) limits[j, 1] = tempVal;
+                    }
+                }
                 componentSet_.vertices.Add(component, vertices);
                 componentSet_.nodeAngles.Add(component, angles);
                 // Lines 
@@ -139,6 +167,21 @@ namespace ResponseAnalyzer
                 indexCurrentColor = indexCurrentColor >= nColors - 1 ? 0 : indexCurrentColor + 1;
                 componentSet_.colors.Add(component, availableColors_[indexCurrentColor]);
             }
+            // Calculating the range of the coordinates { Min -- (:, 0), Delta -- (:, 1) }
+            float[] shift = new float[3];
+            for (int i = 0; i != 3; ++i)
+            {
+                limits[i, 1] = limits[i, 1] - limits[i, 0];
+                shift[i] = -1.0f;
+                if (Math.Abs(limits[i, 1]) <= float.Epsilon)
+                {
+                    limits[i, 1] = 1.0f;
+                    shift[i] = 0.0f;
+                }
+            }
+            // Normalizing the coordinates
+            foreach (string component in componentNames)
+                normalizeVertices((float[])componentSet_.vertices[component], limits, shift);
         }
 
         public void generateBuffers(string componentName)
@@ -146,9 +189,9 @@ namespace ResponseAnalyzer
             // Creating a vertex buffer object
             int vertexBufferObject = GL.GenBuffer();
             float[] vertices = (float[])componentSet_.vertices[componentName];
-            int nVertices = vertices.Length;
+            int lenVertices = vertices.Length;
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, nVertices * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, lenVertices * sizeof(float), vertices, BufferUsageHint.StaticDraw);
             // Compiling a shader
             shader_ = new Shader("../../shaders/shader.vert", "../../shaders/shader.frag");
             shader_.Use();
@@ -170,22 +213,34 @@ namespace ResponseAnalyzer
                 elementBufferPointers[(int)type] = elementBufferObject;
             }
             componentBuffers_.elements.Add(componentName, elementBufferPointers);
-            // Vertex attributes pointers
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(0);
             // Rendering options
             GL.PointSize(DrawParameters.pointSize);
-            projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, -1.0f, 100.0f);
+            GL.LineWidth(DrawParameters.lineWidth);
+            projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, -100.0f, 100.0f);
         }
 
         public void setControl(OpenTK.GLControl glControl)
         {
             glControl_ = glControl;
+            initGL();
         }
 
+        public void initGL()
+        {
+            GL.ClearColor(Color4.White);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            // Z-buffer
+            GL.DepthMask(true);
+            GL.Enable(EnableCap.DepthTest);
+            // Smoothing
+            GL.Enable(EnableCap.LineSmooth);
+            GL.Enable(EnableCap.PolygonSmooth);
+            // Offsets
+            //GL.PolygonOffset(0.01f, 0.01f);
+        }
         public void setScale(float scale)
         {
-            modelScale_ *= Matrix4.CreateScale(scale);
+            modelScale_ *= Matrix4.CreateScale(scale, scale, 0.0f);
         }
 
         public void setTranslation(Vector3 displacement)
@@ -205,7 +260,7 @@ namespace ResponseAnalyzer
         {
             position_ = Vector3.Zero;
             modelTranslation_ = Matrix4.Identity;
-            modelScale_ = Matrix4.Identity;
+            modelScale_ = Matrix4.CreateScale(DrawParameters.defaultScale, DrawParameters.defaultScale, 0.0f);
             modelRotation_ = Matrix4.Identity;
             switch (view)
             {
@@ -213,57 +268,29 @@ namespace ResponseAnalyzer
                     setRotation(new Vector3(0.0f, 0.0f, 0.0f));
                     break;
                 case Views.BACK:
-                    setRotation(new Vector3(180.0f, 0.0f, 0.0f));
+                    setRotation(new Vector3(MathHelper.TwoPi, 0.0f, 0.0f));
                     break;
                 case Views.UP:
-                    setRotation(new Vector3(-90.0f, 0.0f, 0.0f));
+                    setRotation(new Vector3(MathHelper.PiOver2, 0.0f, 0.0f));
                     break; 
                 case Views.DOWN:
-                    setRotation(new Vector3(90.0f, 0.0f, 0.0f));
+                    setRotation(new Vector3(-MathHelper.PiOver2, 0.0f, 0.0f));
                     break;
                 case Views.LEFT:
-                    setRotation(new Vector3(0.0f, -90.0f, 0.0f));
+                    setRotation(new Vector3(0.0f, MathHelper.PiOver2, 0.0f));
                     break;
                 case Views.RIGHT:
-                    setRotation(new Vector3(0.0f, 90.0f, 0.0f));
+                    setRotation(new Vector3(0.0f, -MathHelper.PiOver2, 0.0f));
+                    break;
+                case Views.ISOMETRIC:
+                    setRotation(new Vector3(2.0f * MathHelper.PiOver3, 0.0f, MathHelper.PiOver4));
                     break;
             }
         }
 
-        private void normalizeVertices(float[] vertices)
+        private void normalizeVertices(float[] vertices, float[,] limits, float[] shift)
         {
-            // Finding the maximum and minimum of the nodal coordinates
-            // (:, 1) -- minimum, (:, 2) -- maximum
-            float[,] limits = new float[3, 2];
-            float tempVal;
-            for (int i = 0; i != 3; ++i) {
-                tempVal = vertices[0];
-                for (int j = 0; j != 2; ++j)
-                    limits[i, j] = tempVal;
-            }
             int nVertices = vertices.Length;
-            for (int i = 3; i != nVertices; i = i + 3)
-            {
-                for (int j = 0; j != 3; ++j)
-                {
-                    tempVal = vertices[i + j];
-                    if (tempVal < limits[j, 0]) limits[j, 0] = tempVal;
-                    if (tempVal > limits[j, 1]) limits[j, 1] = tempVal;
-                }
-            }
-            // Calculating the range 
-            // Min -- (:, 0), Delta -- (:, 1) 
-            float[] shift = new float[3];
-            for (int i = 0; i != 3; ++i)
-            {
-                limits[i, 1] = limits[i, 1] - limits[i, 0];
-                shift[i] = -1.0f;
-                if (Math.Abs(limits[i, 1]) <= float.Epsilon) {
-                    limits[i, 1] = 1.0f;
-                    shift[i] = 0.0f;
-                }
-            }
-            // Normalizing the coordinates
             for (int i = 0; i != nVertices; i = i + 3)
             {
                 for (int j = 0; j != 3; ++j)
@@ -276,8 +303,7 @@ namespace ResponseAnalyzer
             if (!isCongruent())
                 return;
             // Preparing the window
-            GL.Clear(ClearBufferMask.ColorBufferBit); 
-            //GL.Enable(EnableCap.DepthTest);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             // Drawing the components
             shader_.Use();
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
@@ -285,12 +311,18 @@ namespace ResponseAnalyzer
             Matrix4 transform = model * projection_;
             shader_.SetMatrix4("transform", model);
             int colorLocation = shader_.GetUniformLocation("definedColor");
-            int EBO;
+            int VAO, EBO;
             int sizeElement;
+            int nVertices = 0;
+            Color4 color;
             foreach (string component in componentNames_)
             {
-                GL.BindBuffer(BufferTarget.ArrayBuffer, componentBuffers_.vertexBufferObject[component]);
-                GL.Uniform4(colorLocation, componentSet_.colors[component]);
+                VAO = componentBuffers_.vertexBufferObject[component];
+                GL.BindBuffer(BufferTarget.ArrayBuffer, VAO);
+                GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                GL.EnableVertexAttribArray(0);
+                color = componentSet_.colors[component];
+                GL.Uniform4(colorLocation, color);
                 foreach (ElementType type in elementTypes_)
                 {
                     EBO = componentBuffers_.elements[component][(int)type];
@@ -301,7 +333,8 @@ namespace ResponseAnalyzer
                         GL.DrawElements(mapElements_[type], sizeElement, DrawElementsType.UnsignedInt, 0);
                     }
                 }
-                GL.DrawArrays(PrimitiveType.Points, 0, componentSet_.vertices[component].Length);
+                nVertices = componentSet_.vertices[component].Length / 3;
+                GL.DrawArrays(PrimitiveType.Points, 0, nVertices);
             }
             glControl_.SwapBuffers();
         }
@@ -327,6 +360,7 @@ namespace ResponseAnalyzer
     {
         public ComponentGeometry(Array elementTypes)
         {
+            positions_ = new ArrayDictionary();
             nodeNames = new StringDictionary();
             nodeAngles = new ArrayDictionary();
             elementData = new ElementDictionary();
@@ -335,6 +369,7 @@ namespace ResponseAnalyzer
                 elementData.Add(type, new Dictionary<string, Array>());
             colors = new ColorDictionary();
         }
+        public ArrayDictionary positions_;
         public StringDictionary nodeNames;
         public ArrayDictionary nodeAngles;
         public ElementDictionary elementData;
@@ -356,6 +391,8 @@ namespace ResponseAnalyzer
     public static class DrawParameters 
     {
         public const float pointSize = 8.0f;
+        public const float lineWidth = 1.0f;
+        public const float defaultScale = 0.8f;
     }
 
     public enum Views 
