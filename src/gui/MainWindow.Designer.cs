@@ -1,5 +1,4 @@
-﻿using OpenTK.Input;
-
+﻿
 namespace ResponseAnalyzer
 {
     partial class ResponseAnalyzer
@@ -25,7 +24,7 @@ namespace ResponseAnalyzer
         // Data
         private LMSProject project;
         private LMSModel modelRenderer_;
-        private MouseState baseMouseState_;
+        private int[] lastMousePosition_;
         private bool isTranslation_ = false;
         private bool isRotation_ = false;
 
@@ -205,7 +204,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel8.ColumnCount = 3;
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.64777F));
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 79.35223F));
-            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 52F));
+            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 70F));
             this.tableLayoutPanel8.Controls.Add(this.label2, 0, 0);
             this.tableLayoutPanel8.Controls.Add(this.textBox1, 1, 0);
             this.tableLayoutPanel8.Controls.Add(this.button2, 2, 0);
@@ -231,10 +230,10 @@ namespace ResponseAnalyzer
             // textBox1
             // 
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(54, 3);
+            this.textBox1.Location = new System.Drawing.Point(50, 3);
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(190, 41);
+            this.textBox1.Size = new System.Drawing.Size(176, 41);
             this.textBox1.TabIndex = 1;
             // 
             // button2
@@ -242,7 +241,7 @@ namespace ResponseAnalyzer
             this.button2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.button2.Image = global::ResponseProcessor.properties.Resources.add;
-            this.button2.Location = new System.Drawing.Point(250, 4);
+            this.button2.Location = new System.Drawing.Point(232, 4);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(34, 23);
             this.button2.TabIndex = 2;
@@ -538,7 +537,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 21.2766F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 78.7234F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 65F));
             this.tableLayoutPanel6.Controls.Add(this.labelProjectPath, 0, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonOpenProject, 2, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonUpdateProject, 3, 0);
@@ -567,7 +566,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonOpenProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenProject.Image = global::ResponseProcessor.properties.Resources.add;
-            this.buttonOpenProject.Location = new System.Drawing.Point(238, 3);
+            this.buttonOpenProject.Location = new System.Drawing.Point(221, 3);
             this.buttonOpenProject.Name = "buttonOpenProject";
             this.buttonOpenProject.Size = new System.Drawing.Size(29, 22);
             this.buttonOpenProject.TabIndex = 2;
@@ -578,7 +577,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonUpdateProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonUpdateProject.Image = global::ResponseProcessor.properties.Resources.refresh;
-            this.buttonUpdateProject.Location = new System.Drawing.Point(274, 3);
+            this.buttonUpdateProject.Location = new System.Drawing.Point(257, 3);
             this.buttonUpdateProject.Name = "buttonUpdateProject";
             this.buttonUpdateProject.Size = new System.Drawing.Size(30, 22);
             this.buttonUpdateProject.TabIndex = 3;
@@ -588,20 +587,20 @@ namespace ResponseAnalyzer
             // 
             this.textBoxProjectPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxProjectPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxProjectPath.Location = new System.Drawing.Point(53, 3);
+            this.textBoxProjectPath.Location = new System.Drawing.Point(49, 3);
             this.textBoxProjectPath.Name = "textBoxProjectPath";
             this.textBoxProjectPath.ReadOnly = true;
-            this.textBoxProjectPath.Size = new System.Drawing.Size(179, 41);
+            this.textBoxProjectPath.Size = new System.Drawing.Size(166, 41);
             this.textBoxProjectPath.TabIndex = 1;
             // 
             // glWindow
             // 
-            this.glWindow.BackColor = System.Drawing.Color.Black;
+            this.glWindow.BackColor = System.Drawing.Color.White;
             this.glWindow.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.glWindow.Location = new System.Drawing.Point(346, 7);
-            this.glWindow.Margin = new System.Windows.Forms.Padding(8, 7, 8, 7);
+            this.glWindow.Location = new System.Drawing.Point(346, 8);
+            this.glWindow.Margin = new System.Windows.Forms.Padding(8);
             this.glWindow.Name = "glWindow";
-            this.glWindow.Size = new System.Drawing.Size(477, 482);
+            this.glWindow.Size = new System.Drawing.Size(477, 480);
             this.glWindow.TabIndex = 12;
             this.glWindow.VSync = false;
             this.glWindow.Load += new System.EventHandler(this.glWindow_Load);
@@ -663,7 +662,6 @@ namespace ResponseAnalyzer
         private System.Windows.Forms.TextBox textBoxProjectPath;
         private System.Windows.Forms.Button buttonOpenProject;
         private System.Windows.Forms.Button buttonUpdateProject;
-        private OpenTK.GLControl glWindow;
         private System.Windows.Forms.TabControl tabStages;
         private System.Windows.Forms.TabPage tabTemplate;
         private System.Windows.Forms.GroupBox groupBox1;
@@ -694,6 +692,7 @@ namespace ResponseAnalyzer
         private System.Windows.Forms.Button buttonOpenTemplate;
         private System.Windows.Forms.TabPage tabMeasure;
         private System.Windows.Forms.TabPage tabProcess;
+        private OpenTK.GLControl glWindow;
     }
 }
 

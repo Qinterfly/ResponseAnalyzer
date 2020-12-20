@@ -15,6 +15,7 @@ namespace ResponseAnalyzer
             InitializeComponent();
             comboBoxSelection.SelectedIndex = 0;
             modelRenderer_ = new LMSModel();
+            lastMousePosition_ = new int[2] { 0, 0 };
         }
 
         // Opening project
@@ -94,12 +95,22 @@ namespace ResponseAnalyzer
         private void glWindow_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             var keyboard = Keyboard.GetState();
-            if (e.Button == MouseButtons.Middle) {
-                baseMouseState_ = Mouse.GetState();
-                if (keyboard.IsKeyDown(Key.ControlLeft))
-                    isTranslation_ = true;
-                else
-                    isRotation_ = true;
+            switch (e.Button)
+            {
+                case MouseButtons.Middle:
+                    lastMousePosition_[0] = e.X;
+                    lastMousePosition_[1] = e.Y;
+                    if (keyboard.IsKeyDown(Key.ControlLeft))
+                        isTranslation_ = true;
+                    else
+                        isRotation_ = true;
+                    break;
+                case MouseButtons.Left:
+                    bool isNewSelection = true;
+                    if (keyboard.IsKeyDown(Key.ShiftLeft))
+                        isNewSelection = false;
+                    modelRenderer_.select(e.X, e.Y, isNewSelection);
+                    break;
             }
         }
 
@@ -109,23 +120,23 @@ namespace ResponseAnalyzer
             var mouse = Mouse.GetState();
             if (isTranslation_)
             {
-                float dX = (mouse.X - baseMouseState_.X) / (float) glWindow.Width * MouseWeights.translation; 
-                float dY = (mouse.Y - baseMouseState_.Y) / (float) glWindow.Height * MouseWeights.translation;
-                Vector3 displacement = new Vector3(dX, -dY, 0.0f);
-                modelRenderer_.setTranslation(displacement);
+                float dX = (e.X - lastMousePosition_[0]) * MouseWeights.translation; 
+                float dY = (e.Y - lastMousePosition_[1]) * MouseWeights.translation;
+                modelRenderer_.setTranslation(dX, -dY);
                 modelRenderer_.draw();
-                baseMouseState_ = mouse;
+                lastMousePosition_[0] = e.X;
+                lastMousePosition_[1] = e.Y;
             }
             if (isRotation_)
             {
-                float dRotX = (mouse.Y - baseMouseState_.Y);
-                float dRotY = (mouse.X - baseMouseState_.X) ;
+                float dRotX = (e.Y - lastMousePosition_[1]);
+                float dRotY = (e.X - lastMousePosition_[0]);
                 dRotX = MathHelper.DegreesToRadians(dRotX) * MouseWeights.rotation;
                 dRotY = MathHelper.DegreesToRadians(dRotY) * MouseWeights.rotation;
-                Vector3 diffRot = new Vector3(dRotX, dRotY, 0.0f);
-                modelRenderer_.setRotation(diffRot);
+                modelRenderer_.setRotation(dRotX, dRotY);
                 modelRenderer_.draw();
-                baseMouseState_ = mouse;
+                lastMousePosition_[0] = e.X;
+                lastMousePosition_[1] = e.Y;
             }
         }
         private void glWindow_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -166,7 +177,7 @@ namespace ResponseAnalyzer
         static class MouseWeights
         {
             public const float scaling = 0.001f;
-            public const float translation = 1.2f;
+            public const float translation = 1.0f;
             public const float rotation = 1.0f;
         }
     }

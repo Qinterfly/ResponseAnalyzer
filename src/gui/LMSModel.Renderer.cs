@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -8,7 +7,7 @@ namespace ResponseAnalyzer
 {
     public partial class LMSModel
     {
-        public void initGL()
+        public void initializeGL()
         {
             GL.ClearColor(Color4.White);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -27,8 +26,7 @@ namespace ResponseAnalyzer
             GL.PointSize(DrawOptions.pointSize);
             GL.LineWidth(DrawOptions.lineWidth);
             // Project
-            projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height,
-                                                     DrawOptions.zNear, DrawOptions.zFar);
+            projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
         }
 
         public void generateBuffers(string componentName)
@@ -73,8 +71,9 @@ namespace ResponseAnalyzer
             // Drawing the components
             shader_.Use();
             Matrix4 model = modelRotation_ * modelScale_ * modelTranslation_;
-            Matrix4 transform = model * projection_;
-            shader_.SetMatrix4("transform", model);
+            shader_.SetMatrix4("model", model);
+            shader_.SetMatrix4("view", Matrix4.Identity);
+            shader_.SetMatrix4("projection", projection_);
             int colorLocation = shader_.GetUniformLocation("definedColor");
             int VAO, EBO;
             int sizeElement;
@@ -102,14 +101,15 @@ namespace ResponseAnalyzer
             }
             glControl_.SwapBuffers();
         }
+       
 
         public static class DrawOptions
         {
             public const float pointSize = 8.0f;
             public const float lineWidth = 1.25f;
-            public const float defaultScale = 0.9f;
-            public const float zNear = 0.01f;
-            public const float zFar = 100.0f;
+            public const float defaultScale = 200.0f;
+            public const float zNear = -10.0f;
+            public const float zFar = 10.0f;
         }
 
         public enum Views

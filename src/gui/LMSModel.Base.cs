@@ -30,13 +30,13 @@ namespace ResponseAnalyzer
             availableColors_ = new List<Color4>()
             {
                 Color4.Blue, Color4.Green, Color4.DarkOrange,
-                Color4.Red, Color4.YellowGreen, Color4.Purple,
+                Color4.Red, Color4.Yellow, Color4.Purple,
                 Color4.DarkBlue, Color4.DarkCyan, Color4.Chocolate
             };
             // Transformations
             position_ = Vector3.Zero;
-            modelScale_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 0.0f);
             modelTranslation_ = Matrix4.Identity;
+            modelScale_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 1f);
             modelRotation_ = Matrix4.Identity;
         }
 
@@ -97,9 +97,9 @@ namespace ResponseAnalyzer
                     for (int k = 0; k != 3; ++k)
                         vertices[insertInd + k] = (float)globalNodeLocation[k];
                     // Saving the nodal angles
-                    angles[iNode, 0] = (double)rotXY.GetValue(iNode);
+                    angles[iNode, 0] =  (double)rotXY.GetValue(iNode);
                     angles[iNode, 1] = -(double)rotXZ.GetValue(iNode); // (!) -rotY
-                    angles[iNode, 2] = (double)rotYZ.GetValue(iNode);
+                    angles[iNode, 2] =  (double)rotYZ.GetValue(iNode);
                     insertInd = insertInd + 3;
                 }
                 // Finding the maximum and minimum of the nodal coordinates { (:, 1) -- minimum, (:, 2) -- maximum }
@@ -200,13 +200,13 @@ namespace ResponseAnalyzer
         // Colors
         private List<Color4> availableColors_;
         // Orientation
-        private Matrix4 modelScale_;
         private Matrix4 modelTranslation_;
+        private Matrix4 modelScale_;
         private Matrix4 modelRotation_;
         private Matrix4 projection_;
         private Vector3 position_;
         // Options
-        private PolygonMode polygonMode_ = PolygonMode.Line;
+        private PolygonMode polygonMode_ = PolygonMode.Fill;
     }
 
     public class ComponentGeometry

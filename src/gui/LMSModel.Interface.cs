@@ -1,4 +1,6 @@
-﻿using OpenTK;
+﻿using System;
+using System.Drawing;
+using OpenTK;
 
 namespace ResponseAnalyzer
 {
@@ -13,57 +15,62 @@ namespace ResponseAnalyzer
         public void setControl(OpenTK.GLControl glControl)
         {
             glControl_ = glControl;
-            initGL();
+            initializeGL();
         }
 
         public void setScale(float scale)
         {
-            modelScale_ *= Matrix4.CreateScale(scale, scale, 0.0f);
+            modelScale_ *= Matrix4.CreateScale(scale);
         }
 
-        public void setTranslation(Vector3 displacement)
+        public void setTranslation(float dX, float dY)
         {
-            position_ += displacement;
+            position_[0] += dX;
+            position_[1] += dY;
             modelTranslation_ = Matrix4.CreateTranslation(position_);
         }
 
-        public void setRotation(Vector3 diffRotation)
+        public void setRotation(float dRotX, float dRotY)
         {
-            modelRotation_ *= Matrix4.CreateRotationX(diffRotation[0])
-                           * Matrix4.CreateRotationY(diffRotation[1])
-                           * Matrix4.CreateRotationZ(diffRotation[2]);
+            modelRotation_ *= Matrix4.CreateRotationX(dRotX)
+                            * Matrix4.CreateRotationY(dRotY);
         }
 
         public void setView(Views view)
         {
             position_ = Vector3.Zero;
             modelTranslation_ = Matrix4.Identity;
-            modelScale_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 0.0f);
             modelRotation_ = Matrix4.Identity;
             switch (view)
             {
                 case Views.FRONT:
-                    setRotation(new Vector3(0.0f, 0.0f, 0.0f));
+                    setRotation(0.0f, 0.0f);
                     break;
                 case Views.BACK:
-                    setRotation(new Vector3(MathHelper.TwoPi, 0.0f, 0.0f));
+                    setRotation(MathHelper.TwoPi, 0.0f);
                     break;
                 case Views.UP:
-                    setRotation(new Vector3(MathHelper.PiOver2, 0.0f, 0.0f));
+                    setRotation(MathHelper.PiOver2, 0.0f);
                     break;
                 case Views.DOWN:
-                    setRotation(new Vector3(-MathHelper.PiOver2, 0.0f, 0.0f));
+                    setRotation(-MathHelper.PiOver2, 0.0f);
                     break;
                 case Views.LEFT:
-                    setRotation(new Vector3(0.0f, MathHelper.PiOver2, 0.0f));
+                    setRotation(0.0f, MathHelper.PiOver2);
                     break;
                 case Views.RIGHT:
-                    setRotation(new Vector3(0.0f, -MathHelper.PiOver2, 0.0f));
-                    break;
-                case Views.ISOMETRIC:
-                    setRotation(new Vector3(MathHelper.PiOver4, MathHelper.PiOver6, -1.0f * MathHelper.PiOver4));
+                    setRotation(0.0f, -MathHelper.PiOver2);
                     break;
             }
+        }
+
+        public void select(int mouseX, int mouseY, bool isNewSelection)
+        {
+            Matrix4 model = modelScale_ * modelRotation_ * modelTranslation_;
+            float[] vertices = (float[])componentSet_.vertices["W"];
+            Vector3 vector = new Vector3(vertices[0], vertices[1], vertices[2]);
+            float dist = ObjectPicker.DistanceFromPoint(new Point(mouseX, mouseY), vector, model, projection_);
+            Console.WriteLine(dist.ToString());
         }
     }
 }
