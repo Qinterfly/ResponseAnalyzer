@@ -143,7 +143,8 @@ namespace ResponseAnalyzer
         {
             //string path = Path.GetFullPath(@"..\..\examples\Plate.lms");
             //string path = Path.GetFullPath(@"..\..\examples\Rib.lms");
-            string path = Path.GetFullPath(@"..\..\examples\Airplane.lms");
+            //string path = Path.GetFullPath(@"..\..\examples\Airplane.lms");
+            string path = Path.GetFullPath(@"..\..\examples\Yak130.lms");
             LMSProject project = new LMSProject(path);
             modelRender_.setGeometry(project.geometry_);
             modelRender_.setView(Views.UP);
@@ -157,13 +158,16 @@ namespace ResponseAnalyzer
                 modelRender_.draw();
             }
         }
+        private void glWindow_Resize(object sender, EventArgs e)
+        {
+            GL.Viewport(0, 0, glWindow.Width, glWindow.Height);
+        }
+
         static class MouseWeights
         {
             public const float scaling = 0.001f;
             public const float translation = 1.2f;
             public const float rotation = 1.0f;
         }
-
-
     }
 }

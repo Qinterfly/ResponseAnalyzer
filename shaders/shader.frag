@@ -1,7 +1,8 @@
-#version 450 core
+#version 330 core
 
-uniform vec4 definedColor;
 out vec4 outputColor;
+uniform vec4 definedColor;
+
 
 void main()
 {

@@ -30,9 +30,9 @@ namespace ResponseAnalyzer
             // Defining all the colors for further selection
             availableColors_ = new List<Color4>()
             {
-                Color4.Blue, Color4.Green, Color4.Yellow,
-                Color4.Red, Color4.Orange, Color4.Purple,
-                Color4.Aquamarine, Color4.Coral, Color4.Chocolate
+                Color4.Blue, Color4.Green, Color4.DarkOrange,
+                Color4.Red, Color4.YellowGreen, Color4.Purple,
+                Color4.DarkBlue, Color4.DarkCyan, Color4.Chocolate
             };
             // Transformations
             position_ = Vector3.Zero;
@@ -44,7 +44,7 @@ namespace ResponseAnalyzer
         // Check if it's all the data is correct
         public bool isCongruent()
         {
-            return componentNames_.Count != 0 && glControl_ != null;
+            return componentNames_ != null && glControl_ != null;
         }
 
         // Retreiving drawing objects from the user specified geometry
@@ -66,7 +66,7 @@ namespace ResponseAnalyzer
             float[,] limits = new float[3, 2];
             float tempVal = float.MaxValue;
             for (int i = 0; i != 3; ++i) {
-                limits[i, 0] = tempVal;
+                limits[i, 0] =  tempVal;
                 limits[i, 1] = -tempVal;
             }
             foreach (string component in componentNames)
@@ -161,27 +161,28 @@ namespace ResponseAnalyzer
                     insertInd = insertInd + 4;
                 }
                 componentSet_.elementData[ElementType.QUADS].Add(component, quadsInd);
-                // Generate buffers for rendering
-                generateBuffers(component);
                 // Specifying colors
                 indexCurrentColor = indexCurrentColor >= nColors - 1 ? 0 : indexCurrentColor + 1;
                 componentSet_.colors.Add(component, availableColors_[indexCurrentColor]);
             }
             // Calculating the range of the coordinates { Min -- (:, 0), Delta -- (:, 1) }
             float[] shift = new float[3];
+            float maxProj = 0.0f;
             for (int i = 0; i != 3; ++i)
             {
-                limits[i, 1] = limits[i, 1] - limits[i, 0];
+                limits[i, 1] -= limits[i, 0];
                 shift[i] = -1.0f;
+                if (Math.Abs(limits[i, 1]) > maxProj)
+                    maxProj = Math.Abs(limits[i, 1]);
                 if (Math.Abs(limits[i, 1]) <= float.Epsilon)
-                {
-                    limits[i, 1] = 1.0f;
                     shift[i] = 0.0f;
-                }
             }
-            // Normalizing the coordinates
+            // Normalizing the coordinates and generating the buffers to render
             foreach (string component in componentNames)
-                normalizeVertices((float[])componentSet_.vertices[component], limits, shift);
+            {
+                normalizeVertices((float[])componentSet_.vertices[component], limits, shift, maxProj);
+                generateBuffers(component);
+            }
         }
 
         public void generateBuffers(string componentName)
@@ -213,10 +214,6 @@ namespace ResponseAnalyzer
                 elementBufferPointers[(int)type] = elementBufferObject;
             }
             componentBuffers_.elements.Add(componentName, elementBufferPointers);
-            // Rendering options
-            GL.PointSize(DrawParameters.pointSize);
-            GL.LineWidth(DrawParameters.lineWidth);
-            projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, -100.0f, 100.0f);
         }
 
         public void setControl(OpenTK.GLControl glControl)
@@ -228,16 +225,21 @@ namespace ResponseAnalyzer
         public void initGL()
         {
             GL.ClearColor(Color4.White);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             // Z-buffer
+            GL.ClearDepth(1.0f);
             GL.DepthMask(true);
+            GL.DepthFunc(DepthFunction.Less);
             GL.Enable(EnableCap.DepthTest);
             // Smoothing
             GL.Enable(EnableCap.LineSmooth);
             GL.Enable(EnableCap.PolygonSmooth);
-            // Offsets
-            //GL.PolygonOffset(0.01f, 0.01f);
+            // Sizes
+            GL.PointSize(DrawParameters.pointSize);
+            GL.LineWidth(DrawParameters.lineWidth);
+            projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, 0.01f, 100.0f);
         }
+
         public void setScale(float scale)
         {
             modelScale_ *= Matrix4.CreateScale(scale, scale, 0.0f);
@@ -283,18 +285,18 @@ namespace ResponseAnalyzer
                     setRotation(new Vector3(0.0f, -MathHelper.PiOver2, 0.0f));
                     break;
                 case Views.ISOMETRIC:
-                    setRotation(new Vector3(2.0f * MathHelper.PiOver3, 0.0f, MathHelper.PiOver4));
+                    setRotation(new Vector3(MathHelper.PiOver4, MathHelper.PiOver6, -1.0f * MathHelper.PiOver4));
                     break;
             }
         }
 
-        private void normalizeVertices(float[] vertices, float[,] limits, float[] shift)
+        private void normalizeVertices(float[] vertices, float[,] limits, float[] shift, float maxProj)
         {
-            int nVertices = vertices.Length;
-            for (int i = 0; i != nVertices; i = i + 3)
+            int lenVertices = vertices.Length;
+            for (int i = 0; i != lenVertices; i = i + 3)
             {
                 for (int j = 0; j != 3; ++j)
-                    vertices[i + j] = 2.0f * (vertices[i + j] - limits[j, 0]) / limits[j, 1] + shift[j];
+                    vertices[i + j] = 2.0f * (vertices[i + j] - limits[j, 0]) / maxProj + shift[j];
             }
         }
 
@@ -303,7 +305,7 @@ namespace ResponseAnalyzer
             if (!isCongruent())
                 return;
             // Preparing the window
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             // Drawing the components
             shader_.Use();
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
@@ -314,15 +316,13 @@ namespace ResponseAnalyzer
             int VAO, EBO;
             int sizeElement;
             int nVertices = 0;
-            Color4 color;
             foreach (string component in componentNames_)
             {
                 VAO = componentBuffers_.vertexBufferObject[component];
                 GL.BindBuffer(BufferTarget.ArrayBuffer, VAO);
                 GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
                 GL.EnableVertexAttribArray(0);
-                color = componentSet_.colors[component];
-                GL.Uniform4(colorLocation, color);
+                GL.Uniform4(colorLocation, componentSet_.colors[component]);
                 foreach (ElementType type in elementTypes_)
                 {
                     EBO = componentBuffers_.elements[component][(int)type];
@@ -338,6 +338,7 @@ namespace ResponseAnalyzer
             }
             glControl_.SwapBuffers();
         }
+
         // Control
         private OpenTK.GLControl glControl_ = null;
         // Components data
@@ -391,8 +392,8 @@ namespace ResponseAnalyzer
     public static class DrawParameters 
     {
         public const float pointSize = 8.0f;
-        public const float lineWidth = 1.0f;
-        public const float defaultScale = 0.8f;
+        public const float lineWidth = 1.25f;
+        public const float defaultScale = 0.9f;
     }
 
     public enum Views 
