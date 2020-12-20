@@ -30,12 +30,17 @@ namespace ResponseAnalyzer
             modelTranslation_ = Matrix4.CreateTranslation(position_);
         }
 
-        public void setRotation(float dRotX, float dRotY)
+        public void setRotationXY(float dRotX, float dRotY)
         {
             modelRotation_ *= Matrix4.CreateRotationX(dRotX)
                             * Matrix4.CreateRotationY(dRotY);
         }
 
+        public void setRotationAxis(Vector3 axis, float dRot)
+        {
+            modelRotation_ *= Matrix4.CreateFromAxisAngle(axis, dRot);
+        } 
+        
         public void setView(Views view)
         {
             position_ = Vector3.Zero;
@@ -44,22 +49,22 @@ namespace ResponseAnalyzer
             switch (view)
             {
                 case Views.FRONT:
-                    setRotation(0.0f, 0.0f);
+                    setRotationXY(0.0f, 0.0f);
                     break;
                 case Views.BACK:
-                    setRotation(MathHelper.TwoPi, 0.0f);
+                    setRotationAxis(Vector3.UnitX, MathHelper.TwoPi);
                     break;
                 case Views.UP:
-                    setRotation(MathHelper.PiOver2, 0.0f);
+                    setRotationAxis(Vector3.UnitX, MathHelper.PiOver2);
                     break;
                 case Views.DOWN:
-                    setRotation(-MathHelper.PiOver2, 0.0f);
+                    setRotationAxis(Vector3.UnitX, -MathHelper.PiOver2);
                     break;
                 case Views.LEFT:
-                    setRotation(0.0f, MathHelper.PiOver2);
+                    setRotationAxis(Vector3.UnitY, MathHelper.PiOver2);
                     break;
                 case Views.RIGHT:
-                    setRotation(0.0f, -MathHelper.PiOver2);
+                    setRotationAxis(Vector3.UnitY, -MathHelper.PiOver2);
                     break;
             }
         }

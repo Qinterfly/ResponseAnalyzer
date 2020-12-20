@@ -101,7 +101,6 @@ namespace ResponseAnalyzer
             }
             glControl_.SwapBuffers();
         }
-       
 
         public static class DrawOptions
         {
@@ -115,8 +114,7 @@ namespace ResponseAnalyzer
         public enum Views
         {
             FRONT, BACK,
-            UP, DOWN, LEFT, RIGHT,
-            ISOMETRIC
+            UP, DOWN, LEFT, RIGHT
         }
     }
 }

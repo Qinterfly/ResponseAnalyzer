@@ -133,7 +133,7 @@ namespace ResponseAnalyzer
                 float dRotY = (e.X - lastMousePosition_[0]);
                 dRotX = MathHelper.DegreesToRadians(dRotX) * MouseWeights.rotation;
                 dRotY = MathHelper.DegreesToRadians(dRotY) * MouseWeights.rotation;
-                modelRenderer_.setRotation(dRotX, dRotY);
+                modelRenderer_.setRotationXY(dRotX, dRotY);
                 modelRenderer_.draw();
                 lastMousePosition_[0] = e.X;
                 lastMousePosition_[1] = e.Y;
@@ -165,7 +165,7 @@ namespace ResponseAnalyzer
         {
             if (e.KeyData == (Keys.Control | Keys.F))
             {
-                modelRenderer_.setView(LMSModel.Views.FRONT);
+                modelRenderer_.setView(LMSModel.Views.UP);
                 modelRenderer_.draw();
             }
         }

@@ -204,7 +204,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel8.ColumnCount = 3;
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20.64777F));
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 79.35223F));
-            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 70F));
+            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 71F));
             this.tableLayoutPanel8.Controls.Add(this.label2, 0, 0);
             this.tableLayoutPanel8.Controls.Add(this.textBox1, 1, 0);
             this.tableLayoutPanel8.Controls.Add(this.button2, 2, 0);
@@ -233,7 +233,7 @@ namespace ResponseAnalyzer
             this.textBox1.Location = new System.Drawing.Point(50, 3);
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(176, 41);
+            this.textBox1.Size = new System.Drawing.Size(175, 41);
             this.textBox1.TabIndex = 1;
             // 
             // button2
@@ -241,7 +241,7 @@ namespace ResponseAnalyzer
             this.button2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.button2.Image = global::ResponseProcessor.properties.Resources.add;
-            this.button2.Location = new System.Drawing.Point(232, 4);
+            this.button2.Location = new System.Drawing.Point(231, 4);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(34, 23);
             this.button2.TabIndex = 2;
@@ -537,7 +537,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 21.2766F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 78.7234F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 65F));
+            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 66F));
             this.tableLayoutPanel6.Controls.Add(this.labelProjectPath, 0, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonOpenProject, 2, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonUpdateProject, 3, 0);
@@ -566,7 +566,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonOpenProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenProject.Image = global::ResponseProcessor.properties.Resources.add;
-            this.buttonOpenProject.Location = new System.Drawing.Point(221, 3);
+            this.buttonOpenProject.Location = new System.Drawing.Point(220, 3);
             this.buttonOpenProject.Name = "buttonOpenProject";
             this.buttonOpenProject.Size = new System.Drawing.Size(29, 22);
             this.buttonOpenProject.TabIndex = 2;
@@ -577,7 +577,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonUpdateProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonUpdateProject.Image = global::ResponseProcessor.properties.Resources.refresh;
-            this.buttonUpdateProject.Location = new System.Drawing.Point(257, 3);
+            this.buttonUpdateProject.Location = new System.Drawing.Point(256, 3);
             this.buttonUpdateProject.Name = "buttonUpdateProject";
             this.buttonUpdateProject.Size = new System.Drawing.Size(30, 22);
             this.buttonUpdateProject.TabIndex = 3;
@@ -590,7 +590,7 @@ namespace ResponseAnalyzer
             this.textBoxProjectPath.Location = new System.Drawing.Point(49, 3);
             this.textBoxProjectPath.Name = "textBoxProjectPath";
             this.textBoxProjectPath.ReadOnly = true;
-            this.textBoxProjectPath.Size = new System.Drawing.Size(166, 41);
+            this.textBoxProjectPath.Size = new System.Drawing.Size(165, 41);
             this.textBoxProjectPath.TabIndex = 1;
             // 
             // glWindow
