@@ -14,7 +14,7 @@ namespace ResponseAnalyzer
         {
             InitializeComponent();
             comboBoxSelection.SelectedIndex = 0;
-            modelRender_ = new LMSRender();
+            modelRenderer_ = new LMSModel();
         }
 
         // Opening project
@@ -35,7 +35,7 @@ namespace ResponseAnalyzer
                     textBoxProjectPath.Text = filePath;
                     setStatus("The project was successfully opened");
                 }
-                modelRender_.setGeometry(project.geometry_);
+                modelRenderer_.setGeometry(project.geometry_);
             }
             else if (dialogResult != DialogResult.Cancel)
             {
@@ -74,7 +74,7 @@ namespace ResponseAnalyzer
         private void glWindow_Load(object sender, EventArgs e)
         {
             glWindow.MakeCurrent();
-            modelRender_.setControl(glWindow);
+            modelRenderer_.setControl(glWindow);
             // -- Debug only --
             testRender();
             // ----------------
@@ -82,14 +82,14 @@ namespace ResponseAnalyzer
 
         private void glWindow_Paint(object sender, PaintEventArgs e)
         {
-            modelRender_.draw();
+            modelRenderer_.draw();
         }
 
         private void glWindow_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             float scale = 1.0f + MouseWeights.scaling * e.Delta;
-            modelRender_.setScale(scale);
-            modelRender_.draw();
+            modelRenderer_.setScale(scale);
+            modelRenderer_.draw();
         }
         private void glWindow_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
@@ -112,8 +112,8 @@ namespace ResponseAnalyzer
                 float dX = (mouse.X - baseMouseState_.X) / (float) glWindow.Width * MouseWeights.translation; 
                 float dY = (mouse.Y - baseMouseState_.Y) / (float) glWindow.Height * MouseWeights.translation;
                 Vector3 displacement = new Vector3(dX, -dY, 0.0f);
-                modelRender_.setTranslation(displacement);
-                modelRender_.draw();
+                modelRenderer_.setTranslation(displacement);
+                modelRenderer_.draw();
                 baseMouseState_ = mouse;
             }
             if (isRotation_)
@@ -123,8 +123,8 @@ namespace ResponseAnalyzer
                 dRotX = MathHelper.DegreesToRadians(dRotX) * MouseWeights.rotation;
                 dRotY = MathHelper.DegreesToRadians(dRotY) * MouseWeights.rotation;
                 Vector3 diffRot = new Vector3(dRotX, dRotY, 0.0f);
-                modelRender_.setRotation(diffRot);
-                modelRender_.draw();
+                modelRenderer_.setRotation(diffRot);
+                modelRenderer_.draw();
                 baseMouseState_ = mouse;
             }
         }
@@ -146,16 +146,16 @@ namespace ResponseAnalyzer
             //string path = Path.GetFullPath(@"..\..\examples\Airplane.lms");
             string path = Path.GetFullPath(@"..\..\examples\Yak130.lms");
             LMSProject project = new LMSProject(path);
-            modelRender_.setGeometry(project.geometry_);
-            modelRender_.setView(Views.UP);
+            modelRenderer_.setGeometry(project.geometry_);
+            modelRenderer_.setView(LMSModel.Views.UP);
         }
 
         private void glWindow_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == (Keys.Control | Keys.F))
             {
-                modelRender_.setView(Views.FRONT);
-                modelRender_.draw();
+                modelRenderer_.setView(LMSModel.Views.FRONT);
+                modelRenderer_.draw();
             }
         }
         private void glWindow_Resize(object sender, EventArgs e)

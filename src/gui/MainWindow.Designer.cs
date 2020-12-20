@@ -24,7 +24,7 @@ namespace ResponseAnalyzer
 
         // Data
         private LMSProject project;
-        private LMSRender modelRender_;
+        private LMSModel modelRenderer_;
         private MouseState baseMouseState_;
         private bool isTranslation_ = false;
         private bool isRotation_ = false;
