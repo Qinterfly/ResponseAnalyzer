@@ -23,6 +23,7 @@ namespace ResponseAnalyzer
             // Stencil
             GL.ClearStencil(0);
             GL.Enable(EnableCap.StencilTest);
+            GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
             // Smoothing
             GL.Enable(EnableCap.LineSmooth);
             GL.Enable(EnableCap.PolygonSmooth);
@@ -33,10 +34,11 @@ namespace ResponseAnalyzer
             availableColors_ = new List<Color4>()
             {
                 Color4.Blue, Color4.Green, Color4.DarkOrange,
-                Color4.Red, Color4.Yellow, Color4.Purple,
+                Color4.Red, Color4.SaddleBrown, Color4.Purple,
                 Color4.DarkBlue, Color4.DarkCyan, Color4.Chocolate
             };
             selection_ = new Dictionary<string, List<uint>>();
+            selectionColor_ = Color4.Yellow;
             // Transformations
             location_ = Vector3.Zero;
             modelTranslation_ = Matrix4.Identity;
@@ -105,23 +107,15 @@ namespace ResponseAnalyzer
                 int attrib = shader_.GetAttribLocation("inPosition");
                 GL.VertexAttribPointer(attrib, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
                 GL.EnableVertexAttribArray(0);
-                GL.Uniform4(colorLocation, componentSet_.colors[component]); // ?
-                // All points
-                 //GL.StencilMask(0xFF);
+                Color4 componentColor = componentSet_.colors[component];
+                // Points
+                GL.StencilMask(0xFF);
+                GL.StencilFunc(StencilFunction.Always, 1, 0xFF); // Drawing all the points
+                GL.Uniform4(colorLocation, componentColor);
                 nVertices = componentSet_.vertices[component].Length / 3;
-                //GL.DrawArrays(PrimitiveType.Points, 0, nVertices);
-                // Selected points
-                if (selection_.Count != 0 && selection_.ContainsKey(component)) 
-                {
-                    GL.Uniform4(colorLocation, Color4.Black); // ?
-                    uint[] indices = selection_[component].ToArray();
-                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, componentBuffers_.selection[component]);
-                    GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.DynamicDraw);
-                    GL.DrawElements(PrimitiveType.Points, indices.Length, DrawElementsType.UnsignedInt, 0);
-                }
+                GL.DrawArrays(PrimitiveType.Points, 0, nVertices);
                 // Elements
-                // GL.StencilMask(0x00);
-                GL.Uniform4(colorLocation, componentSet_.colors[component]); // ?
+                GL.Uniform4(colorLocation, componentColor);
                 foreach (ElementType type in elementTypes_)
                 {
                     EBO = componentBuffers_.elements[component][(int)type];
@@ -132,12 +126,27 @@ namespace ResponseAnalyzer
                         GL.DrawElements(mapElements_[type], sizeElement, DrawElementsType.UnsignedInt, 0);
                     }
                 }
+                // Selected points
+                if (selection_.Count != 0 && selection_.ContainsKey(component))
+                {
+                    GL.StencilFunc(StencilFunction.Notequal, 1, 0xFF); // Discarding selected points
+                    GL.StencilMask(0x00);
+                    GL.Disable(EnableCap.DepthTest);
+                    GL.Uniform4(colorLocation, selectionColor_);
+                    uint[] indices = selection_[component].ToArray();
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, componentBuffers_.selection[component]);
+                    GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.DynamicDraw);
+                    GL.DrawElements(PrimitiveType.Points, indices.Length, DrawElementsType.UnsignedInt, 0);
+                    GL.StencilMask(0xFF);
+                    GL.Enable(EnableCap.DepthTest);
+                }
             }
             glControl_.SwapBuffers();
         }
 
         // Colors
         private List<Color4> availableColors_;
+        private Color4 selectionColor_;
         // Orientation
         private Matrix4 modelTranslation_;
         private Matrix4 modelScale_;

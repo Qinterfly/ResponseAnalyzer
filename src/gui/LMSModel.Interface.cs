@@ -89,6 +89,11 @@ namespace ResponseAnalyzer
             return selected;
         }
 
+        public void clearSelection()
+        {
+            selection_.Clear();
+        }
+
         public void select(int mouseX, int mouseY, bool isNewSelection)
         {
             Matrix4 modelView = modelRotation_ * modelScale_ * modelTranslation_ * view_;
@@ -98,6 +103,7 @@ namespace ResponseAnalyzer
             Vector3 tempVector = Vector3.Zero;
             string minComponent = string.Empty;
             uint minNode = 0;
+            // Finding the nearest model node to the picked one
             foreach (string component in componentNames_)
             {
                 float[] vertices = (float[]) componentSet_.vertices[component];
@@ -108,8 +114,6 @@ namespace ResponseAnalyzer
                     tempVector.Y = vertices[i + 1];
                     tempVector.Z = vertices[i + 2];
                     dist = ObjectPicker.DistanceFromPoint(mouseLocation, tempVector, modelView, projection_);
-                    // .. TODO.. 
-                    // Check if the node is already selected
                     if (dist < minDist)
                     {
                         minDist = dist;
@@ -121,9 +125,13 @@ namespace ResponseAnalyzer
             if (isNewSelection)
                 selection_.Clear();
             List<uint> indSel;
+            // Adding to the selection set
             if (selection_.ContainsKey(minComponent))
             {
                 indSel = selection_[minComponent];
+                // Deselect if it has been already selected
+                if (indSel.Remove(minNode))
+                    return;
             }
             else
             {

@@ -164,10 +164,16 @@ namespace ResponseAnalyzer
 
         private void glWindow_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyData == (Keys.Control | Keys.F))
+            switch (e.KeyData)
             {
-                modelRenderer_.setView(LMSModel.Views.UP);
-                modelRenderer_.draw();
+                case Keys.Control | Keys.F:
+                    modelRenderer_.setView(LMSModel.Views.UP);
+                    modelRenderer_.draw();
+                    break;
+                case Keys.Escape:
+                    modelRenderer_.clearSelection();
+                    modelRenderer_.draw();
+                    break;
             }
         }
         private void glWindow_Resize(object sender, EventArgs e)
