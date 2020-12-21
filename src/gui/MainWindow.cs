@@ -110,6 +110,7 @@ namespace ResponseAnalyzer
                     if (keyboard.IsKeyDown(Key.ShiftLeft))
                         isNewSelection = false;
                     modelRenderer_.select(e.X, e.Y, isNewSelection);
+                    modelRenderer_.draw();
                     break;
             }
         }

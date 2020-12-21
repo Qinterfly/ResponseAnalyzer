@@ -26,18 +26,6 @@ namespace ResponseAnalyzer
             mapElements_[ElementType.LINES] = PrimitiveType.Lines;
             mapElements_[ElementType.TRIAS] = PrimitiveType.Triangles;
             mapElements_[ElementType.QUADS] = PrimitiveType.Quads;
-            // Defining all the colors for further selection
-            availableColors_ = new List<Color4>()
-            {
-                Color4.Blue, Color4.Green, Color4.DarkOrange,
-                Color4.Red, Color4.Yellow, Color4.Purple,
-                Color4.DarkBlue, Color4.DarkCyan, Color4.Chocolate
-            };
-            // Transformations
-            position_ = Vector3.Zero;
-            modelTranslation_ = Matrix4.Identity;
-            modelScale_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 1f);
-            modelRotation_ = Matrix4.Identity;
         }
 
         // Retreiving drawing objects from the user specified geometry
@@ -71,7 +59,8 @@ namespace ResponseAnalyzer
                 Dictionary<string, uint> mapNodes = new Dictionary<string, uint>();
                 for (uint iNode = 0; iNode != nNodes; ++iNode)
                     mapNodes.Add((string)nodeNames.GetValue(iNode), iNode);
-                componentSet_.nodeNames.Add(component, mapNodes);
+                componentSet_.mapNodeNames.Add(component, mapNodes);
+                componentSet_.nodeNames.Add(component, nodeNames);
                 // Component positions
                 double tX, tY, tZ, tRotXY, tRotXZ, tRotYZ;
                 geometry.ComponentValues(component, out tX, out tY, out tZ, out tRotXY, out tRotXZ, out tRotYZ);
@@ -188,8 +177,6 @@ namespace ResponseAnalyzer
             }
         }
             
-        // Control
-        private OpenTK.GLControl glControl_ = null;
         // Components data
         private List<string> componentNames_;
         private ComponentGeometry componentSet_;
@@ -197,16 +184,6 @@ namespace ResponseAnalyzer
         private ComponentBufferPointers componentBuffers_;
         private Array elementTypes_;
         private Dictionary<ElementType, PrimitiveType> mapElements_;
-        // Colors
-        private List<Color4> availableColors_;
-        // Orientation
-        private Matrix4 modelTranslation_;
-        private Matrix4 modelScale_;
-        private Matrix4 modelRotation_;
-        private Matrix4 projection_;
-        private Vector3 position_;
-        // Options
-        private PolygonMode polygonMode_ = PolygonMode.Fill;
     }
 
     public class ComponentGeometry
@@ -214,7 +191,8 @@ namespace ResponseAnalyzer
         public ComponentGeometry(Array elementTypes)
         {
             positions_ = new ArrayDictionary();
-            nodeNames = new StringDictionary();
+            mapNodeNames = new StringDictionary();
+            nodeNames = new ArrayDictionary();
             nodeAngles = new ArrayDictionary();
             elementData = new ElementDictionary();
             vertices = new ArrayDictionary();
@@ -223,7 +201,8 @@ namespace ResponseAnalyzer
             colors = new ColorDictionary();
         }
         public ArrayDictionary positions_;
-        public StringDictionary nodeNames;
+        public StringDictionary mapNodeNames;
+        public ArrayDictionary nodeNames;
         public ArrayDictionary nodeAngles;
         public ElementDictionary elementData;
         public ArrayDictionary vertices;
@@ -236,8 +215,10 @@ namespace ResponseAnalyzer
         {
             vertexBufferObject = new Dictionary<string, int>();
             elements = new Dictionary<string, int[]>();
+            selection = new Dictionary<string, int>();
         }
         public Dictionary<string, int> vertexBufferObject;
         public Dictionary<string, int[]> elements;
+        public Dictionary<string, int> selection;
     }
 }

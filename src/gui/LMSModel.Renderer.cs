@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -19,13 +20,29 @@ namespace ResponseAnalyzer
             GL.DepthMask(true);
             GL.DepthFunc(DepthFunction.Less);
             GL.Enable(EnableCap.DepthTest);
+            // Stencil
+            GL.ClearStencil(0);
+            GL.Enable(EnableCap.StencilTest);
             // Smoothing
             GL.Enable(EnableCap.LineSmooth);
             GL.Enable(EnableCap.PolygonSmooth);
             // Sizes
             GL.PointSize(DrawOptions.pointSize);
             GL.LineWidth(DrawOptions.lineWidth);
-            // Project
+            // Defining all the colors for further selection
+            availableColors_ = new List<Color4>()
+            {
+                Color4.Blue, Color4.Green, Color4.DarkOrange,
+                Color4.Red, Color4.Yellow, Color4.Purple,
+                Color4.DarkBlue, Color4.DarkCyan, Color4.Chocolate
+            };
+            selection_ = new Dictionary<string, List<uint>>();
+            // Transformations
+            location_ = Vector3.Zero;
+            modelTranslation_ = Matrix4.Identity;
+            modelScale_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 1f);
+            modelRotation_ = Matrix4.Identity;
+            view_ = Matrix4.Identity;
             projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
         }
 
@@ -39,8 +56,8 @@ namespace ResponseAnalyzer
             GL.BufferData(BufferTarget.ArrayBuffer, lenVertices * sizeof(float), vertices, BufferUsageHint.StaticDraw);
             // Compiling a shader
             shader_ = new Shader("../../shaders/shader.vert", "../../shaders/shader.frag");
-            shader_.Use();
             componentBuffers_.vertexBufferObject.Add(componentName, vertexBufferObject);
+            // Buffers for each element
             Array elementTypes = Enum.GetValues(typeof(ElementType));
             int nElements = elementTypes.Length;
             int[] elementBufferPointers = new int[nElements];
@@ -58,6 +75,9 @@ namespace ResponseAnalyzer
                 elementBufferPointers[(int)type] = elementBufferObject;
             }
             componentBuffers_.elements.Add(componentName, elementBufferPointers);
+            // Selection buffer
+            elementBufferObject = GL.GenBuffer();
+            componentBuffers_.selection.Add(componentName, elementBufferObject);
         }
 
         // Draw all the elements
@@ -72,7 +92,7 @@ namespace ResponseAnalyzer
             shader_.Use();
             Matrix4 model = modelRotation_ * modelScale_ * modelTranslation_;
             shader_.SetMatrix4("model", model);
-            shader_.SetMatrix4("view", Matrix4.Identity);
+            shader_.SetMatrix4("view", view_);
             shader_.SetMatrix4("projection", projection_);
             int colorLocation = shader_.GetUniformLocation("definedColor");
             int VAO, EBO;
@@ -85,9 +105,23 @@ namespace ResponseAnalyzer
                 int attrib = shader_.GetAttribLocation("inPosition");
                 GL.VertexAttribPointer(attrib, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
                 GL.EnableVertexAttribArray(0);
-                GL.Uniform4(colorLocation, componentSet_.colors[component]);
+                GL.Uniform4(colorLocation, componentSet_.colors[component]); // ?
+                // All points
+                 //GL.StencilMask(0xFF);
                 nVertices = componentSet_.vertices[component].Length / 3;
-                GL.DrawArrays(PrimitiveType.Points, 0, nVertices);
+                //GL.DrawArrays(PrimitiveType.Points, 0, nVertices);
+                // Selected points
+                if (selection_.Count != 0 && selection_.ContainsKey(component)) 
+                {
+                    GL.Uniform4(colorLocation, Color4.Black); // ?
+                    uint[] indices = selection_[component].ToArray();
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, componentBuffers_.selection[component]);
+                    GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.DynamicDraw);
+                    GL.DrawElements(PrimitiveType.Points, indices.Length, DrawElementsType.UnsignedInt, 0);
+                }
+                // Elements
+                // GL.StencilMask(0x00);
+                GL.Uniform4(colorLocation, componentSet_.colors[component]); // ?
                 foreach (ElementType type in elementTypes_)
                 {
                     EBO = componentBuffers_.elements[component][(int)type];
@@ -101,6 +135,18 @@ namespace ResponseAnalyzer
             }
             glControl_.SwapBuffers();
         }
+
+        // Colors
+        private List<Color4> availableColors_;
+        // Orientation
+        private Matrix4 modelTranslation_;
+        private Matrix4 modelScale_;
+        private Matrix4 modelRotation_;
+        private Matrix4 view_;
+        private Matrix4 projection_;
+        private Vector3 location_;
+        // Options
+        private PolygonMode polygonMode_ = PolygonMode.Fill;
 
         public static class DrawOptions
         {
