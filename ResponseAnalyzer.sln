@@ -1,25 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.30517.126
+VisualStudioVersion = 16.0.30523.141
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResponseAnalyzer", "ResponseAnalyzer.csproj", "{AB3DA8ED-85D8-4EDE-9D8F-2D56A9A8DE94}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResponseAnalyzer", "project\ResponseAnalyzer.csproj", "{F93A5059-E182-4C7C-8D32-BF76C1957112}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AB3DA8ED-85D8-4EDE-9D8F-2D56A9A8DE94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AB3DA8ED-85D8-4EDE-9D8F-2D56A9A8DE94}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AB3DA8ED-85D8-4EDE-9D8F-2D56A9A8DE94}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AB3DA8ED-85D8-4EDE-9D8F-2D56A9A8DE94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F93A5059-E182-4C7C-8D32-BF76C1957112}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F93A5059-E182-4C7C-8D32-BF76C1957112}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F93A5059-E182-4C7C-8D32-BF76C1957112}.Debug|x64.ActiveCfg = Debug|x64
+		{F93A5059-E182-4C7C-8D32-BF76C1957112}.Debug|x64.Build.0 = Debug|x64
+		{F93A5059-E182-4C7C-8D32-BF76C1957112}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F93A5059-E182-4C7C-8D32-BF76C1957112}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F93A5059-E182-4C7C-8D32-BF76C1957112}.Release|x64.ActiveCfg = Release|x64
+		{F93A5059-E182-4C7C-8D32-BF76C1957112}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {64E6DBA7-1092-44AA-924E-EB518ED8FEBF}
+		SolutionGuid = {F97D1A1C-895B-402F-8E60-53BD5D27724D}
 	EndGlobalSection
 EndGlobal

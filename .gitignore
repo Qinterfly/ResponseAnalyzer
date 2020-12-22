@@ -1,8 +1,8 @@
 archive
-bin
+help
 examples/RRJ-95*
 examples/Airplane*
 examples/Yak130*
-obj
-help
+project/bin
+project/obj
 TODO.txt
