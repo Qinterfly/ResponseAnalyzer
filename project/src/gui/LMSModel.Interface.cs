@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 
 namespace ResponseAnalyzer
 {
@@ -44,6 +44,11 @@ namespace ResponseAnalyzer
         {
             modelRotation_ *= Matrix4.CreateFromAxisAngle(axis, dRot);
         } 
+
+        public void setPolygonMode(PolygonMode mode)
+        {
+            polygonMode_ = mode;
+        }
         
         public void setView(Views view)
         {
@@ -53,9 +58,11 @@ namespace ResponseAnalyzer
             switch (view)
             {
                 case Views.FRONT:
+                    setTranslation(0.0f, DrawOptions.defaultY);
                     setRotationXY(0.0f, 0.0f);
                     break;
                 case Views.BACK:
+                    setTranslation(0.0f, DrawOptions.defaultY);
                     setRotationAxis(Vector3.UnitX, MathHelper.TwoPi);
                     break;
                 case Views.UP:
@@ -65,10 +72,16 @@ namespace ResponseAnalyzer
                     setRotationAxis(Vector3.UnitX, -MathHelper.PiOver2);
                     break;
                 case Views.LEFT:
+                    setTranslation(0.0f, DrawOptions.defaultY);
                     setRotationAxis(Vector3.UnitY, MathHelper.PiOver2);
                     break;
                 case Views.RIGHT:
+                    setTranslation(0.0f, DrawOptions.defaultY);
                     setRotationAxis(Vector3.UnitY, -MathHelper.PiOver2);
+                    break;
+                case Views.ISOMETRIC:
+                    setTranslation(0.0f, DrawOptions.defaultY);
+                    setRotationAxis(isoVector_, isoAngle_);
                     break;
             }
         }
@@ -155,7 +168,7 @@ namespace ResponseAnalyzer
             indSel.Add(iNode);
         }
 
-        public void removeSeletion(string component, string node)
+        public void removeSelection(string component, string node)
         {
             if (selection_.ContainsKey(component) && componentSet_.mapNodeNames[component].ContainsKey(node))
                 selection_[component].Remove(componentSet_.mapNodeNames[component][node]);

@@ -42,7 +42,7 @@ namespace ResponseAnalyzer
             // Transformations
             location_ = Vector3.Zero;
             modelTranslation_ = Matrix4.Identity;
-            modelScale_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 1f);
+            modelScale_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 1.0f);
             modelRotation_ = Matrix4.Identity;
             view_ = Matrix4.Identity;
             projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
@@ -155,13 +155,17 @@ namespace ResponseAnalyzer
         private Matrix4 projection_;
         private Vector3 location_;
         // Options
-        private PolygonMode polygonMode_ = PolygonMode.Line;
+        private PolygonMode polygonMode_ = PolygonMode.Fill;
+        private Vector3 isoVector_ = new Vector3(0.4607291f, -0.8350012f, -0.3008356f);
+        private float isoAngle_ = 0.910852849f;
+
 
         public static class DrawOptions
         {
             public const float pointSize = 8.0f;
             public const float lineWidth = 1.25f;
-            public const float defaultScale = 200.0f;
+            public const float defaultScale = 220.0f;
+            public const float defaultY = 100.0f;
             public const float zNear = -10.0f;
             public const float zFar = 10.0f;
         }
@@ -169,7 +173,7 @@ namespace ResponseAnalyzer
         public enum Views
         {
             FRONT, BACK,
-            UP, DOWN, LEFT, RIGHT
+            UP, DOWN, LEFT, RIGHT, ISOMETRIC
         }
     }
 }

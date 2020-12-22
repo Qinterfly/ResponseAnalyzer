@@ -3,7 +3,12 @@ using System.IO;
 using OpenTK;
 using OpenTK.Input;
 using System.Windows.Forms;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
+
+using QuickFont;
+using QuickFont.Configuration;
+using System.Drawing.Text;
+using System.Collections.Generic;
 
 namespace ResponseAnalyzer
 {
@@ -94,15 +99,28 @@ namespace ResponseAnalyzer
                 TreeNode line = treeSelection.Nodes[iSelectedSet_];
                 line.Nodes.Clear();
                 var selection = modelRenderer_.getSelection();
-                foreach (string item in selection)
-                    line.Nodes.Add(item);
-                if (selection.Count == 0) // If the resulting set is empty
+                if (selection.Count < 2)
+                {
                     line.Remove();
+                }
+                else
+                {
+                    foreach (string item in selection)
+                        line.Nodes.Add(item);
+                }
                 iSelectedSet_ = -1;
             }
             else
             { 
                 iSelectedSet_ = treeSelection.SelectedNode.Index;
+                modelRenderer_.clearSelection();
+                // Select all the nodes in the set
+                foreach (TreeNode item in treeSelection.SelectedNode.Nodes)
+                {
+                    string[] selectionInfo = item.Text.Split(selectionDelimiter_);
+                    modelRenderer_.select(selectionInfo[0], selectionInfo[1], false);
+                }
+                modelRenderer_.draw();
             }
             // Invert the states of the controls
             buttonAddSelection.Enabled = isEditSelection;
@@ -137,13 +155,14 @@ namespace ResponseAnalyzer
         {
             string selectedNode = node.Text;
             string[] selectionInfo = selectedNode.Split(selectionDelimiter_);
-            modelRenderer_.removeSeletion(selectionInfo[0], selectionInfo[1]);
+            modelRenderer_.removeSelection(selectionInfo[0], selectionInfo[1]);
         }
 
         private void glWindow_Load(object sender, EventArgs e)
         {
             glWindow.MakeCurrent();
             modelRenderer_.setControl(glWindow);
+
             // -- Debug only --
             testRender();
             // ----------------
@@ -189,9 +208,12 @@ namespace ResponseAnalyzer
                     modelRenderer_.select(e.X, e.Y, isNewSelection);
                     modelRenderer_.draw();
                     break;
+                case MouseButtons.Right:
+                    glContextMenu.Show(Cursor.Position.X, Cursor.Position.Y);
+                    break;
             }
         }
-
+        
         private void glWindow_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             var keyboard = Keyboard.GetState();
@@ -236,7 +258,7 @@ namespace ResponseAnalyzer
             string path = Path.GetFullPath(@"..\..\..\examples\Yak130.lms");
             project = new LMSProject(path);
             modelRenderer_.setGeometry(project.geometry_);
-            modelRenderer_.setView(LMSModel.Views.UP);
+            modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
             setEnabled();
         }
 
@@ -264,6 +286,47 @@ namespace ResponseAnalyzer
             public const float scaling = 0.001f;
             public const float translation = 1.0f;
             public const float rotation = 1.0f;
+        }
+
+        private void stripMode_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            switch (e.ClickedItem.Text.ToUpper()) { 
+                case "LINE":
+                    modelRenderer_.setPolygonMode(PolygonMode.Line);
+                    break;
+                case "FILL":
+                    modelRenderer_.setPolygonMode(PolygonMode.Fill);
+                    break;
+            }
+            modelRenderer_.draw();
+        }
+
+        private void stripView_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            switch (e.ClickedItem.Text.ToUpper()) {
+                case "FRONT":
+                    modelRenderer_.setView(LMSModel.Views.FRONT);
+                    break;
+                case "BACK":
+                    modelRenderer_.setView(LMSModel.Views.BACK);
+                    break;
+                case "UP":
+                    modelRenderer_.setView(LMSModel.Views.UP);
+                    break;
+                case "DOWN":
+                    modelRenderer_.setView(LMSModel.Views.DOWN);
+                    break;
+                case "LEFT":
+                    modelRenderer_.setView(LMSModel.Views.LEFT);
+                    break;
+                case "RIGHT":
+                    modelRenderer_.setView(LMSModel.Views.RIGHT);
+                    break;
+                case "ISOMETRIC":
+                    modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
+                    break;
+            }
+            modelRenderer_.draw();
         }
     }
 }

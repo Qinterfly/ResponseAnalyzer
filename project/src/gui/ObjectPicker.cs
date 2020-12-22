@@ -12,9 +12,9 @@ namespace ResponseAnalyzer
 
             int[] viewport = new int[4];
             GL.GetInteger(GetPName.Viewport, viewport);
-            Vector3 near = UnProject(new Vector3(mouseLocation.X, mouseLocation.Y, 0), modelView, projection); // start of ray (near plane)
-            Vector3 far = UnProject(new Vector3(mouseLocation.X, mouseLocation.Y, 1), modelView, projection); // end of ray (far plane)
-            Vector3 pt = ClosestPoint(near, far, testPoint); // find point on ray which is closest to test point
+            Vector3 near = UnProject(viewport, new Vector3(mouseLocation.X, mouseLocation.Y, 0), modelView, projection); // Near plane
+            Vector3 far = UnProject(viewport, new Vector3(mouseLocation.X, mouseLocation.Y, 1), modelView, projection);  // Far plane
+            Vector3 pt = ClosestPoint(near, far, testPoint); // Finding the nearest point
             return Vector3.Distance(pt, testPoint); 
         }
 
@@ -29,10 +29,8 @@ namespace ResponseAnalyzer
             return Q;
         }
 
-        private static Vector3 UnProject(Vector3 screen, Matrix4 modelView, Matrix4 projection)
+        private static Vector3 UnProject(int[] viewport, Vector3 screen, Matrix4 modelView, Matrix4 projection)
         {
-            int[] viewport = new int[4];
-            GL.GetInteger(GetPName.Viewport, viewport);
             Vector4 pos = new Vector4();
             pos.X = (screen.X - (float)viewport[0]) / (float)viewport[2] * 2.0f - 1.0f;
             pos.Y = 1.0f - (screen.Y - (float)viewport[1]) / (float)viewport[3] * 2.0f;

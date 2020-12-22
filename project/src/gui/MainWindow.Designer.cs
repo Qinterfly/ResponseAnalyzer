@@ -40,6 +40,7 @@ namespace ResponseAnalyzer
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ResponseAnalyzer));
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.statusStripLabel = new System.Windows.Forms.Label();
@@ -81,6 +82,18 @@ namespace ResponseAnalyzer
             this.buttonUpdateProject = new System.Windows.Forms.Button();
             this.textBoxProjectPath = new System.Windows.Forms.TextBox();
             this.glWindow = new OpenTK.GLControl();
+            this.glContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.stripPolygonMode = new System.Windows.Forms.ToolStripMenuItem();
+            this.glPolygonModeLine = new System.Windows.Forms.ToolStripMenuItem();
+            this.glPolygonModeFill = new System.Windows.Forms.ToolStripMenuItem();
+            this.stripView = new System.Windows.Forms.ToolStripMenuItem();
+            this.glViewFront = new System.Windows.Forms.ToolStripMenuItem();
+            this.glViewBack = new System.Windows.Forms.ToolStripMenuItem();
+            this.glViewUp = new System.Windows.Forms.ToolStripMenuItem();
+            this.glViewDown = new System.Windows.Forms.ToolStripMenuItem();
+            this.glViewLeft = new System.Windows.Forms.ToolStripMenuItem();
+            this.glViewRight = new System.Windows.Forms.ToolStripMenuItem();
+            this.glViewIsometric = new System.Windows.Forms.ToolStripMenuItem();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel5.SuspendLayout();
             this.tabStages.SuspendLayout();
@@ -98,6 +111,7 @@ namespace ResponseAnalyzer
             this.flowLayoutPanel2.SuspendLayout();
             this.groupBoxProject.SuspendLayout();
             this.tableLayoutPanel6.SuspendLayout();
+            this.glContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // statusStrip
@@ -207,7 +221,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel8.ColumnCount = 3;
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 23.18182F));
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 76.81818F));
-            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 45F));
+            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 47F));
             this.tableLayoutPanel8.Controls.Add(this.label2, 0, 0);
             this.tableLayoutPanel8.Controls.Add(this.textBox1, 1, 0);
             this.tableLayoutPanel8.Controls.Add(this.button2, 2, 0);
@@ -233,10 +247,10 @@ namespace ResponseAnalyzer
             // textBox1
             // 
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(62, 5);
+            this.textBox1.Location = new System.Drawing.Point(61, 5);
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(189, 21);
+            this.textBox1.Size = new System.Drawing.Size(188, 21);
             this.textBox1.TabIndex = 1;
             // 
             // button2
@@ -244,7 +258,7 @@ namespace ResponseAnalyzer
             this.button2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.button2.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.button2.Location = new System.Drawing.Point(257, 4);
+            this.button2.Location = new System.Drawing.Point(255, 4);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(34, 23);
             this.button2.TabIndex = 2;
@@ -526,7 +540,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 21.2766F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 78.7234F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 35F));
-            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 36F));
+            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 38F));
             this.tableLayoutPanel6.Controls.Add(this.labelProjectPath, 0, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonOpenProject, 2, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonUpdateProject, 3, 0);
@@ -555,7 +569,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonOpenProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenProject.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonOpenProject.Location = new System.Drawing.Point(251, 3);
+            this.buttonOpenProject.Location = new System.Drawing.Point(249, 3);
             this.buttonOpenProject.Name = "buttonOpenProject";
             this.buttonOpenProject.Size = new System.Drawing.Size(29, 22);
             this.buttonOpenProject.TabIndex = 2;
@@ -566,7 +580,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonUpdateProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonUpdateProject.Image = global::ResponseAnalyzer.Properties.Resources.refresh;
-            this.buttonUpdateProject.Location = new System.Drawing.Point(286, 3);
+            this.buttonUpdateProject.Location = new System.Drawing.Point(284, 3);
             this.buttonUpdateProject.Name = "buttonUpdateProject";
             this.buttonUpdateProject.Size = new System.Drawing.Size(30, 22);
             this.buttonUpdateProject.TabIndex = 3;
@@ -579,7 +593,7 @@ namespace ResponseAnalyzer
             this.textBoxProjectPath.Location = new System.Drawing.Point(55, 3);
             this.textBoxProjectPath.Name = "textBoxProjectPath";
             this.textBoxProjectPath.ReadOnly = true;
-            this.textBoxProjectPath.Size = new System.Drawing.Size(190, 21);
+            this.textBoxProjectPath.Size = new System.Drawing.Size(188, 21);
             this.textBoxProjectPath.TabIndex = 1;
             // 
             // glWindow
@@ -600,6 +614,93 @@ namespace ResponseAnalyzer
             this.glWindow.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glWindow_MouseUp);
             this.glWindow.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glWindow_MouseWheel);
             this.glWindow.Resize += new System.EventHandler(this.glWindow_Resize);
+            // 
+            // glContextMenu
+            // 
+            this.glContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.stripPolygonMode,
+            this.stripView});
+            this.glContextMenu.Name = "glMenu";
+            this.glContextMenu.Size = new System.Drawing.Size(181, 70);
+            // 
+            // stripPolygonMode
+            // 
+            this.stripPolygonMode.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.glPolygonModeLine,
+            this.glPolygonModeFill});
+            this.stripPolygonMode.Name = "stripPolygonMode";
+            this.stripPolygonMode.Size = new System.Drawing.Size(180, 22);
+            this.stripPolygonMode.Text = "Polygon mode";
+            this.stripPolygonMode.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.stripMode_DropDownItemClicked);
+            // 
+            // glPolygonModeLine
+            // 
+            this.glPolygonModeLine.Name = "glPolygonModeLine";
+            this.glPolygonModeLine.Size = new System.Drawing.Size(180, 22);
+            this.glPolygonModeLine.Text = "Line";
+            // 
+            // glPolygonModeFill
+            // 
+            this.glPolygonModeFill.Name = "glPolygonModeFill";
+            this.glPolygonModeFill.Size = new System.Drawing.Size(180, 22);
+            this.glPolygonModeFill.Text = "Fill";
+            // 
+            // stripView
+            // 
+            this.stripView.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.glViewFront,
+            this.glViewBack,
+            this.glViewUp,
+            this.glViewDown,
+            this.glViewLeft,
+            this.glViewRight,
+            this.glViewIsometric});
+            this.stripView.Name = "stripView";
+            this.stripView.Size = new System.Drawing.Size(180, 22);
+            this.stripView.Text = "View";
+            this.stripView.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.stripView_DropDownItemClicked);
+            // 
+            // glViewFront
+            // 
+            this.glViewFront.Name = "glViewFront";
+            this.glViewFront.Size = new System.Drawing.Size(180, 22);
+            this.glViewFront.Text = "Front";
+            // 
+            // glViewBack
+            // 
+            this.glViewBack.Name = "glViewBack";
+            this.glViewBack.Size = new System.Drawing.Size(180, 22);
+            this.glViewBack.Text = "Back";
+            // 
+            // glViewUp
+            // 
+            this.glViewUp.Name = "glViewUp";
+            this.glViewUp.Size = new System.Drawing.Size(180, 22);
+            this.glViewUp.Text = "Up";
+            // 
+            // glViewDown
+            // 
+            this.glViewDown.Name = "glViewDown";
+            this.glViewDown.Size = new System.Drawing.Size(180, 22);
+            this.glViewDown.Text = "Down";
+            // 
+            // glViewLeft
+            // 
+            this.glViewLeft.Name = "glViewLeft";
+            this.glViewLeft.Size = new System.Drawing.Size(180, 22);
+            this.glViewLeft.Text = "Left";
+            // 
+            // glViewRight
+            // 
+            this.glViewRight.Name = "glViewRight";
+            this.glViewRight.Size = new System.Drawing.Size(180, 22);
+            this.glViewRight.Text = "Right";
+            // 
+            // glViewIsometric
+            // 
+            this.glViewIsometric.Name = "glViewIsometric";
+            this.glViewIsometric.Size = new System.Drawing.Size(180, 22);
+            this.glViewIsometric.Text = "Isometric";
             // 
             // ResponseAnalyzer
             // 
@@ -634,6 +735,7 @@ namespace ResponseAnalyzer
             this.groupBoxProject.ResumeLayout(false);
             this.tableLayoutPanel6.ResumeLayout(false);
             this.tableLayoutPanel6.PerformLayout();
+            this.glContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -681,6 +783,18 @@ namespace ResponseAnalyzer
         private System.Windows.Forms.Button buttonAddSelection;
         private System.Windows.Forms.Button buttonRemoveSelection;
         private System.Windows.Forms.Button buttonEditSelection;
+        private System.Windows.Forms.ContextMenuStrip glContextMenu;
+        private System.Windows.Forms.ToolStripMenuItem stripPolygonMode;
+        private System.Windows.Forms.ToolStripMenuItem glPolygonModeLine;
+        private System.Windows.Forms.ToolStripMenuItem glPolygonModeFill;
+        private System.Windows.Forms.ToolStripMenuItem stripView;
+        private System.Windows.Forms.ToolStripMenuItem glViewFront;
+        private System.Windows.Forms.ToolStripMenuItem glViewBack;
+        private System.Windows.Forms.ToolStripMenuItem glViewUp;
+        private System.Windows.Forms.ToolStripMenuItem glViewDown;
+        private System.Windows.Forms.ToolStripMenuItem glViewLeft;
+        private System.Windows.Forms.ToolStripMenuItem glViewRight;
+        private System.Windows.Forms.ToolStripMenuItem glViewIsometric;
     }
 }
 
