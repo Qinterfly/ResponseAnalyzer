@@ -1,4 +1,5 @@
-﻿
+﻿using System.Collections.Generic;
+
 namespace ResponseAnalyzer
 {
     partial class ResponseAnalyzer
@@ -24,9 +25,16 @@ namespace ResponseAnalyzer
         // Data
         private LMSProject project;
         private LMSModel modelRenderer_;
+        // Charts
+        private ExcelObject excelTemplate_;
+        private Dictionary<string, ChartTypes> chartTypes_;
+        private Dictionary<string, SignalUnits> chartUnits_;
+        private Dictionary<string, List<string>> chartNodes_;
+        // Opengl
         private int[] lastMousePosition_;
         private bool isTranslation_ = false;
         private bool isRotation_ = false;
+        // Selection
         private int indLine_ = 0;
         private const char selectionDelimiter_ = ':';
         private bool isEditSelection = false;
@@ -43,7 +51,7 @@ namespace ResponseAnalyzer
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ResponseAnalyzer));
             this.statusStrip = new System.Windows.Forms.StatusStrip();
-            this.statusStripLabel = new System.Windows.Forms.Label();
+            this.statusStripLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
             this.tabStages = new System.Windows.Forms.TabControl();
@@ -51,17 +59,18 @@ namespace ResponseAnalyzer
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel7 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel8 = new System.Windows.Forms.TableLayoutPanel();
-            this.label2 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button2 = new System.Windows.Forms.Button();
+            this.labelExcelPath = new System.Windows.Forms.Label();
+            this.textBoxExcelTemplatePath = new System.Windows.Forms.TextBox();
+            this.buttonOpenExcelTemplate = new System.Windows.Forms.Button();
             this.tableLayoutPanel10 = new System.Windows.Forms.TableLayoutPanel();
-            this.listBox1 = new System.Windows.Forms.ListBox();
-            this.listBox2 = new System.Windows.Forms.ListBox();
+            this.listBoxTemplateCharts = new System.Windows.Forms.ListBox();
+            this.listBoxTemplateObjects = new System.Windows.Forms.ListBox();
             this.tableLayoutPanel9 = new System.Windows.Forms.TableLayoutPanel();
-            this.comboBoxSelection = new System.Windows.Forms.ComboBox();
+            this.comboBoxTemplateType = new System.Windows.Forms.ComboBox();
             this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.buttonAddTemplateObject = new System.Windows.Forms.Button();
+            this.buttonRemoveTemplateObject = new System.Windows.Forms.Button();
+            this.comboBoxTemplateUnits = new System.Windows.Forms.ComboBox();
             this.groupBoxSelection = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.treeSelection = new System.Windows.Forms.TreeView();
@@ -94,6 +103,7 @@ namespace ResponseAnalyzer
             this.glViewLeft = new System.Windows.Forms.ToolStripMenuItem();
             this.glViewRight = new System.Windows.Forms.ToolStripMenuItem();
             this.glViewIsometric = new System.Windows.Forms.ToolStripMenuItem();
+            this.statusStrip.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel5.SuspendLayout();
             this.tabStages.SuspendLayout();
@@ -117,7 +127,9 @@ namespace ResponseAnalyzer
             // statusStrip
             // 
             this.statusStrip.ImageScalingSize = new System.Drawing.Size(40, 40);
-            this.statusStrip.Location = new System.Drawing.Point(0, 496);
+            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.statusStripLabel});
+            this.statusStrip.Location = new System.Drawing.Point(0, 492);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(831, 22);
             this.statusStrip.TabIndex = 0;
@@ -125,11 +137,9 @@ namespace ResponseAnalyzer
             // 
             // statusStripLabel
             // 
-            this.statusStripLabel.AutoSize = true;
-            this.statusStripLabel.Location = new System.Drawing.Point(3, 711);
+            this.statusStripLabel.BackColor = System.Drawing.Color.Transparent;
             this.statusStripLabel.Name = "statusStripLabel";
-            this.statusStripLabel.Size = new System.Drawing.Size(0, 15);
-            this.statusStripLabel.TabIndex = 3;
+            this.statusStripLabel.Size = new System.Drawing.Size(0, 17);
             // 
             // tableLayoutPanel1
             // 
@@ -143,7 +153,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(831, 496);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(831, 492);
             this.tableLayoutPanel1.TabIndex = 4;
             // 
             // tableLayoutPanel5
@@ -158,7 +168,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel5.RowCount = 2;
             this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10.65574F));
             this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 89.34426F));
-            this.tableLayoutPanel5.Size = new System.Drawing.Size(332, 490);
+            this.tableLayoutPanel5.Size = new System.Drawing.Size(332, 486);
             this.tableLayoutPanel5.TabIndex = 11;
             // 
             // tabStages
@@ -168,10 +178,10 @@ namespace ResponseAnalyzer
             this.tabStages.Controls.Add(this.tabMeasure);
             this.tabStages.Controls.Add(this.tabProcess);
             this.tabStages.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabStages.Location = new System.Drawing.Point(3, 55);
+            this.tabStages.Location = new System.Drawing.Point(3, 54);
             this.tabStages.Name = "tabStages";
             this.tabStages.SelectedIndex = 0;
-            this.tabStages.Size = new System.Drawing.Size(326, 432);
+            this.tabStages.Size = new System.Drawing.Size(326, 429);
             this.tabStages.TabIndex = 10;
             // 
             // tabTemplate
@@ -183,7 +193,7 @@ namespace ResponseAnalyzer
             this.tabTemplate.Location = new System.Drawing.Point(4, 4);
             this.tabTemplate.Name = "tabTemplate";
             this.tabTemplate.Padding = new System.Windows.Forms.Padding(3);
-            this.tabTemplate.Size = new System.Drawing.Size(318, 404);
+            this.tabTemplate.Size = new System.Drawing.Size(318, 401);
             this.tabTemplate.TabIndex = 0;
             this.tabTemplate.Text = "Template";
             // 
@@ -221,10 +231,10 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel8.ColumnCount = 3;
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 23.18182F));
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 76.81818F));
-            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 47F));
-            this.tableLayoutPanel8.Controls.Add(this.label2, 0, 0);
-            this.tableLayoutPanel8.Controls.Add(this.textBox1, 1, 0);
-            this.tableLayoutPanel8.Controls.Add(this.button2, 2, 0);
+            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 50F));
+            this.tableLayoutPanel8.Controls.Add(this.labelExcelPath, 0, 0);
+            this.tableLayoutPanel8.Controls.Add(this.textBoxExcelTemplatePath, 1, 0);
+            this.tableLayoutPanel8.Controls.Add(this.buttonOpenExcelTemplate, 2, 0);
             this.tableLayoutPanel8.Dock = System.Windows.Forms.DockStyle.Top;
             this.tableLayoutPanel8.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel8.Name = "tableLayoutPanel8";
@@ -233,44 +243,46 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel8.Size = new System.Drawing.Size(300, 32);
             this.tableLayoutPanel8.TabIndex = 4;
             // 
-            // label2
+            // labelExcelPath
             // 
-            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label2.Location = new System.Drawing.Point(3, 8);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(44, 15);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Name:";
+            this.labelExcelPath.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.labelExcelPath.AutoSize = true;
+            this.labelExcelPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.labelExcelPath.Location = new System.Drawing.Point(3, 8);
+            this.labelExcelPath.Name = "labelExcelPath";
+            this.labelExcelPath.Size = new System.Drawing.Size(44, 15);
+            this.labelExcelPath.TabIndex = 0;
+            this.labelExcelPath.Text = "Name:";
             // 
-            // textBox1
+            // textBoxExcelTemplatePath
             // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(61, 5);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(188, 21);
-            this.textBox1.TabIndex = 1;
+            this.textBoxExcelTemplatePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxExcelTemplatePath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.textBoxExcelTemplatePath.Location = new System.Drawing.Point(60, 5);
+            this.textBoxExcelTemplatePath.Name = "textBoxExcelTemplatePath";
+            this.textBoxExcelTemplatePath.ReadOnly = true;
+            this.textBoxExcelTemplatePath.Size = new System.Drawing.Size(186, 21);
+            this.textBoxExcelTemplatePath.TabIndex = 1;
             // 
-            // button2
+            // buttonOpenExcelTemplate
             // 
-            this.button2.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button2.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.button2.Location = new System.Drawing.Point(255, 4);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(34, 23);
-            this.button2.TabIndex = 2;
-            this.button2.UseVisualStyleBackColor = true;
+            this.buttonOpenExcelTemplate.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.buttonOpenExcelTemplate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.buttonOpenExcelTemplate.Image = global::ResponseAnalyzer.Properties.Resources.add;
+            this.buttonOpenExcelTemplate.Location = new System.Drawing.Point(252, 4);
+            this.buttonOpenExcelTemplate.Name = "buttonOpenExcelTemplate";
+            this.buttonOpenExcelTemplate.Size = new System.Drawing.Size(34, 23);
+            this.buttonOpenExcelTemplate.TabIndex = 2;
+            this.buttonOpenExcelTemplate.UseVisualStyleBackColor = true;
+            this.buttonOpenExcelTemplate.Click += new System.EventHandler(this.buttonOpenExcel_Click);
             // 
             // tableLayoutPanel10
             // 
             this.tableLayoutPanel10.ColumnCount = 2;
             this.tableLayoutPanel10.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel10.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel10.Controls.Add(this.listBox1, 0, 0);
-            this.tableLayoutPanel10.Controls.Add(this.listBox2, 1, 0);
+            this.tableLayoutPanel10.Controls.Add(this.listBoxTemplateCharts, 0, 0);
+            this.tableLayoutPanel10.Controls.Add(this.listBoxTemplateObjects, 1, 0);
             this.tableLayoutPanel10.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel10.Location = new System.Drawing.Point(0, 38);
             this.tableLayoutPanel10.Margin = new System.Windows.Forms.Padding(0);
@@ -280,36 +292,39 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel10.Size = new System.Drawing.Size(306, 115);
             this.tableLayoutPanel10.TabIndex = 5;
             // 
-            // listBox1
+            // listBoxTemplateCharts
             // 
-            this.listBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.ItemHeight = 15;
-            this.listBox1.Location = new System.Drawing.Point(3, 3);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(147, 109);
-            this.listBox1.TabIndex = 0;
+            this.listBoxTemplateCharts.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBoxTemplateCharts.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.listBoxTemplateCharts.FormattingEnabled = true;
+            this.listBoxTemplateCharts.ItemHeight = 15;
+            this.listBoxTemplateCharts.Location = new System.Drawing.Point(3, 3);
+            this.listBoxTemplateCharts.Name = "listBoxTemplateCharts";
+            this.listBoxTemplateCharts.Size = new System.Drawing.Size(147, 109);
+            this.listBoxTemplateCharts.TabIndex = 0;
+            this.listBoxTemplateCharts.SelectedIndexChanged += new System.EventHandler(this.listBoxTemplateCharts_SelectedIndexChanged);
             // 
-            // listBox2
+            // listBoxTemplateObjects
             // 
-            this.listBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.listBox2.FormattingEnabled = true;
-            this.listBox2.ItemHeight = 15;
-            this.listBox2.Location = new System.Drawing.Point(156, 3);
-            this.listBox2.Name = "listBox2";
-            this.listBox2.Size = new System.Drawing.Size(147, 109);
-            this.listBox2.TabIndex = 1;
+            this.listBoxTemplateObjects.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBoxTemplateObjects.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.listBoxTemplateObjects.FormattingEnabled = true;
+            this.listBoxTemplateObjects.ItemHeight = 15;
+            this.listBoxTemplateObjects.Location = new System.Drawing.Point(156, 3);
+            this.listBoxTemplateObjects.Name = "listBoxTemplateObjects";
+            this.listBoxTemplateObjects.Size = new System.Drawing.Size(147, 109);
+            this.listBoxTemplateObjects.TabIndex = 1;
             // 
             // tableLayoutPanel9
             // 
             this.tableLayoutPanel9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.tableLayoutPanel9.ColumnCount = 2;
+            this.tableLayoutPanel9.ColumnCount = 3;
             this.tableLayoutPanel9.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 51.71504F));
             this.tableLayoutPanel9.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 48.28496F));
-            this.tableLayoutPanel9.Controls.Add(this.comboBoxSelection, 1, 0);
+            this.tableLayoutPanel9.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 104F));
+            this.tableLayoutPanel9.Controls.Add(this.comboBoxTemplateType, 0, 0);
             this.tableLayoutPanel9.Controls.Add(this.flowLayoutPanel3, 0, 0);
+            this.tableLayoutPanel9.Controls.Add(this.comboBoxTemplateUnits, 2, 0);
             this.tableLayoutPanel9.Location = new System.Drawing.Point(0, 156);
             this.tableLayoutPanel9.Margin = new System.Windows.Forms.Padding(0);
             this.tableLayoutPanel9.Name = "tableLayoutPanel9";
@@ -318,57 +333,78 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel9.Size = new System.Drawing.Size(306, 29);
             this.tableLayoutPanel9.TabIndex = 3;
             // 
-            // comboBoxSelection
+            // comboBoxTemplateType
             // 
-            this.comboBoxSelection.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.comboBoxSelection.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxSelection.Enabled = false;
-            this.comboBoxSelection.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.comboBoxSelection.FormattingEnabled = true;
-            this.comboBoxSelection.Items.AddRange(new object[] {
+            this.comboBoxTemplateType.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.comboBoxTemplateType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxTemplateType.Enabled = false;
+            this.comboBoxTemplateType.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.comboBoxTemplateType.FormattingEnabled = true;
+            this.comboBoxTemplateType.Items.AddRange(new object[] {
+            "",
+            "Imaginary",
+            "Real",
             "Modeshape",
-            "Force",
-            "Real part of FRF",
-            "Imaginary part of FRF"});
-            this.comboBoxSelection.Location = new System.Drawing.Point(158, 3);
-            this.comboBoxSelection.Margin = new System.Windows.Forms.Padding(0);
-            this.comboBoxSelection.Name = "comboBoxSelection";
-            this.comboBoxSelection.Size = new System.Drawing.Size(142, 23);
-            this.comboBoxSelection.TabIndex = 1;
+            "Force"});
+            this.comboBoxTemplateType.Location = new System.Drawing.Point(104, 3);
+            this.comboBoxTemplateType.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
+            this.comboBoxTemplateType.Name = "comboBoxTemplateType";
+            this.comboBoxTemplateType.Size = new System.Drawing.Size(94, 23);
+            this.comboBoxTemplateType.TabIndex = 3;
+            this.comboBoxTemplateType.SelectedIndexChanged += new System.EventHandler(this.comboBoxTemplateType_SelectedIndexChanged);
             // 
             // flowLayoutPanel3
             // 
-            this.flowLayoutPanel3.Controls.Add(this.button3);
-            this.flowLayoutPanel3.Controls.Add(this.button1);
+            this.flowLayoutPanel3.Controls.Add(this.buttonAddTemplateObject);
+            this.flowLayoutPanel3.Controls.Add(this.buttonRemoveTemplateObject);
             this.flowLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(0);
             this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-            this.flowLayoutPanel3.Size = new System.Drawing.Size(158, 29);
+            this.flowLayoutPanel3.Size = new System.Drawing.Size(104, 29);
             this.flowLayoutPanel3.TabIndex = 2;
             // 
-            // button3
+            // buttonAddTemplateObject
             // 
-            this.button3.Enabled = false;
-            this.button3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button3.Image = global::ResponseAnalyzer.Properties.Resources.rightArrow;
-            this.button3.Location = new System.Drawing.Point(3, 3);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(35, 23);
-            this.button3.TabIndex = 1;
-            this.button3.UseVisualStyleBackColor = true;
+            this.buttonAddTemplateObject.Enabled = false;
+            this.buttonAddTemplateObject.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.buttonAddTemplateObject.Image = global::ResponseAnalyzer.Properties.Resources.rightArrow;
+            this.buttonAddTemplateObject.Location = new System.Drawing.Point(3, 3);
+            this.buttonAddTemplateObject.Name = "buttonAddTemplateObject";
+            this.buttonAddTemplateObject.Size = new System.Drawing.Size(35, 23);
+            this.buttonAddTemplateObject.TabIndex = 1;
+            this.buttonAddTemplateObject.UseVisualStyleBackColor = true;
+            this.buttonAddTemplateObject.Click += new System.EventHandler(this.buttonAddTemplateObject_Click);
             // 
-            // button1
+            // buttonRemoveTemplateObject
             // 
-            this.button1.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.button1.Enabled = false;
-            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button1.Image = global::ResponseAnalyzer.Properties.Resources.leftArrow;
-            this.button1.Location = new System.Drawing.Point(44, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(33, 23);
-            this.button1.TabIndex = 2;
-            this.button1.UseVisualStyleBackColor = true;
+            this.buttonRemoveTemplateObject.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.buttonRemoveTemplateObject.Enabled = false;
+            this.buttonRemoveTemplateObject.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.buttonRemoveTemplateObject.Image = global::ResponseAnalyzer.Properties.Resources.leftArrow;
+            this.buttonRemoveTemplateObject.Location = new System.Drawing.Point(44, 3);
+            this.buttonRemoveTemplateObject.Name = "buttonRemoveTemplateObject";
+            this.buttonRemoveTemplateObject.Size = new System.Drawing.Size(33, 23);
+            this.buttonRemoveTemplateObject.TabIndex = 2;
+            this.buttonRemoveTemplateObject.UseVisualStyleBackColor = true;
+            this.buttonRemoveTemplateObject.Click += new System.EventHandler(this.buttonRemoveTemplateObject_Click);
+            // 
+            // comboBoxTemplateUnits
+            // 
+            this.comboBoxTemplateUnits.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.comboBoxTemplateUnits.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxTemplateUnits.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.comboBoxTemplateUnits.FormattingEnabled = true;
+            this.comboBoxTemplateUnits.Items.AddRange(new object[] {
+            "",
+            "mm",
+            "m/s^2"});
+            this.comboBoxTemplateUnits.Location = new System.Drawing.Point(214, 3);
+            this.comboBoxTemplateUnits.Margin = new System.Windows.Forms.Padding(0);
+            this.comboBoxTemplateUnits.Name = "comboBoxTemplateUnits";
+            this.comboBoxTemplateUnits.Size = new System.Drawing.Size(92, 23);
+            this.comboBoxTemplateUnits.TabIndex = 4;
+            this.comboBoxTemplateUnits.SelectedIndexChanged += new System.EventHandler(this.comboBoxTemplateUnits_SelectedIndexChanged);
             // 
             // groupBoxSelection
             // 
@@ -473,7 +509,7 @@ namespace ResponseAnalyzer
             this.flowLayoutPanel2.Controls.Add(this.buttonOpenTemplate);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 373);
+            this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 370);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
             this.flowLayoutPanel2.Size = new System.Drawing.Size(312, 28);
             this.flowLayoutPanel2.TabIndex = 1;
@@ -505,7 +541,7 @@ namespace ResponseAnalyzer
             this.tabMeasure.Location = new System.Drawing.Point(4, 4);
             this.tabMeasure.Name = "tabMeasure";
             this.tabMeasure.Padding = new System.Windows.Forms.Padding(3);
-            this.tabMeasure.Size = new System.Drawing.Size(318, 404);
+            this.tabMeasure.Size = new System.Drawing.Size(318, 401);
             this.tabMeasure.TabIndex = 1;
             this.tabMeasure.Text = "Measure";
             this.tabMeasure.UseVisualStyleBackColor = true;
@@ -515,7 +551,7 @@ namespace ResponseAnalyzer
             this.tabProcess.Location = new System.Drawing.Point(4, 4);
             this.tabProcess.Name = "tabProcess";
             this.tabProcess.Padding = new System.Windows.Forms.Padding(3);
-            this.tabProcess.Size = new System.Drawing.Size(318, 404);
+            this.tabProcess.Size = new System.Drawing.Size(318, 401);
             this.tabProcess.TabIndex = 2;
             this.tabProcess.Text = "Process";
             this.tabProcess.UseVisualStyleBackColor = true;
@@ -529,7 +565,7 @@ namespace ResponseAnalyzer
             this.groupBoxProject.Location = new System.Drawing.Point(3, 0);
             this.groupBoxProject.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
             this.groupBoxProject.Name = "groupBoxProject";
-            this.groupBoxProject.Size = new System.Drawing.Size(326, 49);
+            this.groupBoxProject.Size = new System.Drawing.Size(326, 48);
             this.groupBoxProject.TabIndex = 9;
             this.groupBoxProject.TabStop = false;
             this.groupBoxProject.Text = "Project";
@@ -540,7 +576,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 21.2766F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 78.7234F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 35F));
-            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 38F));
+            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel6.Controls.Add(this.labelProjectPath, 0, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonOpenProject, 2, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonUpdateProject, 3, 0);
@@ -569,7 +605,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonOpenProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenProject.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonOpenProject.Location = new System.Drawing.Point(249, 3);
+            this.buttonOpenProject.Location = new System.Drawing.Point(237, 3);
             this.buttonOpenProject.Name = "buttonOpenProject";
             this.buttonOpenProject.Size = new System.Drawing.Size(29, 22);
             this.buttonOpenProject.TabIndex = 2;
@@ -580,7 +616,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonUpdateProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonUpdateProject.Image = global::ResponseAnalyzer.Properties.Resources.refresh;
-            this.buttonUpdateProject.Location = new System.Drawing.Point(284, 3);
+            this.buttonUpdateProject.Location = new System.Drawing.Point(272, 3);
             this.buttonUpdateProject.Name = "buttonUpdateProject";
             this.buttonUpdateProject.Size = new System.Drawing.Size(30, 22);
             this.buttonUpdateProject.TabIndex = 3;
@@ -590,10 +626,10 @@ namespace ResponseAnalyzer
             // 
             this.textBoxProjectPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxProjectPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxProjectPath.Location = new System.Drawing.Point(55, 3);
+            this.textBoxProjectPath.Location = new System.Drawing.Point(53, 3);
             this.textBoxProjectPath.Name = "textBoxProjectPath";
             this.textBoxProjectPath.ReadOnly = true;
-            this.textBoxProjectPath.Size = new System.Drawing.Size(188, 21);
+            this.textBoxProjectPath.Size = new System.Drawing.Size(178, 21);
             this.textBoxProjectPath.TabIndex = 1;
             // 
             // glWindow
@@ -603,7 +639,7 @@ namespace ResponseAnalyzer
             this.glWindow.Location = new System.Drawing.Point(346, 8);
             this.glWindow.Margin = new System.Windows.Forms.Padding(8);
             this.glWindow.Name = "glWindow";
-            this.glWindow.Size = new System.Drawing.Size(477, 480);
+            this.glWindow.Size = new System.Drawing.Size(477, 476);
             this.glWindow.TabIndex = 12;
             this.glWindow.VSync = false;
             this.glWindow.Load += new System.EventHandler(this.glWindow_Load);
@@ -617,11 +653,12 @@ namespace ResponseAnalyzer
             // 
             // glContextMenu
             // 
+            this.glContextMenu.ImageScalingSize = new System.Drawing.Size(40, 40);
             this.glContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.stripPolygonMode,
             this.stripView});
             this.glContextMenu.Name = "glMenu";
-            this.glContextMenu.Size = new System.Drawing.Size(181, 70);
+            this.glContextMenu.Size = new System.Drawing.Size(153, 48);
             // 
             // stripPolygonMode
             // 
@@ -629,20 +666,20 @@ namespace ResponseAnalyzer
             this.glPolygonModeLine,
             this.glPolygonModeFill});
             this.stripPolygonMode.Name = "stripPolygonMode";
-            this.stripPolygonMode.Size = new System.Drawing.Size(180, 22);
+            this.stripPolygonMode.Size = new System.Drawing.Size(152, 22);
             this.stripPolygonMode.Text = "Polygon mode";
             this.stripPolygonMode.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.stripMode_DropDownItemClicked);
             // 
             // glPolygonModeLine
             // 
             this.glPolygonModeLine.Name = "glPolygonModeLine";
-            this.glPolygonModeLine.Size = new System.Drawing.Size(180, 22);
+            this.glPolygonModeLine.Size = new System.Drawing.Size(96, 22);
             this.glPolygonModeLine.Text = "Line";
             // 
             // glPolygonModeFill
             // 
             this.glPolygonModeFill.Name = "glPolygonModeFill";
-            this.glPolygonModeFill.Size = new System.Drawing.Size(180, 22);
+            this.glPolygonModeFill.Size = new System.Drawing.Size(96, 22);
             this.glPolygonModeFill.Text = "Fill";
             // 
             // stripView
@@ -656,50 +693,50 @@ namespace ResponseAnalyzer
             this.glViewRight,
             this.glViewIsometric});
             this.stripView.Name = "stripView";
-            this.stripView.Size = new System.Drawing.Size(180, 22);
+            this.stripView.Size = new System.Drawing.Size(152, 22);
             this.stripView.Text = "View";
             this.stripView.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.stripView_DropDownItemClicked);
             // 
             // glViewFront
             // 
             this.glViewFront.Name = "glViewFront";
-            this.glViewFront.Size = new System.Drawing.Size(180, 22);
+            this.glViewFront.Size = new System.Drawing.Size(123, 22);
             this.glViewFront.Text = "Front";
             // 
             // glViewBack
             // 
             this.glViewBack.Name = "glViewBack";
-            this.glViewBack.Size = new System.Drawing.Size(180, 22);
+            this.glViewBack.Size = new System.Drawing.Size(123, 22);
             this.glViewBack.Text = "Back";
             // 
             // glViewUp
             // 
             this.glViewUp.Name = "glViewUp";
-            this.glViewUp.Size = new System.Drawing.Size(180, 22);
+            this.glViewUp.Size = new System.Drawing.Size(123, 22);
             this.glViewUp.Text = "Up";
             // 
             // glViewDown
             // 
             this.glViewDown.Name = "glViewDown";
-            this.glViewDown.Size = new System.Drawing.Size(180, 22);
+            this.glViewDown.Size = new System.Drawing.Size(123, 22);
             this.glViewDown.Text = "Down";
             // 
             // glViewLeft
             // 
             this.glViewLeft.Name = "glViewLeft";
-            this.glViewLeft.Size = new System.Drawing.Size(180, 22);
+            this.glViewLeft.Size = new System.Drawing.Size(123, 22);
             this.glViewLeft.Text = "Left";
             // 
             // glViewRight
             // 
             this.glViewRight.Name = "glViewRight";
-            this.glViewRight.Size = new System.Drawing.Size(180, 22);
+            this.glViewRight.Size = new System.Drawing.Size(123, 22);
             this.glViewRight.Text = "Right";
             // 
             // glViewIsometric
             // 
             this.glViewIsometric.Name = "glViewIsometric";
-            this.glViewIsometric.Size = new System.Drawing.Size(180, 22);
+            this.glViewIsometric.Size = new System.Drawing.Size(123, 22);
             this.glViewIsometric.Text = "Isometric";
             // 
             // ResponseAnalyzer
@@ -707,15 +744,16 @@ namespace ResponseAnalyzer
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(831, 518);
+            this.ClientSize = new System.Drawing.Size(831, 514);
             this.Controls.Add(this.tableLayoutPanel1);
-            this.Controls.Add(this.statusStripLabel);
             this.Controls.Add(this.statusStrip);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "ResponseAnalyzer";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ResponseAnalyzer";
+            this.statusStrip.ResumeLayout(false);
+            this.statusStrip.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel5.ResumeLayout(false);
             this.tabStages.ResumeLayout(false);
@@ -744,7 +782,6 @@ namespace ResponseAnalyzer
         #endregion
 
         private System.Windows.Forms.StatusStrip statusStrip;
-        private System.Windows.Forms.Label statusStripLabel;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel5;
         private System.Windows.Forms.GroupBox groupBoxProject;
@@ -758,17 +795,16 @@ namespace ResponseAnalyzer
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel7;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel9;
-        private System.Windows.Forms.ComboBox comboBoxSelection;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button buttonAddTemplateObject;
+        private System.Windows.Forms.Button buttonRemoveTemplateObject;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel8;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label labelExcelPath;
+        private System.Windows.Forms.TextBox textBoxExcelTemplatePath;
+        private System.Windows.Forms.Button buttonOpenExcelTemplate;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel10;
-        private System.Windows.Forms.ListBox listBox1;
-        private System.Windows.Forms.ListBox listBox2;
+        private System.Windows.Forms.ListBox listBoxTemplateCharts;
+        private System.Windows.Forms.ListBox listBoxTemplateObjects;
         private System.Windows.Forms.GroupBox groupBoxSelection;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TreeView treeSelection;
@@ -795,6 +831,9 @@ namespace ResponseAnalyzer
         private System.Windows.Forms.ToolStripMenuItem glViewLeft;
         private System.Windows.Forms.ToolStripMenuItem glViewRight;
         private System.Windows.Forms.ToolStripMenuItem glViewIsometric;
+        private System.Windows.Forms.ToolStripStatusLabel statusStripLabel;
+        private System.Windows.Forms.ComboBox comboBoxTemplateType;
+        private System.Windows.Forms.ComboBox comboBoxTemplateUnits;
     }
 }
 

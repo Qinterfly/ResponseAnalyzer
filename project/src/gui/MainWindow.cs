@@ -1,14 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Windows.Forms;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
-using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL4;
-
-using QuickFont;
-using QuickFont.Configuration;
-using System.Drawing.Text;
-using System.Collections.Generic;
 
 namespace ResponseAnalyzer
 {
@@ -17,7 +13,7 @@ namespace ResponseAnalyzer
         public ResponseAnalyzer()
         {
             InitializeComponent();
-            comboBoxSelection.SelectedIndex = 0;
+            comboBoxTemplateType.SelectedIndex = 0;
             modelRenderer_ = new LMSModel();
             lastMousePosition_ = new int[2] { 0, 0 };
         }
@@ -165,15 +161,22 @@ namespace ResponseAnalyzer
 
             // -- Debug only --
             testRender();
+            testExcel();
             // ----------------
         }
 
         private void setEnabled()
         {
-            bool flag = project.isProjectOpened();
+            bool flag = project != null;
+            // Project
             buttonAddSelection.Enabled = flag;
             buttonRemoveSelection.Enabled = flag;
             buttonEditSelection.Enabled = flag;
+            // Excel template
+            flag = excelTemplate_ != null;
+            buttonAddTemplateObject.Enabled = flag;
+            buttonRemoveTemplateObject.Enabled = flag;
+            comboBoxTemplateType.Enabled = flag;
         }
 
         private void glWindow_Paint(object sender, PaintEventArgs e)
@@ -257,8 +260,18 @@ namespace ResponseAnalyzer
             //string path = Path.GetFullPath(@"..\..\..\examples\Airplane.lms");
             string path = Path.GetFullPath(@"..\..\..\examples\Yak130.lms");
             project = new LMSProject(path);
+            textBoxProjectPath.Text = path;
             modelRenderer_.setGeometry(project.geometry_);
             modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
+            setEnabled();
+        }
+
+        private void testExcel()
+        {
+            string path = Path.GetFullPath(@"..\..\..\templates\Base.xlsx");
+            excelTemplate_ = new ExcelObject(path);
+            textBoxExcelTemplatePath.Text = path;
+            updateExcelTemplateList();
             setEnabled();
         }
 
@@ -279,13 +292,6 @@ namespace ResponseAnalyzer
         private void glWindow_Resize(object sender, EventArgs e)
         {
             GL.Viewport(0, 0, glWindow.Width, glWindow.Height);
-        }
-
-        static class MouseWeights
-        {
-            public const float scaling = 0.001f;
-            public const float translation = 1.0f;
-            public const float rotation = 1.0f;
         }
 
         private void stripMode_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -327,6 +333,123 @@ namespace ResponseAnalyzer
                     break;
             }
             modelRenderer_.draw();
+        }
+
+        private void buttonOpenExcel_Click(object sender, EventArgs e)
+        {
+            clearStatus();
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Excel files (*.xlsx)|*.xlsx";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+            DialogResult dialogResult = openFileDialog.ShowDialog();
+            if (dialogResult == DialogResult.OK)
+            {
+                string filePath = openFileDialog.FileName;
+                excelTemplate_ = new ExcelObject(filePath);
+                if (excelTemplate_.isOpened())
+                {
+                    textBoxExcelTemplatePath.Text = filePath;
+                    updateExcelTemplateList();
+                    setStatus("The Excel template file was successfully opened");
+                }
+                
+            }
+            else if (dialogResult != DialogResult.Cancel)
+            {
+                setStatus("An error occured while choosing the template Excel file");
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+        
+        private void updateExcelTemplateList()
+        {
+            listBoxTemplateCharts.Items.Clear();
+            List<string> charts = excelTemplate_.getChartNames();
+            chartTypes_ = new Dictionary<string, ChartTypes>();
+            chartUnits_ = new Dictionary<string, SignalUnits>();
+            chartNodes_ = new Dictionary<string, List<string>>();
+            foreach (string chart in charts) { 
+                listBoxTemplateCharts.Items.Add(chart);
+                chartTypes_.Add(chart, ChartTypes.UNKNOWN);
+                chartUnits_.Add(chart, SignalUnits.UNKNOWN);
+                chartNodes_.Add(chart, new List<string>());
+            }
+            listBoxTemplateCharts.SelectedIndex = 0;
+        }
+
+        static class MouseWeights
+        {
+            public const float scaling = 0.001f;
+            public const float translation = 1.0f;
+            public const float rotation = 1.0f;
+        }
+
+        private void comboBoxTemplateType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBoxTemplateCharts.Items.Count == 0)
+                return;
+            ChartTypes iSelected = (ChartTypes)comboBoxTemplateType.SelectedIndex;
+            chartTypes_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+        }
+
+        private void listBoxTemplateCharts_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            comboBoxTemplateType.SelectedIndex = (int)chartTypes_[listBoxTemplateCharts.SelectedItem.ToString()];
+            comboBoxTemplateUnits.SelectedIndex = (int)chartUnits_[listBoxTemplateCharts.SelectedItem.ToString()];
+            listBoxTemplateObjects.Items.Clear();
+            List<string> tNodes = chartNodes_[listBoxTemplateCharts.SelectedItem.ToString()];
+            if (tNodes.Count != 0)
+            {
+                foreach (string node in tNodes)
+                    listBoxTemplateObjects.Items.Add(node);
+                listBoxTemplateObjects.SelectedIndex = 0;
+            }
+        }
+
+        private void comboBoxTemplateUnits_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBoxTemplateCharts.Items.Count == 0)
+                return;
+            SignalUnits iSelected = (SignalUnits)comboBoxTemplateUnits.SelectedIndex;
+            chartUnits_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+        }
+
+        private void buttonAddTemplateObject_Click(object sender, EventArgs e)
+        {
+            ChartTypes templateType = (ChartTypes)comboBoxTemplateType.SelectedIndex;
+            if (treeSelection.SelectedNode == null 
+                || templateType == ChartTypes.UNKNOWN)
+                return;
+            // Check if an appopriate object was chosen
+            bool isLineSelected = treeSelection.SelectedNode.Nodes.Count != 0;
+            bool isNeedInsertion = false;
+            if (isLineSelected)
+                isNeedInsertion = templateType == ChartTypes.MODESHAPE;
+            else
+                isNeedInsertion = templateType == ChartTypes.REALFRF || templateType == ChartTypes.IMAGFRF;
+            if (isNeedInsertion) 
+            {
+                string node = treeSelection.SelectedNode.Text;
+                string chart = listBoxTemplateCharts.SelectedItem.ToString();
+                listBoxTemplateObjects.Items.Add(node);
+                chartNodes_[chart].Add(node);
+                listBoxTemplateObjects.SelectedIndex = 0;
+            }
+        }
+
+        private void buttonRemoveTemplateObject_Click(object sender, EventArgs e)
+        {
+            int iSelected = listBoxTemplateObjects.SelectedIndex;
+            if (iSelected < 0)
+                return;
+            listBoxTemplateObjects.Items.RemoveAt(iSelected);
+            if (listBoxTemplateObjects.Items.Count != 0)
+                listBoxTemplateObjects.SelectedIndex = 0;
         }
     }
 }
