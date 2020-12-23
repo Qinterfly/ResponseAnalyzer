@@ -451,5 +451,12 @@ namespace ResponseAnalyzer
             if (listBoxTemplateObjects.Items.Count != 0)
                 listBoxTemplateObjects.SelectedIndex = 0;
         }
+
+        private void buttonSelectTestLab_Click(object sender, EventArgs e)
+        {
+            // TODO: a lot of checks are need here (project, selection, excel template)
+            int nSelected = project.selectSignals();
+            labelSelectionInfo.Text = "Selected signals:" + nSelected.ToString();
+        }
     }
 }
