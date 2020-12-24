@@ -271,6 +271,8 @@ namespace ResponseAnalyzer
             string path = Path.GetFullPath(@"..\..\..\templates\Base.xlsx");
             excelTemplate_ = new ExcelObject(path);
             textBoxExcelTemplatePath.Text = path;
+            textBoxDirectoryExcel.Text = "C:\\Users\\qinterfly\\Desktop";
+            textBoxNameExcel.Text = "TestMe";
             updateExcelTemplateList();
             setEnabled();
         }
@@ -335,7 +337,7 @@ namespace ResponseAnalyzer
             modelRenderer_.draw();
         }
 
-        private void buttonOpenExcel_Click(object sender, EventArgs e)
+        private void buttonOpenExcelTemplate_Click(object sender, EventArgs e)
         {
             clearStatus();
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -373,20 +375,19 @@ namespace ResponseAnalyzer
             chartTypes_ = new Dictionary<string, ChartTypes>();
             chartUnits_ = new Dictionary<string, SignalUnits>();
             chartNodes_ = new Dictionary<string, List<string>>();
+            chartDirection_ = new Dictionary<string, ChartDirection>();
+            chartNormalization_ = new Dictionary<string, double>();
+            chartAxis_ = new Dictionary<string, ChartDirection>();
             foreach (string chart in charts) { 
                 listBoxTemplateCharts.Items.Add(chart);
                 chartTypes_.Add(chart, ChartTypes.UNKNOWN);
                 chartUnits_.Add(chart, SignalUnits.UNKNOWN);
+                chartDirection_.Add(chart, ChartDirection.UNKNOWN);
                 chartNodes_.Add(chart, new List<string>());
+                chartNormalization_.Add(chart, 1.0);
+                chartAxis_.Add(chart, ChartDirection.UNKNOWN);
             }
             listBoxTemplateCharts.SelectedIndex = 0;
-        }
-
-        static class MouseWeights
-        {
-            public const float scaling = 0.001f;
-            public const float translation = 1.0f;
-            public const float rotation = 1.0f;
         }
 
         private void comboBoxTemplateType_SelectedIndexChanged(object sender, EventArgs e)
@@ -397,10 +398,20 @@ namespace ResponseAnalyzer
             chartTypes_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
         }
 
+        private void numericNormalization_ValueChanged(object sender, EventArgs e)
+        {
+            if (listBoxTemplateCharts.Items.Count == 0)
+                return;
+            chartNormalization_[listBoxTemplateCharts.SelectedItem.ToString()] = (double) numericTemplateNormalization.Value;
+        }
+
         private void listBoxTemplateCharts_SelectedIndexChanged(object sender, EventArgs e)
         {
             comboBoxTemplateType.SelectedIndex = (int)chartTypes_[listBoxTemplateCharts.SelectedItem.ToString()];
             comboBoxTemplateUnits.SelectedIndex = (int)chartUnits_[listBoxTemplateCharts.SelectedItem.ToString()];
+            comboBoxTemplateDirection.SelectedIndex = (int)chartDirection_[listBoxTemplateCharts.SelectedItem.ToString()];
+            comboBoxTemplateAxis.SelectedIndex = (int)chartAxis_[listBoxTemplateCharts.SelectedItem.ToString()];
+            numericTemplateNormalization.Value = (decimal)chartNormalization_[listBoxTemplateCharts.SelectedItem.ToString()];
             listBoxTemplateObjects.Items.Clear();
             List<string> tNodes = chartNodes_[listBoxTemplateCharts.SelectedItem.ToString()];
             if (tNodes.Count != 0)
@@ -419,27 +430,37 @@ namespace ResponseAnalyzer
             chartUnits_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
         }
 
+        private void comboBoxTemplateDirection_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBoxTemplateCharts.Items.Count == 0)
+                return;
+            ChartDirection iSelected = (ChartDirection)comboBoxTemplateDirection.SelectedIndex;
+            chartDirection_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+        }
+
         private void buttonAddTemplateObject_Click(object sender, EventArgs e)
         {
             ChartTypes templateType = (ChartTypes)comboBoxTemplateType.SelectedIndex;
-            if (treeSelection.SelectedNode == null 
-                || templateType == ChartTypes.UNKNOWN)
+            if (treeSelection.SelectedNode == null)
                 return;
             // Check if an appopriate object was chosen
             bool isLineSelected = treeSelection.SelectedNode.Nodes.Count != 0;
-            bool isNeedInsertion = false;
+            TreeNode mainNode = treeSelection.SelectedNode;
+            string chart = listBoxTemplateCharts.SelectedItem.ToString();
             if (isLineSelected)
-                isNeedInsertion = templateType == ChartTypes.MODESHAPE;
-            else
-                isNeedInsertion = templateType == ChartTypes.REALFRF || templateType == ChartTypes.IMAGFRF;
-            if (isNeedInsertion) 
             {
-                string node = treeSelection.SelectedNode.Text;
-                string chart = listBoxTemplateCharts.SelectedItem.ToString();
-                listBoxTemplateObjects.Items.Add(node);
-                chartNodes_[chart].Add(node);
-                listBoxTemplateObjects.SelectedIndex = 0;
+                foreach(TreeNode node in mainNode.Nodes)
+                {
+                    listBoxTemplateObjects.Items.Add(node.Text);
+                    chartNodes_[chart].Add(node.Text);
+                }
             }
+            else
+            {
+                listBoxTemplateObjects.Items.Add(mainNode.Text);
+                chartNodes_[chart].Add(mainNode.Text);
+            }
+            listBoxTemplateObjects.SelectedIndex = 0;
         }
 
         private void buttonRemoveTemplateObject_Click(object sender, EventArgs e)
@@ -454,9 +475,112 @@ namespace ResponseAnalyzer
 
         private void buttonSelectTestLab_Click(object sender, EventArgs e)
         {
-            // TODO: a lot of checks are need here (project, selection, excel template)
-            int nSelected = project.selectSignals();
-            labelSelectionInfo.Text = "Selected signals:" + nSelected.ToString();
+            // Check if all the fields are correct
+            if (!project.isProjectOpened() || !excelTemplate_.isOpened())
+                return;
+            int nSelected = project.selectSignals(modelRenderer_.componentSet_);
+            labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
+            listBoxFoundSignals.Items.Clear();
+            listBoxFrequencies.Items.Clear();
+            if (nSelected < 1)
+                return;
+            ResponseHolder response = null; 
+            foreach (string nodeName in project.signals_.Keys)
+            {
+                foreach (ChartDirection dir in project.signals_[nodeName].Keys)
+                {
+                    response = project.signals_[nodeName][dir];
+                    listBoxFoundSignals.Items.Add(response.signalName);
+                }
+            }
+            int k = 0;
+            foreach (double freq in response.frequency) 
+            { 
+                listBoxFrequencies.Items.Add(freq.ToString());
+                listBoxFrequencies.SetSelected(k++, true);
+            }
+            listBoxFrequencies.TopIndex = 0;
+        }
+
+        private void listBoxFrequencies_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyCode == Keys.A)
+            {
+                int nItems = listBoxFrequencies.Items.Count;
+                for (int i = 0; i != nItems; ++i)
+                    listBoxFrequencies.SetSelected(i, true);
+                listBoxFrequencies.TopIndex = 0;
+            }
+        }
+
+        private void buttonSelectDirectory_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog openFolderDialog = new FolderBrowserDialog();
+            DialogResult dialogResult = openFolderDialog.ShowDialog();
+            if (dialogResult == DialogResult.OK)
+                textBoxDirectoryExcel.Text = openFolderDialog.SelectedPath;
+        }
+
+        private void buttonProcess_Click(object sender = null, EventArgs e = null)
+        {
+            ExcelObject excelResult = new ExcelObject(excelTemplate_, textBoxDirectoryExcel.Text, textBoxNameExcel.Text);
+            // Checking the project, template and selected signals
+            if (!project.isProjectOpened() || !excelTemplate_.isOpened() || listBoxFoundSignals.Items.Count == 0)
+                return;
+            // Retrieve selected frequencies
+            List<int> selectedIndicies = new List<int>();
+            foreach (int index in listBoxFrequencies.SelectedIndices)
+                selectedIndicies.Add(index);
+            int nSelectedFrequency = selectedIndicies.Count;
+            ChartPosition.lastRow = 0;
+            // Creating series
+            foreach (string chart in listBoxTemplateCharts.Items) // Charts
+            {
+                // Nodes
+                List<string> chartNodes = chartNodes_[chart];
+                if (chartNodes.Count == 0)
+                    continue;
+                // Type and direction
+                ChartTypes type = chartTypes_[chart];
+                ChartDirection direction = chartDirection_[chart];
+                SignalUnits units = chartUnits_[chart];
+                if (type == ChartTypes.UNKNOWN || direction == ChartDirection.UNKNOWN || units == SignalUnits.UNKNOWN)
+                    continue;
+                // Norm
+                double norm = chartNormalization_[chart];
+                ChartDirection axis = chartAxis_[chart];
+                // Frequency response function: real and imaginary parts
+                if (type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF)
+                {
+                    foreach (string node in chartNodes) // Node
+                    {
+                        // Check if there is an appropriate signal
+                        if (!project.signals_.ContainsKey(node) || !project.signals_[node].ContainsKey(direction))
+                            continue;
+                        ResponseHolder response = project.signals_[node][direction];
+                        // Slice data by the selected index
+                        double[,] refFullData = response.data[units];
+                        double[,] data = new double[nSelectedFrequency, 2];
+                        int iSelected;
+                        int iType = (int)type - 1; 
+                        for (int i = 0; i != nSelectedFrequency; ++i)
+                        {
+                            iSelected = selectedIndicies[i];
+                            data[i, 0] = response.frequency[iSelected];
+                            data[i, 1] = refFullData[iSelected, iType];
+                        }
+                        excelResult.addSeries(chart, data, node);
+                    }
+                }
+            }
+            ChartPosition.lastRow = 0;
+        }
+
+        static class MouseWeights
+        {
+            public const float scaling = 0.001f;
+            public const float translation = 1.0f;
+            public const float rotation = 1.0f;
         }
     }
 }

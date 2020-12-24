@@ -14,8 +14,9 @@ namespace ResponseAnalyzer
     using ElementDictionary = Dictionary<ElementType, Dictionary<string, Array>>;
     using ColorDictionary = Dictionary<string, Color4>;
     public enum ElementType { QUADS, TRIAS, LINES}
-    public enum ChartTypes { UNKNOWN, REALFRF, IMAGFRF, MODESHAPE}
+    public enum ChartTypes { UNKNOWN, REALFRF, IMAGFRF, MODESHAPE, FORCE}
     public enum SignalUnits { UNKNOWN, MILLIMETERS, METERS_PER_SECOND2}
+    public enum ChartDirection { UNKNOWN, X, Y, Z}
 
     public partial class LMSModel
     {
@@ -91,6 +92,8 @@ namespace ResponseAnalyzer
                     angles[iNode, 0] =  (double)rotXY.GetValue(iNode);
                     angles[iNode, 1] = -(double)rotXZ.GetValue(iNode); // (!) -rotY
                     angles[iNode, 2] =  (double)rotYZ.GetValue(iNode);
+                    for (int k = 0; k != 3; ++k)
+                        angles[iNode, k] = MathHelper.DegreesToRadians(angles[iNode, k]);
                     insertInd = insertInd + 3;
                 }
                 // Finding the maximum and minimum of the nodal coordinates { (:, 1) -- minimum, (:, 2) -- maximum }
@@ -181,7 +184,7 @@ namespace ResponseAnalyzer
             
         // Components data
         private List<string> componentNames_;
-        private ComponentGeometry componentSet_;
+        public ComponentGeometry componentSet_ { get; set; }
         private Shader shader_;
         private ComponentBufferPointers componentBuffers_;
         private Array elementTypes_;
