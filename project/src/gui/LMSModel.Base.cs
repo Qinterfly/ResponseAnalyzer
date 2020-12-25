@@ -72,8 +72,10 @@ namespace ResponseAnalyzer
                 // Nodal positions and angles of the local coordinate systems
                 geometry.ComponentNodesValues(component, nodeNames, out X, out Y, out Z, out rotXY, out rotXZ, out rotYZ);
                 double[,] angles = new double[nNodes, 3];
+                double[,] coordinates = new double[nNodes, 3];
                 float[] vertices = new float[nNodes * 3];
                 int insertInd = 0;
+                double tempCoord;
                 for (int iNode = 0; iNode != nNodes; ++iNode)
                 {
                     globalNodeLocation[0] = (double)X.GetValue(iNode);
@@ -87,7 +89,11 @@ namespace ResponseAnalyzer
                     transform *= Matrix4d.CreateTranslation(componentPosition[0], componentPosition[1], componentPosition[2]);
                     globalNodeLocation = Vector4d.Transform(globalNodeLocation, transform);
                     for (int k = 0; k != 3; ++k)
-                        vertices[insertInd + k] = (float)globalNodeLocation[k];
+                    {
+                        tempCoord = globalNodeLocation[k];
+                        vertices[insertInd + k] = (float) tempCoord;
+                        coordinates[iNode, k] = tempCoord;
+                    }
                     // Saving the nodal angles
                     angles[iNode, 0] =  (double)rotXY.GetValue(iNode);
                     angles[iNode, 1] = -(double)rotXZ.GetValue(iNode); // (!) -rotY
@@ -109,6 +115,7 @@ namespace ResponseAnalyzer
                 }
                 componentSet_.vertices.Add(component, vertices);
                 componentSet_.nodeAngles.Add(component, angles);
+                componentSet_.nodeCoordinates.Add(component, coordinates);
                 // Lines 
                 geometry.ComponentLines(component, out nodeNamesA, out nodeNamesB);
                 int nLines = nodeNamesA.Length;
@@ -199,6 +206,7 @@ namespace ResponseAnalyzer
             mapNodeNames = new StringDictionary();
             nodeNames = new ArrayDictionary();
             nodeAngles = new ArrayDictionary();
+            nodeCoordinates = new ArrayDictionary();
             elementData = new ElementDictionary();
             vertices = new ArrayDictionary();
             foreach (ElementType type in elementTypes)
@@ -209,6 +217,7 @@ namespace ResponseAnalyzer
         public StringDictionary mapNodeNames;
         public ArrayDictionary nodeNames;
         public ArrayDictionary nodeAngles;
+        public ArrayDictionary nodeCoordinates;
         public ElementDictionary elementData;
         public ArrayDictionary vertices;
         public ColorDictionary colors;

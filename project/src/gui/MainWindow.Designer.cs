@@ -29,7 +29,7 @@ namespace ResponseAnalyzer
         private ExcelObject excelTemplate_;
         private Dictionary<string, ChartTypes> chartTypes_;
         private Dictionary<string, SignalUnits> chartUnits_;
-        private Dictionary<string, List<string>> chartNodes_;
+        private Dictionary<string, List<int>> chartNodeIndices_;
         private Dictionary<string, ChartDirection> chartDirection_;
         private Dictionary<string, double> chartNormalization_;
         private Dictionary<string, ChartDirection> chartAxis_;
@@ -108,9 +108,6 @@ namespace ResponseAnalyzer
             this.textBoxDirectoryExcel = new System.Windows.Forms.TextBox();
             this.groupBoxChannelSelection = new System.Windows.Forms.GroupBox();
             this.layoutChannelSelection = new System.Windows.Forms.TableLayoutPanel();
-            this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
-            this.listBoxFoundSignals = new System.Windows.Forms.ListBox();
-            this.listBoxFrequencies = new System.Windows.Forms.ListBox();
             this.tableLayoutPanel11 = new System.Windows.Forms.TableLayoutPanel();
             this.buttonSelectTestLab = new System.Windows.Forms.Button();
             this.labelSelectionInfo = new System.Windows.Forms.Label();
@@ -134,6 +131,13 @@ namespace ResponseAnalyzer
             this.glViewLeft = new System.Windows.Forms.ToolStripMenuItem();
             this.glViewRight = new System.Windows.Forms.ToolStripMenuItem();
             this.glViewIsometric = new System.Windows.Forms.ToolStripMenuItem();
+            this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
+            this.listBoxFoundSignals = new System.Windows.Forms.ListBox();
+            this.listBoxFrequencies = new System.Windows.Forms.ListBox();
+            this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
+            this.label2 = new System.Windows.Forms.Label();
+            this.textBoxResonanceFrequency = new System.Windows.Forms.TextBox();
+            this.buttonSelectResonanceFrequency = new System.Windows.Forms.Button();
             this.statusStrip.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel5.SuspendLayout();
@@ -160,11 +164,12 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel14.SuspendLayout();
             this.groupBoxChannelSelection.SuspendLayout();
             this.layoutChannelSelection.SuspendLayout();
-            this.tableLayoutPanel4.SuspendLayout();
             this.tableLayoutPanel11.SuspendLayout();
             this.groupBoxProject.SuspendLayout();
             this.tableLayoutPanel6.SuspendLayout();
             this.glContextMenu.SuspendLayout();
+            this.tableLayoutPanel4.SuspendLayout();
+            this.flowLayoutPanel5.SuspendLayout();
             this.SuspendLayout();
             // 
             // statusStrip
@@ -274,7 +279,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel8.ColumnCount = 3;
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 23.18182F));
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 76.81818F));
-            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 64F));
+            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 44F));
             this.tableLayoutPanel8.Controls.Add(this.labelExcelPath, 0, 0);
             this.tableLayoutPanel8.Controls.Add(this.textBoxExcelTemplatePath, 1, 0);
             this.tableLayoutPanel8.Controls.Add(this.buttonOpenExcelTemplate, 2, 0);
@@ -301,10 +306,10 @@ namespace ResponseAnalyzer
             // 
             this.textBoxExcelTemplatePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxExcelTemplatePath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxExcelTemplatePath.Location = new System.Drawing.Point(57, 5);
+            this.textBoxExcelTemplatePath.Location = new System.Drawing.Point(62, 5);
             this.textBoxExcelTemplatePath.Name = "textBoxExcelTemplatePath";
             this.textBoxExcelTemplatePath.ReadOnly = true;
-            this.textBoxExcelTemplatePath.Size = new System.Drawing.Size(175, 21);
+            this.textBoxExcelTemplatePath.Size = new System.Drawing.Size(190, 21);
             this.textBoxExcelTemplatePath.TabIndex = 1;
             // 
             // buttonOpenExcelTemplate
@@ -312,7 +317,7 @@ namespace ResponseAnalyzer
             this.buttonOpenExcelTemplate.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenExcelTemplate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.buttonOpenExcelTemplate.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonOpenExcelTemplate.Location = new System.Drawing.Point(238, 4);
+            this.buttonOpenExcelTemplate.Location = new System.Drawing.Point(258, 4);
             this.buttonOpenExcelTemplate.Name = "buttonOpenExcelTemplate";
             this.buttonOpenExcelTemplate.Size = new System.Drawing.Size(34, 23);
             this.buttonOpenExcelTemplate.TabIndex = 2;
@@ -484,6 +489,7 @@ namespace ResponseAnalyzer
             this.comboBoxTemplateAxis.Name = "comboBoxTemplateAxis";
             this.comboBoxTemplateAxis.Size = new System.Drawing.Size(31, 23);
             this.comboBoxTemplateAxis.TabIndex = 10;
+            this.comboBoxTemplateAxis.SelectedIndexChanged += new System.EventHandler(this.comboBoxTemplateAxis_SelectedIndexChanged);
             // 
             // flowLayoutPanel3
             // 
@@ -746,9 +752,9 @@ namespace ResponseAnalyzer
             this.layoutProcess.Margin = new System.Windows.Forms.Padding(0);
             this.layoutProcess.Name = "layoutProcess";
             this.layoutProcess.RowCount = 3;
-            this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 69.47041F));
-            this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30.52959F));
-            this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 118F));
+            this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 72.67268F));
+            this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 27.32733F));
+            this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 90F));
             this.layoutProcess.Size = new System.Drawing.Size(312, 424);
             this.layoutProcess.TabIndex = 0;
             // 
@@ -757,9 +763,9 @@ namespace ResponseAnalyzer
             this.groupBox2.Controls.Add(this.tableLayoutPanel12);
             this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.groupBox2.Location = new System.Drawing.Point(3, 215);
+            this.groupBox2.Location = new System.Drawing.Point(3, 245);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(306, 87);
+            this.groupBox2.Size = new System.Drawing.Size(306, 85);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Excel";
@@ -776,7 +782,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel12.RowCount = 2;
             this.tableLayoutPanel12.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 54.09836F));
             this.tableLayoutPanel12.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 45.90164F));
-            this.tableLayoutPanel12.Size = new System.Drawing.Size(300, 67);
+            this.tableLayoutPanel12.Size = new System.Drawing.Size(300, 65);
             this.tableLayoutPanel12.TabIndex = 0;
             // 
             // tableLayoutPanel13
@@ -791,7 +797,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel13.Name = "tableLayoutPanel13";
             this.tableLayoutPanel13.RowCount = 1;
             this.tableLayoutPanel13.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel13.Size = new System.Drawing.Size(294, 30);
+            this.tableLayoutPanel13.Size = new System.Drawing.Size(294, 29);
             this.tableLayoutPanel13.TabIndex = 0;
             // 
             // labelNameExcel
@@ -819,17 +825,17 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel14.ColumnCount = 3;
             this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 29.38597F));
             this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 70.61404F));
-            this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 51F));
             this.tableLayoutPanel14.Controls.Add(this.labelDirectoryExcel, 0, 0);
             this.tableLayoutPanel14.Controls.Add(this.buttonSelectDirectory, 2, 0);
             this.tableLayoutPanel14.Controls.Add(this.textBoxDirectoryExcel, 1, 0);
             this.tableLayoutPanel14.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel14.Location = new System.Drawing.Point(0, 36);
+            this.tableLayoutPanel14.Location = new System.Drawing.Point(0, 35);
             this.tableLayoutPanel14.Margin = new System.Windows.Forms.Padding(0);
             this.tableLayoutPanel14.Name = "tableLayoutPanel14";
             this.tableLayoutPanel14.RowCount = 1;
             this.tableLayoutPanel14.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel14.Size = new System.Drawing.Size(300, 31);
+            this.tableLayoutPanel14.Size = new System.Drawing.Size(300, 30);
             this.tableLayoutPanel14.TabIndex = 1;
             // 
             // labelDirectoryExcel
@@ -837,7 +843,7 @@ namespace ResponseAnalyzer
             this.labelDirectoryExcel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.labelDirectoryExcel.AutoSize = true;
             this.labelDirectoryExcel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.labelDirectoryExcel.Location = new System.Drawing.Point(3, 8);
+            this.labelDirectoryExcel.Location = new System.Drawing.Point(3, 7);
             this.labelDirectoryExcel.Name = "labelDirectoryExcel";
             this.labelDirectoryExcel.Size = new System.Drawing.Size(61, 15);
             this.labelDirectoryExcel.TabIndex = 0;
@@ -848,7 +854,7 @@ namespace ResponseAnalyzer
             this.buttonSelectDirectory.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonSelectDirectory.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.buttonSelectDirectory.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonSelectDirectory.Location = new System.Drawing.Point(254, 4);
+            this.buttonSelectDirectory.Location = new System.Drawing.Point(251, 4);
             this.buttonSelectDirectory.Name = "buttonSelectDirectory";
             this.buttonSelectDirectory.Size = new System.Drawing.Size(34, 22);
             this.buttonSelectDirectory.TabIndex = 1;
@@ -859,10 +865,10 @@ namespace ResponseAnalyzer
             // 
             this.textBoxDirectoryExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxDirectoryExcel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxDirectoryExcel.Location = new System.Drawing.Point(77, 5);
+            this.textBoxDirectoryExcel.Location = new System.Drawing.Point(76, 4);
             this.textBoxDirectoryExcel.Name = "textBoxDirectoryExcel";
             this.textBoxDirectoryExcel.ReadOnly = true;
-            this.textBoxDirectoryExcel.Size = new System.Drawing.Size(171, 21);
+            this.textBoxDirectoryExcel.Size = new System.Drawing.Size(169, 21);
             this.textBoxDirectoryExcel.TabIndex = 2;
             // 
             // groupBoxChannelSelection
@@ -873,7 +879,7 @@ namespace ResponseAnalyzer
             this.groupBoxChannelSelection.Location = new System.Drawing.Point(6, 0);
             this.groupBoxChannelSelection.Margin = new System.Windows.Forms.Padding(0);
             this.groupBoxChannelSelection.Name = "groupBoxChannelSelection";
-            this.groupBoxChannelSelection.Size = new System.Drawing.Size(300, 212);
+            this.groupBoxChannelSelection.Size = new System.Drawing.Size(300, 242);
             this.groupBoxChannelSelection.TabIndex = 0;
             this.groupBoxChannelSelection.TabStop = false;
             this.groupBoxChannelSelection.Text = "Channel selection";
@@ -882,60 +888,19 @@ namespace ResponseAnalyzer
             // 
             this.layoutChannelSelection.ColumnCount = 1;
             this.layoutChannelSelection.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.layoutChannelSelection.Controls.Add(this.tableLayoutPanel4, 0, 1);
+            this.layoutChannelSelection.Controls.Add(this.flowLayoutPanel5, 0, 2);
             this.layoutChannelSelection.Controls.Add(this.tableLayoutPanel11, 0, 0);
+            this.layoutChannelSelection.Controls.Add(this.tableLayoutPanel4, 0, 1);
             this.layoutChannelSelection.Dock = System.Windows.Forms.DockStyle.Fill;
             this.layoutChannelSelection.Location = new System.Drawing.Point(3, 17);
             this.layoutChannelSelection.Margin = new System.Windows.Forms.Padding(0);
             this.layoutChannelSelection.Name = "layoutChannelSelection";
-            this.layoutChannelSelection.RowCount = 2;
-            this.layoutChannelSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 17.75148F));
-            this.layoutChannelSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 82.24852F));
-            this.layoutChannelSelection.Size = new System.Drawing.Size(294, 192);
+            this.layoutChannelSelection.RowCount = 3;
+            this.layoutChannelSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 18.83117F));
+            this.layoutChannelSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 81.16883F));
+            this.layoutChannelSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29F));
+            this.layoutChannelSelection.Size = new System.Drawing.Size(294, 222);
             this.layoutChannelSelection.TabIndex = 0;
-            // 
-            // tableLayoutPanel4
-            // 
-            this.tableLayoutPanel4.ColumnCount = 2;
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 58.82353F));
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.17647F));
-            this.tableLayoutPanel4.Controls.Add(this.listBoxFoundSignals, 0, 0);
-            this.tableLayoutPanel4.Controls.Add(this.listBoxFrequencies, 1, 0);
-            this.tableLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel4.Location = new System.Drawing.Point(0, 34);
-            this.tableLayoutPanel4.Margin = new System.Windows.Forms.Padding(0);
-            this.tableLayoutPanel4.Name = "tableLayoutPanel4";
-            this.tableLayoutPanel4.RowCount = 1;
-            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel4.Size = new System.Drawing.Size(294, 158);
-            this.tableLayoutPanel4.TabIndex = 1;
-            // 
-            // listBoxFoundSignals
-            // 
-            this.listBoxFoundSignals.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBoxFoundSignals.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.listBoxFoundSignals.FormattingEnabled = true;
-            this.listBoxFoundSignals.ItemHeight = 15;
-            this.listBoxFoundSignals.Location = new System.Drawing.Point(0, 0);
-            this.listBoxFoundSignals.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
-            this.listBoxFoundSignals.Name = "listBoxFoundSignals";
-            this.listBoxFoundSignals.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.listBoxFoundSignals.Size = new System.Drawing.Size(169, 158);
-            this.listBoxFoundSignals.TabIndex = 0;
-            // 
-            // listBoxFrequencies
-            // 
-            this.listBoxFrequencies.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBoxFrequencies.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.listBoxFrequencies.FormattingEnabled = true;
-            this.listBoxFrequencies.ItemHeight = 15;
-            this.listBoxFrequencies.Location = new System.Drawing.Point(175, 0);
-            this.listBoxFrequencies.Margin = new System.Windows.Forms.Padding(3, 0, 0, 0);
-            this.listBoxFrequencies.Name = "listBoxFrequencies";
-            this.listBoxFrequencies.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.listBoxFrequencies.Size = new System.Drawing.Size(119, 158);
-            this.listBoxFrequencies.TabIndex = 1;
-            this.listBoxFrequencies.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listBoxFrequencies_KeyDown);
             // 
             // tableLayoutPanel11
             // 
@@ -951,14 +916,14 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel11.Name = "tableLayoutPanel11";
             this.tableLayoutPanel11.RowCount = 1;
             this.tableLayoutPanel11.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel11.Size = new System.Drawing.Size(294, 34);
+            this.tableLayoutPanel11.Size = new System.Drawing.Size(294, 36);
             this.tableLayoutPanel11.TabIndex = 2;
             // 
             // buttonSelectTestLab
             // 
             this.buttonSelectTestLab.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonSelectTestLab.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.buttonSelectTestLab.Location = new System.Drawing.Point(177, 5);
+            this.buttonSelectTestLab.Location = new System.Drawing.Point(177, 6);
             this.buttonSelectTestLab.Name = "buttonSelectTestLab";
             this.buttonSelectTestLab.Size = new System.Drawing.Size(114, 23);
             this.buttonSelectTestLab.TabIndex = 1;
@@ -971,7 +936,7 @@ namespace ResponseAnalyzer
             this.labelSelectionInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.labelSelectionInfo.AutoSize = true;
             this.labelSelectionInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.labelSelectionInfo.Location = new System.Drawing.Point(3, 9);
+            this.labelSelectionInfo.Location = new System.Drawing.Point(3, 10);
             this.labelSelectionInfo.Name = "labelSelectionInfo";
             this.labelSelectionInfo.Size = new System.Drawing.Size(168, 15);
             this.labelSelectionInfo.TabIndex = 2;
@@ -980,7 +945,7 @@ namespace ResponseAnalyzer
             // buttonProcess
             // 
             this.buttonProcess.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonProcess.Location = new System.Drawing.Point(234, 308);
+            this.buttonProcess.Location = new System.Drawing.Point(234, 336);
             this.buttonProcess.Name = "buttonProcess";
             this.buttonProcess.Size = new System.Drawing.Size(75, 23);
             this.buttonProcess.TabIndex = 3;
@@ -1007,8 +972,8 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel6.ColumnCount = 4;
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 21.2766F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 78.7234F));
-            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 35F));
-            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 36F));
+            this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 39F));
             this.tableLayoutPanel6.Controls.Add(this.labelProjectPath, 0, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonOpenProject, 2, 0);
             this.tableLayoutPanel6.Controls.Add(this.buttonUpdateProject, 3, 0);
@@ -1037,7 +1002,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonOpenProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenProject.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonOpenProject.Location = new System.Drawing.Point(239, 3);
+            this.buttonOpenProject.Location = new System.Drawing.Point(247, 3);
             this.buttonOpenProject.Name = "buttonOpenProject";
             this.buttonOpenProject.Size = new System.Drawing.Size(29, 22);
             this.buttonOpenProject.TabIndex = 2;
@@ -1048,7 +1013,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonUpdateProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonUpdateProject.Image = global::ResponseAnalyzer.Properties.Resources.refresh;
-            this.buttonUpdateProject.Location = new System.Drawing.Point(274, 3);
+            this.buttonUpdateProject.Location = new System.Drawing.Point(283, 3);
             this.buttonUpdateProject.Name = "buttonUpdateProject";
             this.buttonUpdateProject.Size = new System.Drawing.Size(30, 22);
             this.buttonUpdateProject.TabIndex = 3;
@@ -1058,10 +1023,10 @@ namespace ResponseAnalyzer
             // 
             this.textBoxProjectPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxProjectPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxProjectPath.Location = new System.Drawing.Point(53, 3);
+            this.textBoxProjectPath.Location = new System.Drawing.Point(55, 3);
             this.textBoxProjectPath.Name = "textBoxProjectPath";
             this.textBoxProjectPath.ReadOnly = true;
-            this.textBoxProjectPath.Size = new System.Drawing.Size(180, 21);
+            this.textBoxProjectPath.Size = new System.Drawing.Size(186, 21);
             this.textBoxProjectPath.TabIndex = 1;
             // 
             // glWindow
@@ -1171,6 +1136,95 @@ namespace ResponseAnalyzer
             this.glViewIsometric.Size = new System.Drawing.Size(123, 22);
             this.glViewIsometric.Text = "Isometric";
             // 
+            // tableLayoutPanel4
+            // 
+            this.tableLayoutPanel4.ColumnCount = 2;
+            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 63.60544F));
+            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 36.39456F));
+            this.tableLayoutPanel4.Controls.Add(this.listBoxFoundSignals, 0, 0);
+            this.tableLayoutPanel4.Controls.Add(this.listBoxFrequencies, 1, 0);
+            this.tableLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel4.Location = new System.Drawing.Point(0, 36);
+            this.tableLayoutPanel4.Margin = new System.Windows.Forms.Padding(0);
+            this.tableLayoutPanel4.Name = "tableLayoutPanel4";
+            this.tableLayoutPanel4.RowCount = 1;
+            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel4.Size = new System.Drawing.Size(294, 156);
+            this.tableLayoutPanel4.TabIndex = 4;
+            // 
+            // listBoxFoundSignals
+            // 
+            this.listBoxFoundSignals.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBoxFoundSignals.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.listBoxFoundSignals.FormattingEnabled = true;
+            this.listBoxFoundSignals.ItemHeight = 15;
+            this.listBoxFoundSignals.Location = new System.Drawing.Point(0, 0);
+            this.listBoxFoundSignals.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
+            this.listBoxFoundSignals.Name = "listBoxFoundSignals";
+            this.listBoxFoundSignals.SelectionMode = System.Windows.Forms.SelectionMode.None;
+            this.listBoxFoundSignals.Size = new System.Drawing.Size(183, 156);
+            this.listBoxFoundSignals.TabIndex = 0;
+            // 
+            // listBoxFrequencies
+            // 
+            this.listBoxFrequencies.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBoxFrequencies.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.listBoxFrequencies.FormattingEnabled = true;
+            this.listBoxFrequencies.ItemHeight = 15;
+            this.listBoxFrequencies.Location = new System.Drawing.Point(189, 0);
+            this.listBoxFrequencies.Margin = new System.Windows.Forms.Padding(3, 0, 0, 0);
+            this.listBoxFrequencies.Name = "listBoxFrequencies";
+            this.listBoxFrequencies.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.listBoxFrequencies.Size = new System.Drawing.Size(105, 156);
+            this.listBoxFrequencies.TabIndex = 1;
+            this.listBoxFrequencies.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listBoxFrequencies_KeyDown);
+            // 
+            // flowLayoutPanel5
+            // 
+            this.flowLayoutPanel5.Controls.Add(this.label2);
+            this.flowLayoutPanel5.Controls.Add(this.textBoxResonanceFrequency);
+            this.flowLayoutPanel5.Controls.Add(this.buttonSelectResonanceFrequency);
+            this.flowLayoutPanel5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowLayoutPanel5.Location = new System.Drawing.Point(0, 192);
+            this.flowLayoutPanel5.Margin = new System.Windows.Forms.Padding(0);
+            this.flowLayoutPanel5.Name = "flowLayoutPanel5";
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(294, 30);
+            this.flowLayoutPanel5.TabIndex = 7;
+            // 
+            // label2
+            // 
+            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label2.Location = new System.Drawing.Point(3, 7);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(132, 15);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Resonance frequency: ";
+            // 
+            // textBoxResonanceFrequency
+            // 
+            this.textBoxResonanceFrequency.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.textBoxResonanceFrequency.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.textBoxResonanceFrequency.Location = new System.Drawing.Point(141, 4);
+            this.textBoxResonanceFrequency.Name = "textBoxResonanceFrequency";
+            this.textBoxResonanceFrequency.ReadOnly = true;
+            this.textBoxResonanceFrequency.Size = new System.Drawing.Size(73, 21);
+            this.textBoxResonanceFrequency.TabIndex = 1;
+            this.textBoxResonanceFrequency.Tag = "-1";
+            // 
+            // buttonSelectResonanceFrequency
+            // 
+            this.buttonSelectResonanceFrequency.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.buttonSelectResonanceFrequency.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.buttonSelectResonanceFrequency.Location = new System.Drawing.Point(220, 3);
+            this.buttonSelectResonanceFrequency.Name = "buttonSelectResonanceFrequency";
+            this.buttonSelectResonanceFrequency.Size = new System.Drawing.Size(58, 23);
+            this.buttonSelectResonanceFrequency.TabIndex = 2;
+            this.buttonSelectResonanceFrequency.Text = "Select";
+            this.buttonSelectResonanceFrequency.UseVisualStyleBackColor = true;
+            this.buttonSelectResonanceFrequency.Click += new System.EventHandler(this.buttonSelectResonanceFrequency_Click);
+            // 
             // ResponseAnalyzer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -1216,13 +1270,15 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel14.PerformLayout();
             this.groupBoxChannelSelection.ResumeLayout(false);
             this.layoutChannelSelection.ResumeLayout(false);
-            this.tableLayoutPanel4.ResumeLayout(false);
             this.tableLayoutPanel11.ResumeLayout(false);
             this.tableLayoutPanel11.PerformLayout();
             this.groupBoxProject.ResumeLayout(false);
             this.tableLayoutPanel6.ResumeLayout(false);
             this.tableLayoutPanel6.PerformLayout();
             this.glContextMenu.ResumeLayout(false);
+            this.tableLayoutPanel4.ResumeLayout(false);
+            this.flowLayoutPanel5.ResumeLayout(false);
+            this.flowLayoutPanel5.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1296,9 +1352,6 @@ namespace ResponseAnalyzer
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel14;
         private System.Windows.Forms.GroupBox groupBoxChannelSelection;
         private System.Windows.Forms.TableLayoutPanel layoutChannelSelection;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
-        private System.Windows.Forms.ListBox listBoxFoundSignals;
-        private System.Windows.Forms.ListBox listBoxFrequencies;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel11;
         private System.Windows.Forms.Button buttonSelectTestLab;
         private System.Windows.Forms.Label labelSelectionInfo;
@@ -1311,6 +1364,13 @@ namespace ResponseAnalyzer
         private System.Windows.Forms.NumericUpDown numericTemplateNormalization;
         private System.Windows.Forms.Label labelTemplateAxis;
         private System.Windows.Forms.ComboBox comboBoxTemplateAxis;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
+        private System.Windows.Forms.ListBox listBoxFoundSignals;
+        private System.Windows.Forms.ListBox listBoxFrequencies;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox textBoxResonanceFrequency;
+        private System.Windows.Forms.Button buttonSelectResonanceFrequency;
     }
 }
 

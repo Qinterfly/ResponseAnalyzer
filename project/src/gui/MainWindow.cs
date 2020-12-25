@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Globalization;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using OpenTK;
@@ -128,10 +129,29 @@ namespace ResponseAnalyzer
         {
             if (treeSelection.Nodes.Count == 0 || treeSelection.SelectedNode == null)
                 return;
-            int iSelected = treeSelection.SelectedNode.Index;
+            int iRemoved = treeSelection.SelectedNode.Index;
             // If a child node is selected
             if (treeSelection.SelectedNode.Parent != null)
                 return;
+            // Delete the bindings
+            int tInd;
+            Dictionary<string, List<int>> updatedChartNodeIndices = new Dictionary<string, List<int>>();
+            foreach (string chart in chartNodeIndices_.Keys)
+            {
+                List<int> indices = chartNodeIndices_[chart];
+                List<int> updatedIndices = new List<int>();
+                int nSelected = indices.Count;
+                for (int i = 0; i != nSelected; ++i)
+                {
+                    tInd = indices[i];
+                    if (tInd > iRemoved)
+                        updatedIndices.Add(tInd - 1);
+                    else if (tInd < iRemoved)
+                        updatedIndices.Add(tInd);
+                }
+                updatedChartNodeIndices.Add(chart, updatedIndices);
+            }
+            chartNodeIndices_ = updatedChartNodeIndices;
             // Line
             if (treeSelection.SelectedNode.Nodes.Count != 0)
             {
@@ -143,8 +163,9 @@ namespace ResponseAnalyzer
             {
                 removeNodeFromTree(treeSelection.SelectedNode);
             }
-            treeSelection.Nodes.RemoveAt(iSelected);
+            treeSelection.Nodes.RemoveAt(iRemoved);
             modelRenderer_.draw();
+            listBoxTemplateCharts_SelectedIndexChanged();
         }
 
         private void removeNodeFromTree(TreeNode node)
@@ -374,7 +395,7 @@ namespace ResponseAnalyzer
             List<string> charts = excelTemplate_.getChartNames();
             chartTypes_ = new Dictionary<string, ChartTypes>();
             chartUnits_ = new Dictionary<string, SignalUnits>();
-            chartNodes_ = new Dictionary<string, List<string>>();
+            chartNodeIndices_ = new Dictionary<string, List<int>>();
             chartDirection_ = new Dictionary<string, ChartDirection>();
             chartNormalization_ = new Dictionary<string, double>();
             chartAxis_ = new Dictionary<string, ChartDirection>();
@@ -383,7 +404,7 @@ namespace ResponseAnalyzer
                 chartTypes_.Add(chart, ChartTypes.UNKNOWN);
                 chartUnits_.Add(chart, SignalUnits.UNKNOWN);
                 chartDirection_.Add(chart, ChartDirection.UNKNOWN);
-                chartNodes_.Add(chart, new List<string>());
+                chartNodeIndices_.Add(chart, new List<int>());
                 chartNormalization_.Add(chart, 1.0);
                 chartAxis_.Add(chart, ChartDirection.UNKNOWN);
             }
@@ -405,7 +426,7 @@ namespace ResponseAnalyzer
             chartNormalization_[listBoxTemplateCharts.SelectedItem.ToString()] = (double) numericTemplateNormalization.Value;
         }
 
-        private void listBoxTemplateCharts_SelectedIndexChanged(object sender, EventArgs e)
+        private void listBoxTemplateCharts_SelectedIndexChanged(object sender = null, EventArgs e = null)
         {
             comboBoxTemplateType.SelectedIndex = (int)chartTypes_[listBoxTemplateCharts.SelectedItem.ToString()];
             comboBoxTemplateUnits.SelectedIndex = (int)chartUnits_[listBoxTemplateCharts.SelectedItem.ToString()];
@@ -413,11 +434,11 @@ namespace ResponseAnalyzer
             comboBoxTemplateAxis.SelectedIndex = (int)chartAxis_[listBoxTemplateCharts.SelectedItem.ToString()];
             numericTemplateNormalization.Value = (decimal)chartNormalization_[listBoxTemplateCharts.SelectedItem.ToString()];
             listBoxTemplateObjects.Items.Clear();
-            List<string> tNodes = chartNodes_[listBoxTemplateCharts.SelectedItem.ToString()];
-            if (tNodes.Count != 0)
+            List<int> tNodesIndices = chartNodeIndices_[listBoxTemplateCharts.SelectedItem.ToString()];
+            if (tNodesIndices.Count != 0)
             {
-                foreach (string node in tNodes)
-                    listBoxTemplateObjects.Items.Add(node);
+                foreach (int nodeIndex in tNodesIndices)
+                    listBoxTemplateObjects.Items.Add(treeSelection.Nodes[nodeIndex].Text);
                 listBoxTemplateObjects.SelectedIndex = 0;
             }
         }
@@ -438,28 +459,24 @@ namespace ResponseAnalyzer
             chartDirection_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
         }
 
+        private void comboBoxTemplateAxis_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBoxTemplateCharts.Items.Count == 0)
+                return;
+            ChartDirection iSelected = (ChartDirection)comboBoxTemplateAxis.SelectedIndex;
+            chartAxis_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+        }
+
         private void buttonAddTemplateObject_Click(object sender, EventArgs e)
         {
             ChartTypes templateType = (ChartTypes)comboBoxTemplateType.SelectedIndex;
             if (treeSelection.SelectedNode == null)
                 return;
             // Check if an appopriate object was chosen
-            bool isLineSelected = treeSelection.SelectedNode.Nodes.Count != 0;
-            TreeNode mainNode = treeSelection.SelectedNode;
+            TreeNode node = treeSelection.SelectedNode;
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            if (isLineSelected)
-            {
-                foreach(TreeNode node in mainNode.Nodes)
-                {
-                    listBoxTemplateObjects.Items.Add(node.Text);
-                    chartNodes_[chart].Add(node.Text);
-                }
-            }
-            else
-            {
-                listBoxTemplateObjects.Items.Add(mainNode.Text);
-                chartNodes_[chart].Add(mainNode.Text);
-            }
+            listBoxTemplateObjects.Items.Add(node.Text);
+            chartNodeIndices_[chart].Add(node.Index);
             listBoxTemplateObjects.SelectedIndex = 0;
         }
 
@@ -496,10 +513,13 @@ namespace ResponseAnalyzer
             int k = 0;
             foreach (double freq in response.frequency) 
             { 
-                listBoxFrequencies.Items.Add(freq.ToString());
+                listBoxFrequencies.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
                 listBoxFrequencies.SetSelected(k++, true);
             }
             listBoxFrequencies.TopIndex = 0;
+            // Resonance frequency
+            textBoxResonanceFrequency.Clear();
+            textBoxResonanceFrequency.Tag = -1;
         }
 
         private void listBoxFrequencies_KeyDown(object sender, KeyEventArgs e)
@@ -536,9 +556,9 @@ namespace ResponseAnalyzer
             // Creating series
             foreach (string chart in listBoxTemplateCharts.Items) // Charts
             {
-                // Nodes
-                List<string> chartNodes = chartNodes_[chart];
-                if (chartNodes.Count == 0)
+                // Nodes selection
+                List<int> selectedIndices = chartNodeIndices_[chart];
+                if (selectedIndices.Count == 0)
                     continue;
                 // Type and direction
                 ChartTypes type = chartTypes_[chart];
@@ -552,6 +572,7 @@ namespace ResponseAnalyzer
                 // Frequency response function: real and imaginary parts
                 if (type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF)
                 {
+                    List<string> chartNodes = retrieveNodes(selectedIndices);
                     foreach (string node in chartNodes) // Node
                     {
                         // Check if there is an appropriate signal
@@ -572,8 +593,78 @@ namespace ResponseAnalyzer
                         excelResult.addSeries(chart, data, node);
                     }
                 }
+                // Modeshape
+                if (type == ChartTypes.MODESHAPE)
+                {
+                    int indResonance = (int) textBoxResonanceFrequency.Tag;
+                    if (axis == ChartDirection.UNKNOWN || indResonance < 0)
+                        continue;
+                    // For each line
+                    foreach (int iSelected in selectedIndices)
+                    {
+                        // Check if a single node was selected
+                        if (treeSelection.Nodes[iSelected].Nodes.Count == 0)
+                            continue;
+                        List<string> lineNodes = retrieveNodesFromLine(iSelected);
+                        List<double> coordinates = new List<double>();
+                        List<double> values = new List<double>();
+                        foreach (string node in lineNodes)
+                        {
+                            // Check if there is an appropriate signal
+                            if (!project.signals_.ContainsKey(node) || !project.signals_[node].ContainsKey(direction))
+                                continue;
+                            // Retreiving the coordinate along the choosen axis
+                            string[] selectionInfo = node.Split(selectionDelimiter_);
+                            uint indNode = modelRenderer_.componentSet_.mapNodeNames[selectionInfo[0]][selectionInfo[1]];
+                            double[,] componentCoordinates = (double[,])modelRenderer_.componentSet_.nodeCoordinates[selectionInfo[0]];
+                            int tInd = (int)axis - 1;
+                            coordinates.Add(componentCoordinates[indNode, tInd]);
+                            // Retreiving the function value
+                            ResponseHolder response = project.signals_[node][direction];
+                            double[,] refFullData = response.data[units];
+                            values.Add(refFullData[indResonance, 1]); // Imaginary part of the signal
+                        }
+                        int nNodes = coordinates.Count;
+                        double[,] data = new double[nNodes, 2];
+                        for (int i = 0; i != nNodes; ++i)
+                        {
+                            data[i, 0] = coordinates[i];
+                            data[i, 1] = values[i];
+                        }
+                        excelResult.addSeries(chart, data, treeSelection.Nodes[iSelected].Text);
+                    }
+                }
             }
             ChartPosition.lastRow = 0;
+            setStatus("The results were successfully processed");
+        }
+
+        private List<string> retrieveNodes(List<int> listNodeIndices)
+        {
+            List<string> selectedNodes = new List<string>();
+            bool isLine;
+            foreach (int index in listNodeIndices)
+            {
+                TreeNode mainNode = treeSelection.Nodes[index];
+                isLine = mainNode.Nodes.Count != 0;
+                if (!isLine)
+                    selectedNodes.Add(mainNode.Text);
+            }
+            return selectedNodes;
+        }
+
+        private List<string> retrieveNodesFromLine(int index)
+        {
+            List<string> selectedNodes = new List<string>();
+            bool isLine;
+            TreeNode mainNode = treeSelection.Nodes[index];
+            isLine = mainNode.Nodes.Count != 0;
+            if (isLine)
+            {
+                foreach (TreeNode node in mainNode.Nodes)
+                    selectedNodes.Add(node.Text);
+            }
+            return selectedNodes;
         }
 
         static class MouseWeights
@@ -582,5 +673,14 @@ namespace ResponseAnalyzer
             public const float translation = 1.0f;
             public const float rotation = 1.0f;
         }
+
+        private void buttonSelectResonanceFrequency_Click(object sender, EventArgs e)
+        {
+            if (listBoxFrequencies.SelectedIndices.Count == 0)
+                return;
+            textBoxResonanceFrequency.Tag = listBoxFrequencies.SelectedIndices[0];
+            textBoxResonanceFrequency.Text = listBoxFrequencies.Items[(int)textBoxResonanceFrequency.Tag].ToString();
+        }
+
     }
 }

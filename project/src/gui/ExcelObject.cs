@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
 using OfficeOpenXml;
@@ -67,17 +68,11 @@ namespace ResponseAnalyzer
                 pos = new ChartPosition()
                 {
                     header = new Position { row = ChartPosition.lastRow + 1, col = 1 },
-                    baseValues = new Position { row = ChartPosition.lastRow + 3, col = 1 },
                     length = data.GetLength(0),
-                    availablePosition = new Position { row = ChartPosition.lastRow + 3, col = 2}
+                    availablePosition = new Position { row = ChartPosition.lastRow + 3, col = 1}
                 };
                 // Write the header
                 workSheet_.Cells[pos.header.row, pos.header.col].Value = objChart.Name;
-                // Write the base values
-                iRow = pos.baseValues.row;
-                jCol = pos.baseValues.col;
-                for (int k = 0; k != pos.length; ++k)
-                    workSheet_.Cells[iRow + k, jCol].Value = data[k, 0];
                 posCharts_.Add(objChart, pos);
                 ChartPosition.lastRow += pos.length + 3;
             }
@@ -88,15 +83,19 @@ namespace ResponseAnalyzer
             // Add the function values
             iRow = pos.availablePosition.row;
             jCol = pos.availablePosition.col;
-            for (int k = 0; k != pos.length; ++k)
-                workSheet_.Cells[iRow + k, jCol].Value = data[k, 1];
-            workSheet_.Cells[pos.header.row + 1, jCol].Value = dataName; // Set name
+            int nData = data.GetLength(0);
+            for (int k = 0; k != nData; ++k)
+            {
+                workSheet_.Cells[iRow + k, jCol    ].Value = data[k, 0];
+                workSheet_.Cells[iRow + k, jCol + 1].Value = data[k, 1];
+            }
+            workSheet_.Cells[pos.header.row + 1, jCol + 1].Value = dataName; // Set the name
             // Retrieving the data address
             ExcelScatterChart scatterChart = (ExcelScatterChart) objChart;
-            string xVals = ExcelRange.GetAddress(pos.baseValues.row, pos.baseValues.col,
-                                                 pos.baseValues.row + pos.length, pos.baseValues.col);
-            string yVals = ExcelRange.GetAddress(pos.baseValues.row, jCol,
-                                                 pos.baseValues.row + pos.length, jCol);
+            string xVals = ExcelRange.GetAddress(iRow, jCol,
+                                                 iRow + nData, jCol);
+            string yVals = ExcelRange.GetAddress(iRow, jCol + 1,
+                                                 iRow + nData, jCol + 1);
             xVals = ExcelRange.GetFullAddress(workSheetName_, xVals);
             yVals = ExcelRange.GetFullAddress(workSheetName_, yVals);
             // Creating the serie
@@ -118,7 +117,8 @@ namespace ResponseAnalyzer
             chartForAxes.XAxis.MinValue = data[0, 0];
             chartForAxes.XAxis.MaxValue = data[pos.length - 1, 0];
             // Shifting data locations
-            ++pos.availablePosition.col;
+            pos.availablePosition.col = pos.availablePosition.col + 2;
+            pos.length = Math.Max(pos.length, nData);
             package_.Save();
         }
 
@@ -177,7 +177,6 @@ namespace ResponseAnalyzer
     public struct ChartPosition
     {
         public Position header;
-        public Position baseValues;
         public int length;
         public Position availablePosition;
         static public int lastRow = 0;
