@@ -38,6 +38,8 @@ namespace ResponseAnalyzer
                     setStatus("The project was successfully opened");
                 }
                 modelRenderer_.setGeometry(project.geometry_);
+                modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
+                setEnabled();
             }
             else if (dialogResult != DialogResult.Cancel)
             {
@@ -374,9 +376,9 @@ namespace ResponseAnalyzer
                 {
                     textBoxExcelTemplatePath.Text = filePath;
                     updateExcelTemplateList();
+                    setEnabled();
                     setStatus("The Excel template file was successfully opened");
                 }
-                
             }
             else if (dialogResult != DialogResult.Cancel)
             {
@@ -485,6 +487,8 @@ namespace ResponseAnalyzer
             int iSelected = listBoxTemplateObjects.SelectedIndex;
             if (iSelected < 0)
                 return;
+            string chart = listBoxTemplateCharts.SelectedItem.ToString();
+            chartNodeIndices_[chart].RemoveAt(iSelected);
             listBoxTemplateObjects.Items.RemoveAt(iSelected);
             if (listBoxTemplateObjects.Items.Count != 0)
                 listBoxTemplateObjects.SelectedIndex = 0;
@@ -590,7 +594,8 @@ namespace ResponseAnalyzer
                             data[i, 0] = response.frequency[iSelected];
                             data[i, 1] = refFullData[iSelected, iType];
                         }
-                        excelResult.addSeries(chart, data, node);
+                        string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
+                        excelResult.addSeries(chart, data, ptrNode);
                     }
                 }
                 // Modeshape
@@ -629,13 +634,14 @@ namespace ResponseAnalyzer
                         for (int i = 0; i != nNodes; ++i)
                         {
                             data[i, 0] = coordinates[i];
-                            data[i, 1] = values[i];
+                            data[i, 1] = values[i] / norm;
                         }
                         excelResult.addSeries(chart, data, treeSelection.Nodes[iSelected].Text);
                     }
                 }
             }
             ChartPosition.lastRow = 0;
+            excelResult.open();
             setStatus("The results were successfully processed");
         }
 
@@ -681,6 +687,5 @@ namespace ResponseAnalyzer
             textBoxResonanceFrequency.Tag = listBoxFrequencies.SelectedIndices[0];
             textBoxResonanceFrequency.Text = listBoxFrequencies.Items[(int)textBoxResonanceFrequency.Tag].ToString();
         }
-
     }
 }

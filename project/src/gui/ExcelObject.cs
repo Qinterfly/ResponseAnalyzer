@@ -5,6 +5,7 @@ using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Drawing.Chart;
+using Microsoft.Office.Interop.Excel;
 
 namespace ResponseAnalyzer
 {
@@ -14,10 +15,31 @@ namespace ResponseAnalyzer
         {
             string originalPath = template.path_;
             string resPath = path + "\\" + name + ".xlsx";
-            File.Copy(originalPath, resPath, true);
+            // Retreiving a copy of an already running application
+            try 
+            { 
+                excelApplication_ = (Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
+                excelApplication_.Visible = true;
+            }
+            catch
+            {
+                excelApplication_ = new Application();
+                excelApplication_.Visible = true;
+            }
+            // Copying the template
+            try
+            { 
+                File.Copy(originalPath, resPath, true);
+            }
+            catch
+            {
+                excelApplication_.Workbooks.Close();
+                File.Copy(originalPath, resPath, true);
+            }
             Copy(new ExcelObject(resPath));
             workSheet_ = package_.Workbook.Worksheets.Add(workSheetName_);
             posCharts_ = new Dictionary<ExcelDrawing, ChartPosition>();
+            path_ = resPath;
             package_.Save();
         }
 
@@ -112,14 +134,25 @@ namespace ResponseAnalyzer
             ++indMarkers_[objChart];
             if (indMarkers_[objChart] > markersProperties_.Count)
                 indMarkers_[objChart] = 0;
+            // Legend
+            serie.Header = dataName;
+            scatterChart.Legend.Add();
             // Axis limits
             ExcelChart chartForAxes = scatterChart;
             chartForAxes.XAxis.MinValue = data[0, 0];
-            chartForAxes.XAxis.MaxValue = data[pos.length - 1, 0];
+            chartForAxes.XAxis.MaxValue = data[nData - 1, 0];
             // Shifting data locations
             pos.availablePosition.col = pos.availablePosition.col + 2;
             pos.length = Math.Max(pos.length, nData);
             package_.Save();
+        }
+
+        public void open()
+        {
+            if (excelApplication_ == null)
+                return;
+            excelApplication_.Workbooks.Open(path_);
+            excelApplication_.Visible = true;
         }
 
         private void Copy(ExcelObject another)
@@ -160,6 +193,7 @@ namespace ResponseAnalyzer
             }
         }
 
+        Application excelApplication_;
         ExcelPackage package_;
         string path_ { get; set;  }
         // Charts
@@ -171,7 +205,6 @@ namespace ResponseAnalyzer
         // Style
         Dictionary<ExcelDrawing, int> indMarkers_;
         List<MarkerProperties> markersProperties_;
-
     }
 
     public struct ChartPosition
