@@ -40,6 +40,14 @@ namespace ResponseAnalyzer
             workSheet_ = package_.Workbook.Worksheets.Add(workSheetName_);
             posCharts_ = new Dictionary<ExcelDrawing, ChartPosition>();
             path_ = resPath;
+            // Clear all the series
+            foreach (ExcelDrawing objChart in charts_)
+            {
+                ExcelScatterChart chart = (ExcelScatterChart)objChart;
+                while (chart.Series.Count > 0)
+                    chart.Series.Delete(0);
+            }
+            // Save
             package_.Save();
         }
 
@@ -115,9 +123,9 @@ namespace ResponseAnalyzer
             // Retrieving the data address
             ExcelScatterChart scatterChart = (ExcelScatterChart) objChart;
             string xVals = ExcelRange.GetAddress(iRow, jCol,
-                                                 iRow + nData, jCol);
+                                                 iRow + nData - 1, jCol);
             string yVals = ExcelRange.GetAddress(iRow, jCol + 1,
-                                                 iRow + nData, jCol + 1);
+                                                 iRow + nData - 1, jCol + 1);
             xVals = ExcelRange.GetFullAddress(workSheetName_, xVals);
             yVals = ExcelRange.GetFullAddress(workSheetName_, yVals);
             // Creating the serie
@@ -136,11 +144,6 @@ namespace ResponseAnalyzer
                 indMarkers_[objChart] = 0;
             // Legend
             serie.Header = dataName;
-            scatterChart.Legend.Add();
-            // Axis limits
-            ExcelChart chartForAxes = scatterChart;
-            chartForAxes.XAxis.MinValue = data[0, 0];
-            chartForAxes.XAxis.MaxValue = data[nData - 1, 0];
             // Shifting data locations
             pos.availablePosition.col = pos.availablePosition.col + 2;
             pos.length = Math.Max(pos.length, nData);

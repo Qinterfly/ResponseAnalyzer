@@ -11,10 +11,15 @@ namespace ResponseAnalyzer
         public void initializeGL()
         {
             GL.ClearColor(Color4.White);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             // Blending
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.Enable(EnableCap.PolygonSmooth);
+            GL.Enable(EnableCap.LineSmooth);
+            GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Nicest);
+            GL.Hint(HintTarget.LineSmoothHint, HintMode.Nicest);
+            GL.Hint(HintTarget.PointSmoothHint, HintMode.Nicest);
             // Z-buffer
             GL.ClearDepth(1.0f);
             GL.DepthMask(true);
@@ -88,7 +93,7 @@ namespace ResponseAnalyzer
             if (!isCongruent())
                 return;
             // Preparing the window
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             GL.PolygonMode(MaterialFace.FrontAndBack, polygonMode_);
             // Drawing the components
             shader_.Use();
@@ -155,7 +160,7 @@ namespace ResponseAnalyzer
         private Matrix4 projection_;
         private Vector3 location_;
         // Options
-        private PolygonMode polygonMode_ = PolygonMode.Fill;
+        private PolygonMode polygonMode_ = PolygonMode.Line;
         private Vector3 isoVector_ = new Vector3(0.4607291f, -0.8350012f, -0.3008356f);
         private float isoAngle_ = 0.910852849f;
 
@@ -164,7 +169,7 @@ namespace ResponseAnalyzer
         {
             public const float pointSize = 8.0f;
             public const float lineWidth = 1.25f;
-            public const float defaultScale = 220.0f;
+            public const float defaultScale = 300.0f;
             public const float defaultY = 100.0f;
             public const float zNear = -10.0f;
             public const float zFar = 10.0f;

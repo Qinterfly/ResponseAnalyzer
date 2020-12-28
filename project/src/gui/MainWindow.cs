@@ -33,12 +33,13 @@ namespace ResponseAnalyzer
                 string filePath = openFileDialog.FileName;
                 project = new LMSProject(filePath);
                 clearProjectControls();
-                if (!project.isProjectOpened()) {
+                if (project.isProjectOpened()) {
                     textBoxProjectPath.Text = filePath;
                     setStatus("The project was successfully opened");
                 }
                 modelRenderer_.setGeometry(project.geometry_);
                 modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
+                modelRenderer_.draw();
                 setEnabled();
             }
             else if (dialogResult != DialogResult.Cancel)
@@ -472,10 +473,19 @@ namespace ResponseAnalyzer
         private void buttonAddTemplateObject_Click(object sender, EventArgs e)
         {
             ChartTypes templateType = (ChartTypes)comboBoxTemplateType.SelectedIndex;
-            if (treeSelection.SelectedNode == null)
+            if (treeSelection.SelectedNode == null || templateType == ChartTypes.UNKNOWN)
                 return;
             // Check if an appopriate object was chosen
+            bool isNeedInsertion = false;
             TreeNode node = treeSelection.SelectedNode;
+            bool isLineSelected = node.Nodes.Count != 0;
+            if (templateType == ChartTypes.REALFRF || templateType == ChartTypes.IMAGFRF)
+                isNeedInsertion = !isLineSelected;
+            if (templateType == ChartTypes.MODESHAPE)
+                isNeedInsertion = isLineSelected;
+            if (!isNeedInsertion)
+                return;
+            // Adding the object
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
             listBoxTemplateObjects.Items.Add(node.Text);
             chartNodeIndices_[chart].Add(node.Index);
@@ -503,8 +513,11 @@ namespace ResponseAnalyzer
             labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
             listBoxFoundSignals.Items.Clear();
             listBoxFrequencies.Items.Clear();
-            if (nSelected < 1)
+            if (nSelected < 1) {
+                if (nSelected == -1)
+                    setStatus("Wrong TestLab selection");
                 return;
+            }
             ResponseHolder response = null; 
             foreach (string nodeName in project.signals_.Keys)
             {
@@ -547,6 +560,7 @@ namespace ResponseAnalyzer
 
         private void buttonProcess_Click(object sender = null, EventArgs e = null)
         {
+            int iError = 0;
             ExcelObject excelResult = new ExcelObject(excelTemplate_, textBoxDirectoryExcel.Text, textBoxNameExcel.Text);
             // Checking the project, template and selected signals
             if (!project.isProjectOpened() || !excelTemplate_.isOpened() || listBoxFoundSignals.Items.Count == 0)
@@ -562,14 +576,18 @@ namespace ResponseAnalyzer
             {
                 // Nodes selection
                 List<int> selectedIndices = chartNodeIndices_[chart];
-                if (selectedIndices.Count == 0)
-                    continue;
                 // Type and direction
                 ChartTypes type = chartTypes_[chart];
                 ChartDirection direction = chartDirection_[chart];
                 SignalUnits units = chartUnits_[chart];
                 if (type == ChartTypes.UNKNOWN || direction == ChartDirection.UNKNOWN || units == SignalUnits.UNKNOWN)
                     continue;
+                if (selectedIndices.Count == 0)
+                {
+                    setStatus("Template objects for " + chart + " were not specified");
+                    iError = 1;
+                    continue;
+                }
                 // Norm
                 double norm = chartNormalization_[chart];
                 ChartDirection axis = chartAxis_[chart];
@@ -581,7 +599,11 @@ namespace ResponseAnalyzer
                     {
                         // Check if there is an appropriate signal
                         if (!project.signals_.ContainsKey(node) || !project.signals_[node].ContainsKey(direction))
+                        {
+                            iError = 2;
+                            setStatus("The chosen signals do not contain the node" + node);
                             continue;
+                        }
                         ResponseHolder response = project.signals_[node][direction];
                         // Slice data by the selected index
                         double[,] refFullData = response.data[units];
@@ -617,7 +639,11 @@ namespace ResponseAnalyzer
                         {
                             // Check if there is an appropriate signal
                             if (!project.signals_.ContainsKey(node) || !project.signals_[node].ContainsKey(direction))
+                            {
+                                iError = 2;
+                                setStatus("The chosen signals do not contain the node " + node);
                                 continue;
+                            }
                             // Retreiving the coordinate along the choosen axis
                             string[] selectionInfo = node.Split(selectionDelimiter_);
                             uint indNode = modelRenderer_.componentSet_.mapNodeNames[selectionInfo[0]][selectionInfo[1]];
@@ -633,8 +659,8 @@ namespace ResponseAnalyzer
                         double[,] data = new double[nNodes, 2];
                         for (int i = 0; i != nNodes; ++i)
                         {
-                            data[i, 0] = coordinates[i];
-                            data[i, 1] = values[i] / norm;
+                            data[i, 0] = coordinates[i] / norm;
+                            data[i, 1] = values[i];
                         }
                         excelResult.addSeries(chart, data, treeSelection.Nodes[iSelected].Text);
                     }
@@ -642,7 +668,8 @@ namespace ResponseAnalyzer
             }
             ChartPosition.lastRow = 0;
             excelResult.open();
-            setStatus("The results were successfully processed");
+            if (iError == 0)
+                setStatus("The results were successfully processed");
         }
 
         private List<string> retrieveNodes(List<int> listNodeIndices)
@@ -677,7 +704,7 @@ namespace ResponseAnalyzer
         {
             public const float scaling = 0.001f;
             public const float translation = 1.0f;
-            public const float rotation = 1.0f;
+            public const float rotation = 0.6f;
         }
 
         private void buttonSelectResonanceFrequency_Click(object sender, EventArgs e)
