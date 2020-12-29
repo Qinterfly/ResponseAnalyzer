@@ -1,10 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Globalization;
 using System.Windows.Forms;
 using System.Collections.Generic;
-using OpenTK;
-using OpenTK.Input;
 using OpenTK.Graphics.OpenGL4;
 
 namespace ResponseAnalyzer
@@ -70,7 +66,6 @@ namespace ResponseAnalyzer
         {
             textBoxProjectPath.Clear();
         }
-
 
         private void buttonAddSelection_Click(object sender, EventArgs e)
         {
@@ -178,17 +173,6 @@ namespace ResponseAnalyzer
             modelRenderer_.removeSelection(selectionInfo[0], selectionInfo[1]);
         }
 
-        private void glWindow_Load(object sender, EventArgs e)
-        {
-            glWindow.MakeCurrent();
-            modelRenderer_.setControl(glWindow);
-
-            // -- Debug only --
-            testRender();
-            testExcel();
-            // ----------------
-        }
-
         private void setEnabled()
         {
             bool flag = project != null;
@@ -201,123 +185,6 @@ namespace ResponseAnalyzer
             buttonAddTemplateObject.Enabled = flag;
             buttonRemoveTemplateObject.Enabled = flag;
             comboBoxTemplateType.Enabled = flag;
-        }
-
-        private void glWindow_Paint(object sender, PaintEventArgs e)
-        {
-            modelRenderer_.draw();
-        }
-
-        private void glWindow_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            float scale = 1.0f + MouseWeights.scaling * e.Delta;
-            modelRenderer_.setScale(scale);
-            modelRenderer_.draw();
-        }
-
-        private void glWindow_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            var keyboard = Keyboard.GetState();
-            switch (e.Button)
-            {
-                case MouseButtons.Middle:
-                    lastMousePosition_[0] = e.X;
-                    lastMousePosition_[1] = e.Y;
-                    if (keyboard.IsKeyDown(Key.ControlLeft))
-                        isTranslation_ = true;
-                    else
-                        isRotation_ = true;
-                    break;
-                case MouseButtons.Left:
-                    bool isNewSelection = true;
-                    if (keyboard.IsKeyDown(Key.ShiftLeft) || isEditSelection)
-                        isNewSelection = false;
-                    modelRenderer_.select(e.X, e.Y, isNewSelection);
-                    modelRenderer_.draw();
-                    break;
-                case MouseButtons.Right:
-                    glContextMenu.Show(Cursor.Position.X, Cursor.Position.Y);
-                    break;
-            }
-        }
-        
-        private void glWindow_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
-            if (isTranslation_)
-            {
-                float dX = (e.X - lastMousePosition_[0]) * MouseWeights.translation; 
-                float dY = (e.Y - lastMousePosition_[1]) * MouseWeights.translation;
-                modelRenderer_.setTranslation(dX, -dY);
-                modelRenderer_.draw();
-                lastMousePosition_[0] = e.X;
-                lastMousePosition_[1] = e.Y;
-            }
-            if (isRotation_)
-            {
-                float dRotX = (e.Y - lastMousePosition_[1]);
-                float dRotY = (e.X - lastMousePosition_[0]);
-                dRotX = MathHelper.DegreesToRadians(dRotX) * MouseWeights.rotation;
-                dRotY = MathHelper.DegreesToRadians(dRotY) * MouseWeights.rotation;
-                modelRenderer_.setRotationXY(dRotX, dRotY);
-                modelRenderer_.draw();
-                lastMousePosition_[0] = e.X;
-                lastMousePosition_[1] = e.Y;
-            }
-        }
-        private void glWindow_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            var keyboard = Keyboard.GetState();
-            if (e.Button == MouseButtons.Middle) {
-                isTranslation_ = false;
-                isRotation_ = false;
-            }
-            if (keyboard.IsKeyUp(Key.ControlLeft)) 
-                isTranslation_ = false;
-        }
-
-        private void testRender()
-        {
-            //string path = Path.GetFullPath(@"..\..\..\examples\Plate.lms");
-            //string path = Path.GetFullPath(@"..\..\..\examples\Rib.lms");
-            //string path = Path.GetFullPath(@"..\..\..\examples\Airplane.lms");
-            string path = Path.GetFullPath(@"..\..\..\examples\Yak130.lms");
-            project = new LMSProject(path);
-            textBoxProjectPath.Text = path;
-            modelRenderer_.setGeometry(project.geometry_);
-            modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
-            setEnabled();
-        }
-
-        private void testExcel()
-        {
-            string path = Path.GetFullPath(@"..\..\..\templates\Base.xlsx");
-            excelTemplate_ = new ExcelObject(path);
-            textBoxExcelTemplatePath.Text = path;
-            textBoxDirectoryExcel.Text = "C:\\Users\\qinterfly\\Desktop";
-            textBoxNameExcel.Text = "TestMe";
-            updateExcelTemplateList();
-            setEnabled();
-        }
-
-        private void glWindow_KeyDown(object sender, KeyEventArgs e)
-        {
-            switch (e.KeyData)
-            {
-                case Keys.Control | Keys.F:
-                    modelRenderer_.setView(LMSModel.Views.UP);
-                    modelRenderer_.draw();
-                    break;
-                case Keys.Escape:
-                    modelRenderer_.clearSelection();
-                    modelRenderer_.draw();
-                    break;
-            }
-        }
-        private void glWindow_Resize(object sender, EventArgs e)
-        {
-            GL.Viewport(0, 0, glWindow.Width, glWindow.Height);
         }
 
         private void stripMode_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -504,174 +371,6 @@ namespace ResponseAnalyzer
                 listBoxTemplateObjects.SelectedIndex = 0;
         }
 
-        private void buttonSelectTestLab_Click(object sender, EventArgs e)
-        {
-            // Check if all the fields are correct
-            if (!project.isProjectOpened() || !excelTemplate_.isOpened())
-                return;
-            int nSelected = project.selectSignals(modelRenderer_.componentSet_);
-            labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
-            listBoxFoundSignals.Items.Clear();
-            listBoxFrequencies.Items.Clear();
-            if (nSelected < 1) {
-                if (nSelected == -1)
-                    setStatus("Wrong TestLab selection");
-                return;
-            }
-            ResponseHolder response = null; 
-            foreach (string nodeName in project.signals_.Keys)
-            {
-                foreach (ChartDirection dir in project.signals_[nodeName].Keys)
-                {
-                    response = project.signals_[nodeName][dir];
-                    listBoxFoundSignals.Items.Add(response.signalName);
-                }
-            }
-            int k = 0;
-            foreach (double freq in response.frequency) 
-            { 
-                listBoxFrequencies.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
-                listBoxFrequencies.SetSelected(k++, true);
-            }
-            listBoxFrequencies.TopIndex = 0;
-            // Resonance frequency
-            textBoxResonanceFrequency.Clear();
-            textBoxResonanceFrequency.Tag = -1;
-        }
-
-        private void listBoxFrequencies_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Control && e.KeyCode == Keys.A)
-            {
-                int nItems = listBoxFrequencies.Items.Count;
-                for (int i = 0; i != nItems; ++i)
-                    listBoxFrequencies.SetSelected(i, true);
-                listBoxFrequencies.TopIndex = 0;
-            }
-        }
-
-        private void buttonSelectDirectory_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog openFolderDialog = new FolderBrowserDialog();
-            DialogResult dialogResult = openFolderDialog.ShowDialog();
-            if (dialogResult == DialogResult.OK)
-                textBoxDirectoryExcel.Text = openFolderDialog.SelectedPath;
-        }
-
-        private void buttonProcess_Click(object sender = null, EventArgs e = null)
-        {
-            int iError = 0;
-            ExcelObject excelResult = new ExcelObject(excelTemplate_, textBoxDirectoryExcel.Text, textBoxNameExcel.Text);
-            // Checking the project, template and selected signals
-            if (!project.isProjectOpened() || !excelTemplate_.isOpened() || listBoxFoundSignals.Items.Count == 0)
-                return;
-            // Retrieve selected frequencies
-            List<int> selectedIndicies = new List<int>();
-            foreach (int index in listBoxFrequencies.SelectedIndices)
-                selectedIndicies.Add(index);
-            int nSelectedFrequency = selectedIndicies.Count;
-            ChartPosition.lastRow = 0;
-            // Creating series
-            foreach (string chart in listBoxTemplateCharts.Items) // Charts
-            {
-                // Nodes selection
-                List<int> selectedIndices = chartNodeIndices_[chart];
-                // Type and direction
-                ChartTypes type = chartTypes_[chart];
-                ChartDirection direction = chartDirection_[chart];
-                SignalUnits units = chartUnits_[chart];
-                if (type == ChartTypes.UNKNOWN || direction == ChartDirection.UNKNOWN || units == SignalUnits.UNKNOWN)
-                    continue;
-                if (selectedIndices.Count == 0)
-                {
-                    setStatus("Template objects for " + chart + " were not specified");
-                    iError = 1;
-                    continue;
-                }
-                // Norm
-                double norm = chartNormalization_[chart];
-                ChartDirection axis = chartAxis_[chart];
-                // Frequency response function: real and imaginary parts
-                if (type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF)
-                {
-                    List<string> chartNodes = retrieveNodes(selectedIndices);
-                    foreach (string node in chartNodes) // Node
-                    {
-                        // Check if there is an appropriate signal
-                        if (!project.signals_.ContainsKey(node) || !project.signals_[node].ContainsKey(direction))
-                        {
-                            iError = 2;
-                            setStatus("The chosen signals do not contain the node" + node);
-                            continue;
-                        }
-                        ResponseHolder response = project.signals_[node][direction];
-                        // Slice data by the selected index
-                        double[,] refFullData = response.data[units];
-                        double[,] data = new double[nSelectedFrequency, 2];
-                        int iSelected;
-                        int iType = (int)type - 1; 
-                        for (int i = 0; i != nSelectedFrequency; ++i)
-                        {
-                            iSelected = selectedIndicies[i];
-                            data[i, 0] = response.frequency[iSelected];
-                            data[i, 1] = refFullData[iSelected, iType];
-                        }
-                        string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
-                        excelResult.addSeries(chart, data, ptrNode);
-                    }
-                }
-                // Modeshape
-                if (type == ChartTypes.MODESHAPE)
-                {
-                    int indResonance = (int) textBoxResonanceFrequency.Tag;
-                    if (axis == ChartDirection.UNKNOWN || indResonance < 0)
-                        continue;
-                    // For each line
-                    foreach (int iSelected in selectedIndices)
-                    {
-                        // Check if a single node was selected
-                        if (treeSelection.Nodes[iSelected].Nodes.Count == 0)
-                            continue;
-                        List<string> lineNodes = retrieveNodesFromLine(iSelected);
-                        List<double> coordinates = new List<double>();
-                        List<double> values = new List<double>();
-                        foreach (string node in lineNodes)
-                        {
-                            // Check if there is an appropriate signal
-                            if (!project.signals_.ContainsKey(node) || !project.signals_[node].ContainsKey(direction))
-                            {
-                                iError = 2;
-                                setStatus("The chosen signals do not contain the node " + node);
-                                continue;
-                            }
-                            // Retreiving the coordinate along the choosen axis
-                            string[] selectionInfo = node.Split(selectionDelimiter_);
-                            uint indNode = modelRenderer_.componentSet_.mapNodeNames[selectionInfo[0]][selectionInfo[1]];
-                            double[,] componentCoordinates = (double[,])modelRenderer_.componentSet_.nodeCoordinates[selectionInfo[0]];
-                            int tInd = (int)axis - 1;
-                            coordinates.Add(componentCoordinates[indNode, tInd]);
-                            // Retreiving the function value
-                            ResponseHolder response = project.signals_[node][direction];
-                            double[,] refFullData = response.data[units];
-                            values.Add(refFullData[indResonance, 1]); // Imaginary part of the signal
-                        }
-                        int nNodes = coordinates.Count;
-                        double[,] data = new double[nNodes, 2];
-                        for (int i = 0; i != nNodes; ++i)
-                        {
-                            data[i, 0] = coordinates[i] / norm;
-                            data[i, 1] = values[i];
-                        }
-                        excelResult.addSeries(chart, data, treeSelection.Nodes[iSelected].Text);
-                    }
-                }
-            }
-            ChartPosition.lastRow = 0;
-            excelResult.open();
-            if (iError == 0)
-                setStatus("The results were successfully processed");
-        }
-
         private List<string> retrieveNodes(List<int> listNodeIndices)
         {
             List<string> selectedNodes = new List<string>();
@@ -707,12 +406,6 @@ namespace ResponseAnalyzer
             public const float rotation = 0.6f;
         }
 
-        private void buttonSelectResonanceFrequency_Click(object sender, EventArgs e)
-        {
-            if (listBoxFrequencies.SelectedIndices.Count == 0)
-                return;
-            textBoxResonanceFrequency.Tag = listBoxFrequencies.SelectedIndices[0];
-            textBoxResonanceFrequency.Text = listBoxFrequencies.Items[(int)textBoxResonanceFrequency.Tag].ToString();
-        }
+
     }
 }
