@@ -79,7 +79,7 @@ namespace ResponseAnalyzer
             foreach (string chart in listBoxTemplateCharts.Items) // Charts
             {
                 // Nodes selection
-                List<int> selectedIndices = chartNodeIndices_[chart];
+                List<int> selectedIndices = null; // TODO: chartSelection_[chart];
                 // Type and direction
                 ChartTypes type = chartTypes_[chart];
                 ChartDirection direction = chartDirection_[chart];
@@ -124,8 +124,8 @@ namespace ResponseAnalyzer
                         excelResult.addSeries(chart, data, ptrNode);
                     }
                 }
-                // Modeshape
-                if (type == ChartTypes.MODESHAPE)
+                // Modeset
+                if (type == ChartTypes.MODESET)
                 {
                     int indResonance = (int)textBoxResonanceFrequency.Tag;
                     if (axis == ChartDirection.UNKNOWN || indResonance < 0)
@@ -134,7 +134,7 @@ namespace ResponseAnalyzer
                     foreach (int iSelected in selectedIndices)
                     {
                         // Check if a single node was selected
-                        if (treeSelection.Nodes[iSelected].Nodes.Count == 0)
+                        if (treeTemplateObjects.Nodes[iSelected].Nodes.Count == 0)
                             continue;
                         List<string> lineNodes = retrieveNodesFromLine(iSelected);
                         List<double> coordinates = new List<double>();
@@ -166,7 +166,7 @@ namespace ResponseAnalyzer
                             data[i, 0] = coordinates[i] / norm;
                             data[i, 1] = values[i];
                         }
-                        excelResult.addSeries(chart, data, treeSelection.Nodes[iSelected].Text);
+                        excelResult.addSeries(chart, data, treeTemplateObjects.Nodes[iSelected].Text);
                     }
                 }
             }

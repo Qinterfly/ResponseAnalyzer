@@ -114,5 +114,55 @@ namespace ResponseAnalyzer
         {
             GL.Viewport(0, 0, glWindow.Width, glWindow.Height);
         }
+
+        private void stripMode_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            switch (e.ClickedItem.Text.ToUpper())
+            {
+                case "LINE":
+                    modelRenderer_.setPolygonMode(PolygonMode.Line);
+                    break;
+                case "FILL":
+                    modelRenderer_.setPolygonMode(PolygonMode.Fill);
+                    break;
+            }
+            modelRenderer_.draw();
+        }
+
+        private void stripView_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            switch (e.ClickedItem.Text.ToUpper())
+            {
+                case "FRONT":
+                    modelRenderer_.setView(LMSModel.Views.FRONT);
+                    break;
+                case "BACK":
+                    modelRenderer_.setView(LMSModel.Views.BACK);
+                    break;
+                case "UP":
+                    modelRenderer_.setView(LMSModel.Views.UP);
+                    break;
+                case "DOWN":
+                    modelRenderer_.setView(LMSModel.Views.DOWN);
+                    break;
+                case "LEFT":
+                    modelRenderer_.setView(LMSModel.Views.LEFT);
+                    break;
+                case "RIGHT":
+                    modelRenderer_.setView(LMSModel.Views.RIGHT);
+                    break;
+                case "ISOMETRIC":
+                    modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
+                    break;
+            }
+            modelRenderer_.draw();
+        }
+    }
+
+    static class MouseWeights
+    {
+        public const float scaling = 0.001f;
+        public const float translation = 1.0f;
+        public const float rotation = 0.6f;
     }
 }
