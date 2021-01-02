@@ -70,22 +70,42 @@ namespace ResponseAnalyzer
         private void buttonEditTemplateSelection_Click(object sender, EventArgs e)
         {
             // If not a line was selected
-            if (treeTemplateObjects.SelectedNode == null || treeTemplateObjects.SelectedNode.Nodes.Count == 0)
+            if (!isEditSelection_ && (treeTemplateObjects.SelectedNode == null || treeTemplateObjects.SelectedNode.Nodes.Count == 0))
                 return;
-            if (isEditSelection)
+            if (isEditSelection_)
             {
                 TreeNode line = treeTemplateObjects.Nodes[iSelectedSet_];
                 line.Nodes.Clear();
                 var selection = modelRenderer_.getSelection();
+                string chart = listBoxTemplateCharts.SelectedItem.ToString();
+                List<ISelection> objects = chartSelection_[chart];
+                Lines selLine = null;
+                int iSelectedLine = 0;
+                bool isFound = false;
+                foreach (ISelection item in objects)
+                {
+                    selLine = (Lines)item;
+                    if (selLine.lineName_ == line.Text) {
+                        isFound = true;
+                        break;
+                    }
+                    ++iSelectedLine;
+                }
+                if (isFound == false)
+                    return;
                 if (selection.Count < 2)
                 {
+                    chartSelection_[chart].RemoveAt(iSelectedLine);
                     line.Remove();
-                    chartSelection_[]
                 }
                 else
                 {
+                    selLine.nodeNames_.Clear();
                     foreach (string item in selection)
+                    {
                         line.Nodes.Add(item);
+                        selLine.nodeNames_.Add(item);
+                    }
                 }
                 iSelectedSet_ = -1;
             }
@@ -102,9 +122,10 @@ namespace ResponseAnalyzer
                 modelRenderer_.draw();
             }
             // Invert the states of the controls
-            buttonAddTemplateObject.Enabled = isEditSelection;
-            buttonRemoveTemplateObject.Enabled = isEditSelection;
-            isEditSelection = !isEditSelection;
+            buttonAddTemplateObject.Enabled = isEditSelection_;
+            buttonRemoveTemplateObject.Enabled = isEditSelection_;
+            listBoxTemplateCharts.Enabled = isEditSelection_;
+            isEditSelection_ = !isEditSelection_;
         }
 
 
@@ -296,35 +317,5 @@ namespace ResponseAnalyzer
             chartSelection_[chart].RemoveAt(iSelected);
             treeTemplateObjects.Nodes.RemoveAt(iSelected);
         }
-
-        private List<string> retrieveNodes(List<int> listNodeIndices)
-        {
-            List<string> selectedNodes = new List<string>();
-            //bool isLine;
-            //foreach (int index in listNodeIndices)
-            //{
-            //    TreeNode mainNode = treeSelection.Nodes[index];
-            //    isLine = mainNode.Nodes.Count != 0;
-            //    if (!isLine)
-            //        selectedNodes.Add(mainNode.Text);
-            //}
-            return selectedNodes;
-        }
-
-        private List<string> retrieveNodesFromLine(int index)
-        {
-            List<string> selectedNodes = new List<string>();
-            //bool isLine;
-            //TreeNode mainNode = treeSelection.Nodes[index];
-            //isLine = mainNode.Nodes.Count != 0;
-            //if (isLine)
-            //{
-            //    foreach (TreeNode node in mainNode.Nodes)
-            //        selectedNodes.Add(node.Text);
-            //}
-            return selectedNodes;
-        }
-
-
     }
 }

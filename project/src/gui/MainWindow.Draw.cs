@@ -46,7 +46,7 @@ namespace ResponseAnalyzer
                     break;
                 case MouseButtons.Left:
                     bool isNewSelection = true;
-                    if (keyboard.IsKeyDown(Key.ShiftLeft) || isEditSelection)
+                    if (keyboard.IsKeyDown(Key.ShiftLeft) || isEditSelection_)
                         isNewSelection = false;
                     modelRenderer_.select(e.X, e.Y, isNewSelection);
                     modelRenderer_.draw();

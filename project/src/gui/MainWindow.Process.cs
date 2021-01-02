@@ -46,12 +46,15 @@ namespace ResponseAnalyzer
         private void listBoxFrequencies_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.A)
-            {
-                int nItems = listBoxFrequencies.Items.Count;
-                for (int i = 0; i != nItems; ++i)
-                    listBoxFrequencies.SetSelected(i, true);
-                listBoxFrequencies.TopIndex = 0;
-            }
+                selectAllItems(listBoxFrequencies);
+        }
+
+        private void selectAllItems(ListBox listBox)
+        {
+            int nItems = listBox.Items.Count;
+            for (int i = 0; i != nItems; ++i)
+                listBox.SetSelected(i, true);
+            listBox.TopIndex = 0;
         }
 
         private void buttonSelectDirectory_Click(object sender, EventArgs e)
@@ -70,23 +73,23 @@ namespace ResponseAnalyzer
             if (!project.isProjectOpened() || !excelTemplate_.isOpened() || listBoxFoundSignals.Items.Count == 0)
                 return;
             // Retrieve selected frequencies
-            List<int> selectedIndicies = new List<int>();
+            List<int> selectedFreqIndicies = new List<int>();
             foreach (int index in listBoxFrequencies.SelectedIndices)
-                selectedIndicies.Add(index);
-            int nSelectedFrequency = selectedIndicies.Count;
+                selectedFreqIndicies.Add(index);
+            int nSelectedFrequency = selectedFreqIndicies.Count;
             ChartPosition.lastRow = 0;
             // Creating series
             foreach (string chart in listBoxTemplateCharts.Items) // Charts
             {
                 // Nodes selection
-                List<int> selectedIndices = null; // TODO: chartSelection_[chart];
+                List<ISelection> selectedObjects = chartSelection_[chart];
                 // Type and direction
                 ChartTypes type = chartTypes_[chart];
                 ChartDirection direction = chartDirection_[chart];
                 SignalUnits units = chartUnits_[chart];
                 if (type == ChartTypes.UNKNOWN || direction == ChartDirection.UNKNOWN || units == SignalUnits.UNKNOWN)
                     continue;
-                if (selectedIndices.Count == 0)
+                if (selectedObjects.Count == 0)
                 {
                     setStatus("Template objects for " + chart + " were not specified");
                     iError = 1;
@@ -98,7 +101,9 @@ namespace ResponseAnalyzer
                 // Frequency response function: real and imaginary parts
                 if (type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF)
                 {
-                    List<string> chartNodes = retrieveNodes(selectedIndices);
+                    List<string> chartNodes = new List<string>();
+                    foreach (ISelection item in selectedObjects)
+                        chartNodes.Add((string)item.retrieveSelection());
                     foreach (string node in chartNodes) // Node
                     {
                         // Check if there is an appropriate signal
@@ -116,7 +121,7 @@ namespace ResponseAnalyzer
                         int iType = (int)type - 1;
                         for (int i = 0; i != nSelectedFrequency; ++i)
                         {
-                            iSelected = selectedIndicies[i];
+                            iSelected = selectedFreqIndicies[i];
                             data[i, 0] = response.frequency[iSelected];
                             data[i, 1] = refFullData[iSelected, iType];
                         }
@@ -131,12 +136,11 @@ namespace ResponseAnalyzer
                     if (axis == ChartDirection.UNKNOWN || indResonance < 0)
                         continue;
                     // For each line
-                    foreach (int iSelected in selectedIndices)
+                    foreach (ISelection item in selectedObjects)
                     {
-                        // Check if a single node was selected
-                        if (treeTemplateObjects.Nodes[iSelected].Nodes.Count == 0)
-                            continue;
-                        List<string> lineNodes = retrieveNodesFromLine(iSelected);
+                        Lines currentLine = (Lines) item;
+                        string nameLine = currentLine.lineName_;
+                        List<string> lineNodes = (List<string>)currentLine.retrieveSelection();
                         List<double> coordinates = new List<double>();
                         List<double> values = new List<double>();
                         foreach (string node in lineNodes)
@@ -166,7 +170,7 @@ namespace ResponseAnalyzer
                             data[i, 0] = coordinates[i] / norm;
                             data[i, 1] = values[i];
                         }
-                        excelResult.addSeries(chart, data, treeTemplateObjects.Nodes[iSelected].Text);
+                        excelResult.addSeries(chart, data, nameLine);
                     }
                 }
             }
@@ -182,6 +186,7 @@ namespace ResponseAnalyzer
                 return;
             textBoxResonanceFrequency.Tag = listBoxFrequencies.SelectedIndices[0];
             textBoxResonanceFrequency.Text = listBoxFrequencies.Items[(int)textBoxResonanceFrequency.Tag].ToString();
+            selectAllItems(listBoxFrequencies);
         }
     }
 }

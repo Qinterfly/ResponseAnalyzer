@@ -40,9 +40,8 @@ namespace ResponseAnalyzer
         // Selection
         private int indLine_ = 0;
         private const char selectionDelimiter_ = ':';
-        private bool isEditSelection = false;
+        private bool isEditSelection_ = false;
         private int iSelectedSet_ = -1;
-        private string selectedChart_ = null;
 
         #region Код, автоматически созданный конструктором форм Windows
 
