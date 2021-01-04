@@ -21,6 +21,7 @@ namespace ResponseAnalyzer
             toolTip.SetToolTip(buttonAddTemplateObject, "Press A to add a template object");
             toolTip.SetToolTip(buttonRemoveTemplateObject, "Press D to remove a template object");
             toolTip.SetToolTip(buttonEditTemplateSelection, "Press E to edit a template object");
+            toolTip.SetToolTip(buttonCopyTemplateObjects, "Press C to copy all the template objects from the selected chart");
         }
 
         // Opening project

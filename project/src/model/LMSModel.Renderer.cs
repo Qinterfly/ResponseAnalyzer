@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
+using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using QuickFont;
+using QuickFont.Configuration;
 
 namespace ResponseAnalyzer
 {
@@ -23,7 +27,7 @@ namespace ResponseAnalyzer
             // Z-buffer
             GL.ClearDepth(1.0f);
             GL.DepthMask(true);
-            GL.DepthFunc(DepthFunction.Less);
+            GL.DepthFunc(DepthFunction.Lequal);
             GL.Enable(EnableCap.DepthTest);
             // Stencil
             GL.ClearStencil(0);
@@ -51,6 +55,15 @@ namespace ResponseAnalyzer
             modelRotation_ = Matrix4.Identity;
             view_ = Matrix4.Identity;
             projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
+            // Fonts
+            fontDrawing_ = new QFontDrawing();
+            font_ = new QFont("Arial", 8, new QFontBuilderConfiguration(true));
+            fontRenderOptions_ = new QFontRenderOptions()
+            {
+                Colour = Color.Black,
+                DropShadowActive = false,
+                CharacterSpacing = 0.1f
+            };          
         }
 
         public void generateBuffers(string componentName)
@@ -134,7 +147,7 @@ namespace ResponseAnalyzer
                 // Selected points
                 if (selection_.Count != 0 && selection_.ContainsKey(component))
                 {
-                    GL.StencilFunc(StencilFunction.Notequal, 1, 0xFF); // Discarding selected points
+                    GL.StencilFunc(StencilFunction.Notequal, 1, 0xFF); // Discarding previously drawn points
                     GL.StencilMask(0x00);
                     GL.Disable(EnableCap.DepthTest);
                     GL.Uniform4(colorLocation, selectionColor_);
@@ -145,6 +158,31 @@ namespace ResponseAnalyzer
                     GL.StencilMask(0xFF);
                     GL.Enable(EnableCap.DepthTest);
                 }
+            }
+            // Node names
+            if (isShowNodeNames_) 
+            { 
+                GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+                fontDrawing_.DrawingPrimitives.Clear();
+                fontDrawing_.ProjectionMatrix = projection_;
+                int nNodes = 0;
+                string resName;
+                int iVert = 0;
+                foreach (string component in componentNames_) {
+                    iVert = 0;
+                    string[] nodeNames = (string[])componentSet_.nodeNames[component];
+                    float[] vertices = (float[])componentSet_.vertices[component];
+                    nNodes = nodeNames.Length;
+                    for (int iNode = 0; iNode != nNodes; ++iNode) { 
+                        resName = component + ":" + nodeNames[iNode];
+                        Vector4 pos = new Vector4(new Vector3(vertices[iVert + 0], vertices[iVert + 1], vertices[iVert + 2]), 1.0f) * model * view_;
+                        fontDrawing_.Print(font_, resName, pos.Xyz, QFontAlignment.Centre, fontRenderOptions_);
+                        iVert += 3;
+                    }
+                    fontDrawing_.RefreshBuffers();
+                    fontDrawing_.Draw();
+                }
+                GL.PolygonMode(MaterialFace.FrontAndBack, polygonMode_);
             }
             glControl_.SwapBuffers();
         }
@@ -163,7 +201,11 @@ namespace ResponseAnalyzer
         private PolygonMode polygonMode_ = PolygonMode.Line;
         private Vector3 isoVector_ = new Vector3(0.4607291f, -0.8350012f, -0.3008356f);
         private float isoAngle_ = 0.910852849f;
-
+        // Fonts
+        private QFont font_;
+        private QFontDrawing fontDrawing_;
+        private QFontRenderOptions fontRenderOptions_;
+        private bool isShowNodeNames_ = false;
 
         public static class DrawOptions
         {
