@@ -153,6 +153,7 @@
   <ItemGroup>
     <Content Include="resources\img\add.png" />
     <Content Include="resources\img\App.ico" />
+    <None Include="resources\img\copy.png" />
     <Content Include="resources\img\edit.png" />
     <Content Include="resources\img\leftArrow.png" />
     <Content Include="resources\img\minus.png" />
