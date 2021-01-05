@@ -113,6 +113,8 @@ namespace ResponseAnalyzer
         private void glWindow_Resize(object sender, EventArgs e)
         {
             GL.Viewport(0, 0, glWindow.Width, glWindow.Height);
+            if (modelRenderer_.isCongruent())
+                modelRenderer_.resize();
         }
 
         private void stripMode_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -155,6 +157,12 @@ namespace ResponseAnalyzer
                     modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
                     break;
             }
+            modelRenderer_.draw();
+        }
+
+        private void stripNodeNames_CheckedChanged(object sender, EventArgs e)
+        {
+            modelRenderer_.isShowNodeNames = stripNodeNames.Checked;
             modelRenderer_.draw();
         }
     }

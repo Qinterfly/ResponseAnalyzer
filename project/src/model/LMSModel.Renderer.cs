@@ -56,14 +56,25 @@ namespace ResponseAnalyzer
             view_ = Matrix4.Identity;
             projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
             // Fonts
+            isShowNodeNames = false;
             fontDrawing_ = new QFontDrawing();
-            font_ = new QFont("Arial", 8, new QFontBuilderConfiguration(true));
+            var builderConfig = new QFontBuilderConfiguration(true)
+            {
+                TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit,
+                Characters = CharacterSet.General | CharacterSet.Japanese | CharacterSet.Thai | CharacterSet.Cyrillic
+            };
+            font_ = new QFont("Optima", 8, builderConfig);
             fontRenderOptions_ = new QFontRenderOptions()
             {
                 Colour = Color.Black,
                 DropShadowActive = false,
                 CharacterSpacing = 0.1f
             };          
+        }
+
+        public void resize()
+        {
+            projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
         }
 
         public void generateBuffers(string componentName)
@@ -160,7 +171,7 @@ namespace ResponseAnalyzer
                 }
             }
             // Node names
-            if (isShowNodeNames_) 
+            if (isShowNodeNames) 
             { 
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
                 fontDrawing_.DrawingPrimitives.Clear();
@@ -168,6 +179,7 @@ namespace ResponseAnalyzer
                 int nNodes = 0;
                 string resName;
                 int iVert = 0;
+                Vector4 position = Vector4.Zero;
                 foreach (string component in componentNames_) {
                     iVert = 0;
                     string[] nodeNames = (string[])componentSet_.nodeNames[component];
@@ -175,13 +187,17 @@ namespace ResponseAnalyzer
                     nNodes = nodeNames.Length;
                     for (int iNode = 0; iNode != nNodes; ++iNode) { 
                         resName = component + ":" + nodeNames[iNode];
-                        Vector4 pos = new Vector4(new Vector3(vertices[iVert + 0], vertices[iVert + 1], vertices[iVert + 2]), 1.0f) * model * view_;
-                        fontDrawing_.Print(font_, resName, pos.Xyz, QFontAlignment.Centre, fontRenderOptions_);
+                        position.X = vertices[iVert + 0];
+                        position.Y = vertices[iVert + 1] + DrawOptions.shiftLabelY;
+                        position.Z = vertices[iVert + 2];
+                        position.W = 1.0f;
+                        position *= model * view_;
+                        fontDrawing_.Print(font_, resName, position.Xyz, QFontAlignment.Justify, fontRenderOptions_);
                         iVert += 3;
                     }
-                    fontDrawing_.RefreshBuffers();
-                    fontDrawing_.Draw();
                 }
+                fontDrawing_.RefreshBuffers();
+                fontDrawing_.Draw();
                 GL.PolygonMode(MaterialFace.FrontAndBack, polygonMode_);
             }
             glControl_.SwapBuffers();
@@ -205,7 +221,7 @@ namespace ResponseAnalyzer
         private QFont font_;
         private QFontDrawing fontDrawing_;
         private QFontRenderOptions fontRenderOptions_;
-        private bool isShowNodeNames_ = false;
+        public bool isShowNodeNames { get; set; } 
 
         public static class DrawOptions
         {
@@ -215,6 +231,8 @@ namespace ResponseAnalyzer
             public const float defaultY = 100.0f;
             public const float zNear = -10.0f;
             public const float zFar = 10.0f;
+            // Fonts
+            public const float shiftLabelY = 0.04f;
         }
 
         public enum Views
