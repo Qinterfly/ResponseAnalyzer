@@ -112,7 +112,7 @@ namespace ResponseAnalyzer
             selection_.Clear();
         }
 
-        public void select(int mouseX, int mouseY, bool isNewSelection)
+        public Tuple<Vector3d, string, string> select(int mouseX, int mouseY, bool isNewSelection)
         {
             Matrix4 modelView = modelRotation_ * modelScale_ * modelTranslation_ * view_;
             Point mouseLocation = new Point(mouseX, mouseY);
@@ -141,6 +141,8 @@ namespace ResponseAnalyzer
                 }
             }
             addToSelection(minComponent, minNode, isNewSelection);
+            string[] nodeNames = (string[])componentSet_.nodeNames[minComponent];
+            return new Tuple<Vector3d, string, string>(getNodeCoordinates(minComponent, minNode), minComponent, nodeNames[minNode]);
         }
 
         public void select(string component, string nodeName, bool isNewSelection)
@@ -177,6 +179,19 @@ namespace ResponseAnalyzer
         {
             if (componentShowMask_.ContainsKey(component))
                 componentShowMask_[component] = isShow;
+        }
+
+        public Vector3d getNodeCoordinates(string component, uint iNode)
+        {
+            double[,] coordinates = (double[,])componentSet_.nodeCoordinates[component];
+            return new Vector3d(coordinates[iNode, 0], coordinates[iNode, 1], coordinates[iNode, 2]);
+        }
+
+        public Vector3d getNodeCoordinates(string component, string nodeName)
+        {
+
+            uint iNode = componentSet_.mapNodeNames[component][nodeName];
+            return getNodeCoordinates(component, iNode);
         }
 
         // Control

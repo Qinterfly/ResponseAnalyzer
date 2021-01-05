@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK;
 
 namespace ResponseAnalyzer
 {
@@ -20,6 +20,7 @@ namespace ResponseAnalyzer
             toolTip.SetToolTip(buttonRemoveTemplateObject, "Press D to remove a template object");
             toolTip.SetToolTip(buttonEditTemplateSelection, "Press E to edit a template object");
             toolTip.SetToolTip(buttonCopyTemplateObjects, "Press C to copy all the template objects from the selected chart");
+            toolTip.SetToolTip(numericTemplateNormalization, "Press F1 to fill it out automatically based on the selected lines");
         }
 
         // Opening project
@@ -455,5 +456,33 @@ namespace ResponseAnalyzer
             }
         }
 
+        private void numericTemplateNormalization_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData != Keys.F1)
+                return;
+            string chart = listBoxTemplateCharts.SelectedItem.ToString();
+            List<ISelection> selection = chartSelection_[chart];
+            if (selection.Count == 0 || chartTypes_[chart] != ChartTypes.MODESET || chartAxis_[chart] == ChartDirection.UNKNOWN)
+                return;
+            int direction = (int)chartAxis_[chart] - 1;
+            string[] selectionInfo;
+            Vector3d tCoordinates;
+            double tempValue, maxValue = 0.0;
+            foreach (ISelection line in selection)
+            {
+                List<string> nodes = (List<string>)line.retrieveSelection();
+                foreach(string node in nodes)
+                {
+                    selectionInfo = node.Split(selectionDelimiter_);
+                    tCoordinates = modelRenderer_.getNodeCoordinates(selectionInfo[0], selectionInfo[1]);
+                    tempValue = Math.Abs(tCoordinates[direction]);
+                    if (tempValue > maxValue)
+                        maxValue = tempValue;
+                }
+        
+            }
+            if (maxValue >= (double)numericTemplateNormalization.Minimum && maxValue <= (double)numericTemplateNormalization.Maximum)
+                numericTemplateNormalization.Value = (decimal)maxValue;
+        }
     }
 }

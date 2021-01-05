@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Input;
@@ -48,8 +49,14 @@ namespace ResponseAnalyzer
                     bool isNewSelection = true;
                     if (keyboard.IsKeyDown(Key.ShiftLeft) || isEditSelection_)
                         isNewSelection = false;
-                    modelRenderer_.select(e.X, e.Y, isNewSelection);
+                    Tuple <Vector3d, string, string> info = modelRenderer_.select(e.X, e.Y, isNewSelection);
                     modelRenderer_.draw();
+                    // Show the information about the selection
+                    const string format = "G6";
+                    setStatus("Coordinates of " + info.Item2 + selectionDelimiter_ + info.Item3 + " = ("
+                              + info.Item1.X.ToString(format, CultureInfo.InvariantCulture) + "; "
+                              + info.Item1.Y.ToString(format, CultureInfo.InvariantCulture) + "; "
+                              + info.Item1.Z.ToString(format, CultureInfo.InvariantCulture) + ")");
                     break;
                 case MouseButtons.Right:
                     glContextMenu.Show(Cursor.Position.X, Cursor.Position.Y);
@@ -106,6 +113,7 @@ namespace ResponseAnalyzer
                 case Keys.Escape:
                     modelRenderer_.clearSelection();
                     modelRenderer_.draw();
+                    clearStatus();
                     break;
             }
         }
@@ -173,6 +181,7 @@ namespace ResponseAnalyzer
             modelRenderer_.setShowComponent(item.Text, item.Checked);
             modelRenderer_.draw();
         }
+
     }
 
     static class MouseWeights
