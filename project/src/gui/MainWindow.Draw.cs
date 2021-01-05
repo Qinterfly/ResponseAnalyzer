@@ -113,8 +113,7 @@ namespace ResponseAnalyzer
         private void glWindow_Resize(object sender, EventArgs e)
         {
             GL.Viewport(0, 0, glWindow.Width, glWindow.Height);
-            if (modelRenderer_.isCongruent())
-                modelRenderer_.resize();
+            modelRenderer_.resize();
         }
 
         private void stripMode_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -160,9 +159,18 @@ namespace ResponseAnalyzer
             modelRenderer_.draw();
         }
 
+        // Show node names
         private void stripNodeNames_CheckedChanged(object sender, EventArgs e)
         {
             modelRenderer_.isShowNodeNames = stripNodeNames.Checked;
+            modelRenderer_.draw();
+        }
+
+        // Select components to draw
+        private void selectComponents(object sender, System.EventArgs e)
+        {
+            ToolStripMenuItem item = (ToolStripMenuItem)sender;
+            modelRenderer_.setShowComponent(item.Text, item.Checked);
             modelRenderer_.draw();
         }
     }

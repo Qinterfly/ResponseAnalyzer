@@ -13,8 +13,6 @@ namespace ResponseAnalyzer
             comboBoxTemplateType.SelectedIndex = 0;
             modelRenderer_ = new LMSModel();
             lastMousePosition_ = new int[2] { 0, 0 };
-            // Creating toolips
-            // Adding template objects
             ToolTip toolTip = new ToolTip();
             toolTip.InitialDelay = 200;
             toolTip.ShowAlways = true;
@@ -45,6 +43,7 @@ namespace ResponseAnalyzer
                 modelRenderer_.setGeometry(project.geometry_);
                 modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
                 modelRenderer_.draw();
+                createComponentStrips();
                 setEnabled();
             }
             else if (dialogResult != DialogResult.Cancel)
@@ -442,5 +441,19 @@ namespace ResponseAnalyzer
                 buttonCopyTemplateObjects.Tag = listBoxTemplateCharts.SelectedItem.ToString();
             }
         }
+
+        private void createComponentStrips()
+        {
+            List<string> componentNames = modelRenderer_.getComponentNames();
+            ToolStripItemCollection items = stripComponentVisualisation.DropDownItems;
+            items.Clear();
+            foreach (string component in componentNames) {
+                ToolStripMenuItem item = (ToolStripMenuItem)items.Add(component);
+                item.Checked = true;
+                item.CheckOnClick = true;
+                item.CheckedChanged += new EventHandler(selectComponents);
+            }
+        }
+
     }
 }

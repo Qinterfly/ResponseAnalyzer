@@ -86,6 +86,11 @@ namespace ResponseAnalyzer
             }
         }
 
+        public List<string> getComponentNames()
+        {
+            return componentNames_.GetRange(0, componentNames_.Count);
+        }
+
         public List<string> getSelection()
         {
             List<string> selected = new List<string>();
@@ -168,10 +173,10 @@ namespace ResponseAnalyzer
             indSel.Add(iNode);
         }
 
-        public void removeSelection(string component, string node)
+        public void setShowComponent(string component, bool isShow)
         {
-            if (selection_.ContainsKey(component) && componentSet_.mapNodeNames[component].ContainsKey(node))
-                selection_[component].Remove(componentSet_.mapNodeNames[component][node]);
+            if (componentShowMask_.ContainsKey(component))
+                componentShowMask_[component] = isShow;
         }
 
         // Control

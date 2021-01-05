@@ -59,7 +59,7 @@ namespace ResponseAnalyzer
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 package_ = new ExcelPackage(fileInfo);
                 charts_ = new List<ExcelDrawing>();
-                chartsSheets_ = new List<string>();
+                chartSheets_ = new List<string>();
                 indMarkers_ = new Dictionary<ExcelDrawing, int>();
                 path_ = path;
                 retrieveCharts();
@@ -88,7 +88,7 @@ namespace ResponseAnalyzer
                 if (chart.Name == chartName)
                 {
                     objChart = chart;
-                    lastSheet_ = chartsSheets_[i];
+                    lastSheet_ = chartSheets_[i];
                     break;
                 }
             }
@@ -175,7 +175,7 @@ namespace ResponseAnalyzer
         {
             package_ = another.package_;
             charts_ = another.charts_;
-            chartsSheets_ = another.chartsSheets_;
+            chartSheets_ = another.chartSheets_;
             path_ = another.path_;
             indMarkers_ = another.indMarkers_;
             markersProperties_ = another.markersProperties_;
@@ -204,7 +204,7 @@ namespace ResponseAnalyzer
                     if (drawing.DrawingType == eDrawingType.Chart)
                     {
                         charts_.Add(drawing);
-                        chartsSheets_.Add(worksheet.Name);
+                        chartSheets_.Add(worksheet.Name);
                         indMarkers_.Add(drawing, 0);
                     }
                 }
@@ -217,7 +217,7 @@ namespace ResponseAnalyzer
         string lastSheet_; 
         // Charts
         List<ExcelDrawing> charts_;
-        List<string> chartsSheets_;
+        List<string> chartSheets_;
         Dictionary<ExcelDrawing, ChartPosition> posCharts_;
         // Worksheet
         ExcelWorksheet workSheet_ = null;

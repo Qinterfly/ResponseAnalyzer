@@ -74,7 +74,8 @@ namespace ResponseAnalyzer
 
         public void resize()
         {
-            projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
+            if (isCongruent())
+                projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
         }
 
         public void generateBuffers(string componentName)
@@ -131,6 +132,8 @@ namespace ResponseAnalyzer
             int nVertices = 0;
             foreach (string component in componentNames_)
             {
+                if (!componentShowMask_[component])
+                    continue; 
                 VAO = componentBuffers_.vertexBufferObject[component];
                 GL.BindBuffer(BufferTarget.ArrayBuffer, VAO);
                 int attrib = shader_.GetAttribLocation("inPosition");
@@ -181,6 +184,8 @@ namespace ResponseAnalyzer
                 int iVert = 0;
                 Vector4 position = Vector4.Zero;
                 foreach (string component in componentNames_) {
+                    if (!componentShowMask_[component])
+                        continue;
                     iVert = 0;
                     string[] nodeNames = (string[])componentSet_.nodeNames[component];
                     float[] vertices = (float[])componentSet_.vertices[component];
@@ -221,7 +226,9 @@ namespace ResponseAnalyzer
         private QFont font_;
         private QFontDrawing fontDrawing_;
         private QFontRenderOptions fontRenderOptions_;
-        public bool isShowNodeNames { get; set; } 
+        // Show mode
+        public bool isShowNodeNames { get; set; }
+        private Dictionary<string, bool> componentShowMask_;
 
         public static class DrawOptions
         {

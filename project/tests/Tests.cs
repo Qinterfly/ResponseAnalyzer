@@ -14,6 +14,7 @@ namespace ResponseAnalyzer
             textBoxProjectPath.Text = path;
             modelRenderer_.setGeometry(project.geometry_);
             modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
+            createComponentStrips();
             setEnabled();
         }
 

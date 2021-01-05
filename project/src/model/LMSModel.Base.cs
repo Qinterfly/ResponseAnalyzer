@@ -41,6 +41,7 @@ namespace ResponseAnalyzer
             componentNames_ = new List<string>();
             componentSet_ = new ComponentGeometry(elementTypes_);
             componentBuffers_ = new ComponentBufferPointers();
+            componentShowMask_ = new Dictionary<string, bool>();
             Array componentNames = geometry.ComponentNames;
             int nColors = availableColors_.Count;
             int indexCurrentColor = 0;
@@ -158,6 +159,8 @@ namespace ResponseAnalyzer
                 // Specifying colors
                 indexCurrentColor = indexCurrentColor >= nColors - 1 ? 0 : indexCurrentColor + 1;
                 componentSet_.colors.Add(component, availableColors_[indexCurrentColor]);
+                // Show mask
+                componentShowMask_.Add(component, true);
             }
             // Calculating the range of the coordinates { Min -- (:, 0), Delta -- (:, 1) }
             float[] shift = new float[3];
