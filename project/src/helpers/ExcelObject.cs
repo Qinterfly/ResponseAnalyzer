@@ -59,6 +59,7 @@ namespace ResponseAnalyzer
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 package_ = new ExcelPackage(fileInfo);
                 charts_ = new List<ExcelDrawing>();
+                chartsSheets_ = new List<string>();
                 indMarkers_ = new Dictionary<ExcelDrawing, int>();
                 path_ = path;
                 retrieveCharts();
@@ -80,11 +81,14 @@ namespace ResponseAnalyzer
         {
             // Finding the chart
             ExcelDrawing objChart = null;
-            foreach (ExcelDrawing chart in charts_)
+            int nCharts = charts_.Count;
+            for (int i = 0; i != nCharts; ++i)
             {
+                ExcelDrawing chart = charts_[i];
                 if (chart.Name == chartName)
                 {
                     objChart = chart;
+                    lastSheet_ = chartsSheets_[i];
                     break;
                 }
             }
@@ -154,14 +158,24 @@ namespace ResponseAnalyzer
         {
             if (excelApplication_ == null)
                 return;
-            excelApplication_.Workbooks.Open(path_);
+            Workbook book = excelApplication_.Workbooks.Open(path_);
             excelApplication_.Visible = true;
+            try 
+            { 
+                if (!string.IsNullOrEmpty(lastSheet_))
+                    book.Worksheets[lastSheet_].Activate();
+            }
+            catch 
+            { 
+
+            }
         }
 
         private void Copy(ExcelObject another)
         {
             package_ = another.package_;
             charts_ = another.charts_;
+            chartsSheets_ = another.chartsSheets_;
             path_ = another.path_;
             indMarkers_ = another.indMarkers_;
             markersProperties_ = another.markersProperties_;
@@ -190,6 +204,7 @@ namespace ResponseAnalyzer
                     if (drawing.DrawingType == eDrawingType.Chart)
                     {
                         charts_.Add(drawing);
+                        chartsSheets_.Add(worksheet.Name);
                         indMarkers_.Add(drawing, 0);
                     }
                 }
@@ -199,10 +214,12 @@ namespace ResponseAnalyzer
         Application excelApplication_;
         ExcelPackage package_;
         string path_ { get; set;  }
+        string lastSheet_; 
         // Charts
         List<ExcelDrawing> charts_;
+        List<string> chartsSheets_;
         Dictionary<ExcelDrawing, ChartPosition> posCharts_;
-        // Work sheet
+        // Worksheet
         ExcelWorksheet workSheet_ = null;
         const string workSheetName_ = "ChartData";
         // Style
