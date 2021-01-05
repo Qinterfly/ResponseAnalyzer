@@ -175,10 +175,38 @@ namespace ResponseAnalyzer
         }
 
         // Select components to draw
-        private void selectComponents(object sender, System.EventArgs e)
+        private void showComponents(object sender, System.EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
-            modelRenderer_.setShowComponent(item.Text, item.Checked);
+            bool isShow = item.Checked;
+            string keyName = item.Text;
+            if (item.Name.Equals("All"))
+            {
+                keyName = string.Empty;
+                isShow = true;
+            }
+            else if (item.Name.Equals("Nothing"))
+            {
+                keyName = string.Empty;
+                isShow = false;
+            }
+            if (!string.IsNullOrEmpty(keyName)) 
+            { 
+                modelRenderer_.setShowComponent(keyName, isShow);
+            }
+            else
+            {
+                ToolStripItemCollection objects = stripComponentVisualisation.DropDownItems;
+                int nObjects = objects.Count;
+                for (int i = 3; i != nObjects; ++i)
+                {
+                    ToolStripMenuItem it = (ToolStripMenuItem) objects[i];
+                    modelRenderer_.setShowComponent(it.Text, isShow);
+                    it.CheckedChanged -= showComponents;
+                    it.Checked = isShow;
+                    it.CheckedChanged += showComponents;
+                }
+            }
             modelRenderer_.draw();
         }
 

@@ -448,11 +448,21 @@ namespace ResponseAnalyzer
             List<string> componentNames = modelRenderer_.getComponentNames();
             ToolStripItemCollection items = stripComponentVisualisation.DropDownItems;
             items.Clear();
+            // Show all the components
+            ToolStripMenuItem item = (ToolStripMenuItem)items.Add("Show all");
+            item.Name = "All";
+            item.Click += new EventHandler(showComponents);
+            // Show nothing
+            item = (ToolStripMenuItem)items.Add("Show none");
+            item.Name = "Nothing";
+            item.Click += new EventHandler(showComponents);
+            items.Add(new ToolStripSeparator());
+            // Component names
             foreach (string component in componentNames) {
-                ToolStripMenuItem item = (ToolStripMenuItem)items.Add(component);
+                item = (ToolStripMenuItem)items.Add(component);
                 item.Checked = true;
                 item.CheckOnClick = true;
-                item.CheckedChanged += new EventHandler(selectComponents);
+                item.CheckedChanged += showComponents;
             }
         }
 
