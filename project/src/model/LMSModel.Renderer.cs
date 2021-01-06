@@ -47,6 +47,8 @@ namespace ResponseAnalyzer
             };
             selection_ = new Dictionary<string, List<uint>>();
             selectionColor_ = Color4.Yellow;
+            // Update drawing constants
+            DrawOptions.update(glControl_.Width, glControl_.Height);
             // Transformations
             location_ = Vector3.Zero;
             modelTranslation_ = Matrix4.Identity;
@@ -89,6 +91,8 @@ namespace ResponseAnalyzer
                 int width = glControl_.Width;
                 int height = glControl_.Height;
                 projection_ = Matrix4.CreateOrthographic(width, height, DrawOptions.zNear, DrawOptions.zFar);
+                // Update drawing constants
+                DrawOptions.update(glControl_.Width, glControl_.Height);
                 // Coordinate system position
                 coordinateSystemOrigin_.X *= (float) width / prevControlWidth_;
                 coordinateSystemOrigin_.Y *= (float) height / prevControlHeight_;
@@ -259,20 +263,26 @@ namespace ResponseAnalyzer
         private int prevControlWidth_;
         private int prevControlHeight_;
 
-        public static class DrawOptions
+        public class DrawOptions
         {
-            public const float pointSize = 8.0f;
-            public const float lineWidth = 1.25f;
-            public const float defaultScale = 300.0f;
-            public const float defaultY = 100.0f;
-            public const float zNear = -100.0f;
-            public const float zFar = 100.0f;
+            public static void update(float width, float height)
+            {
+                defaultY = height / 4.0f;
+                defaultScale = Math.Min(width / 2.0f, height / 2.0f);
+            }
+
+            public static float defaultScale;
+            public static float defaultY;
+            public static float pointSize = 8.0f;
+            public static float lineWidth = 1.25f;
+            public static float zNear = -100.0f;
+            public static float zFar = 100.0f;
             // Fonts
-            public const float shiftLabelY = 0.04f;
+            public static float shiftLabelY = 0.04f;
             // Coordinate system
-            public const float originSystemX = 200.0f;
-            public const float originSystemY = 250.0f;
-            public const float originSystemZ = 0.0f;
+            public static float originSystemX = 200.0f;
+            public static float originSystemY = 250.0f;
+            public static float originSystemZ = 0.0f;
         }
 
         public enum Views

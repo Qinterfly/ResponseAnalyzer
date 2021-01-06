@@ -152,10 +152,10 @@ namespace ResponseAnalyzer
         private QFontDrawing fontDrawing;
         private float shiftLabel = 0.03f;
         // Dimensions
-        private float lengthAxis = 0.2f;
+        private float lengthAxis = 0.15f;
         private double tetraSide = 0.03;
         private float heightTetra = 0.05f;
-        private float sideBox = 0.1f;
+        private float sideBox = 0.08f;
         // Vertices
         private int vertexBuffer;
         // Axes
