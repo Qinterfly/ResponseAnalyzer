@@ -17,7 +17,7 @@ namespace ResponseAnalyzer
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             // Blending
             GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha , BlendingFactor.OneMinusSrcAlpha);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             GL.Enable(EnableCap.PolygonSmooth);
             GL.Enable(EnableCap.LineSmooth);
             GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Nicest);
@@ -77,12 +77,26 @@ namespace ResponseAnalyzer
             coordinateSystem_.shader = shader_;
             coordinateSystemOrigin_ = new Vector3(DrawOptions.originSystemX, DrawOptions.originSystemY, DrawOptions.originSystemZ);
             coordinateSystemScaleTranslation_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 1.0f) * Matrix4.CreateTranslation(coordinateSystemOrigin_);
+            // Viewport
+            prevControlWidth_ = glControl_.Width;
+            prevControlHeight_ = glControl_.Height;
         }
 
         public void resize()
         {
             if (isCongruent())
-                projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
+            {
+                int width = glControl_.Width;
+                int height = glControl_.Height;
+                projection_ = Matrix4.CreateOrthographic(width, height, DrawOptions.zNear, DrawOptions.zFar);
+                // Coordinate system position
+                coordinateSystemOrigin_.X *= (float) width / prevControlWidth_;
+                coordinateSystemOrigin_.Y *= (float) height / prevControlHeight_;
+                coordinateSystemScaleTranslation_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 1.0f) * Matrix4.CreateTranslation(coordinateSystemOrigin_);
+                prevControlWidth_ = glControl_.Width;
+                prevControlHeight_ = glControl_.Height;
+            }
+                
         }
 
         public void generateBuffers(string componentName)
@@ -242,6 +256,8 @@ namespace ResponseAnalyzer
         private CoordinateSystem coordinateSystem_;
         private Vector3 coordinateSystemOrigin_;
         private Matrix4 coordinateSystemScaleTranslation_;
+        private int prevControlWidth_;
+        private int prevControlHeight_;
 
         public static class DrawOptions
         {
@@ -249,8 +265,8 @@ namespace ResponseAnalyzer
             public const float lineWidth = 1.25f;
             public const float defaultScale = 300.0f;
             public const float defaultY = 100.0f;
-            public const float zNear = -10.0f;
-            public const float zFar = 10.0f;
+            public const float zNear = -100.0f;
+            public const float zFar = 100.0f;
             // Fonts
             public const float shiftLabelY = 0.04f;
             // Coordinate system
