@@ -219,7 +219,7 @@ namespace ResponseAnalyzer
         private Matrix4 projection_;
         private Vector3 location_;
         // Options
-        private PolygonMode polygonMode_ = PolygonMode.Line;
+        private PolygonMode polygonMode_ = PolygonMode.Fill;
         private Vector3 isoVector_ = new Vector3(0.4607291f, -0.8350012f, -0.3008356f);
         private float isoAngle_ = 0.910852849f;
         // Fonts

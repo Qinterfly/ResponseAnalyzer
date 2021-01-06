@@ -23,7 +23,7 @@ namespace ResponseAnalyzer
             toolTip.SetToolTip(numericTemplateNormalization, "Press F1 to fill it out automatically based on the selected lines");
         }
 
-        // Opening project
+        // Opening a project
         private void buttonOpenProject_Click(object sender, EventArgs e)
         {
             clearStatus();
@@ -76,6 +76,7 @@ namespace ResponseAnalyzer
             textBoxProjectPath.Clear();
         }
 
+        // Add/remove template objects to/from the selected line
         private void buttonEditTemplateSelection_Click(object sender = null, EventArgs e = null)
         {
             // If not a line was selected
@@ -210,7 +211,7 @@ namespace ResponseAnalyzer
                     defaultType = ChartTypes.MODESET;
                     defaultUnits = SignalUnits.METERS_PER_SECOND2;
                 }
-                // Specifying data
+                // Specifying the data
                 chartTypes_.Add(chart, defaultType);
                 chartUnits_.Add(chart, defaultUnits);
                 chartDirection_.Add(chart, ChartDirection.UNKNOWN);
@@ -413,11 +414,9 @@ namespace ResponseAnalyzer
         private void treeTemplateObjects_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyData) {
+                // Delete a selected template object
                 case Keys.D:
                     buttonRemoveTemplateObject_Click();
-                    break;
-                case Keys.E:
-                    buttonEditTemplateSelection_Click();
                     break;
             }
         }
@@ -425,11 +424,23 @@ namespace ResponseAnalyzer
         private void ResponseAnalyzer_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyData) { 
+                // Add a template object
                 case Keys.A:
                     buttonAddTemplateObject_Click();
                     break;
+                // Copy template objects from a selected chart
                 case Keys.C:
                     buttonCopyTemplateObjects_Click();
+                    break;
+                // Edit a selected line
+                case Keys.E:
+                    buttonEditTemplateSelection_Click();
+                    break;
+                // Clear the selection
+                case Keys.Escape:
+                    modelRenderer_.clearSelection();
+                    modelRenderer_.draw();
+                    clearStatus();
                     break;
             }
         }

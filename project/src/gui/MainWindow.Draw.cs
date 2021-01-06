@@ -13,11 +13,10 @@ namespace ResponseAnalyzer
         {
             glWindow.MakeCurrent();
             modelRenderer_.setControl(glWindow);
-
-            // -- Debug only --
-            testRender();
-            testExcel();
-            // ----------------
+            #if DEBUG
+                testRender();
+                testExcel();
+            #endif
         }
 
         private void glWindow_Paint(object sender, PaintEventArgs e)
@@ -109,11 +108,6 @@ namespace ResponseAnalyzer
                 case Keys.Control | Keys.F:
                     modelRenderer_.setView(LMSModel.Views.UP);
                     modelRenderer_.draw();
-                    break;
-                case Keys.Escape:
-                    modelRenderer_.clearSelection();
-                    modelRenderer_.draw();
-                    clearStatus();
                     break;
             }
         }
@@ -207,6 +201,32 @@ namespace ResponseAnalyzer
                     it.CheckedChanged += showComponents;
                 }
             }
+            modelRenderer_.draw();
+        }
+
+        // Retrieve the selection from the tree
+        private void treeTemplateObjects_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            TreeNode selectedNode = treeTemplateObjects.SelectedNode;
+            if (selectedNode == null)
+                return;
+            bool isLine = selectedNode.Nodes.Count != 0;
+            string[] selectionInfo;
+            modelRenderer_.clearSelection();
+            if (isLine)
+            {
+                foreach (TreeNode node in selectedNode.Nodes)
+                {
+                    selectionInfo = node.Text.Split(selectionDelimiter_);
+                    modelRenderer_.select(selectionInfo[0], selectionInfo[1], false);
+                }
+            }
+            else
+            {
+                selectionInfo = selectedNode.Text.Split(selectionDelimiter_);
+                modelRenderer_.select(selectionInfo[0], selectionInfo[1], false);
+            }
+            clearStatus();
             modelRenderer_.draw();
         }
 
