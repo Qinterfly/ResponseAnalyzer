@@ -124,6 +124,8 @@ namespace ResponseAnalyzer
             // Finding the nearest model node to the picked one
             foreach (string component in componentNames_)
             {
+                if (!componentShowMask_[component])
+                    continue;
                 float[] vertices = (float[]) componentSet_.vertices[component];
                 int lenVertices = vertices.Length;
                 for (int i = 0; i != lenVertices; i = i + 3)

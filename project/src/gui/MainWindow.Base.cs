@@ -190,6 +190,7 @@ namespace ResponseAnalyzer
             chartDirection_ = new Dictionary<string, ChartDirection>();
             chartNormalization_ = new Dictionary<string, double>();
             chartAxis_ = new Dictionary<string, ChartDirection>();
+            chartSwapAxes_ = new Dictionary<string, bool>();
             foreach (string chart in charts) { 
                 listBoxTemplateCharts.Items.Add(chart);
                 ChartTypes defaultType = ChartTypes.UNKNOWN;
@@ -218,6 +219,7 @@ namespace ResponseAnalyzer
                 chartSelection_.Add(chart, new List<ISelection>());
                 chartNormalization_.Add(chart, 1.0);
                 chartAxis_.Add(chart, ChartDirection.UNKNOWN);
+                chartSwapAxes_.Add(chart, false);
             }
             listBoxTemplateCharts.SelectedIndex = 0;
             string selectedChart = listBoxTemplateCharts.SelectedItem.ToString();
@@ -249,6 +251,7 @@ namespace ResponseAnalyzer
             comboBoxTemplateDirection.SelectedIndex = (int)chartDirection_[chart];
             comboBoxTemplateAxis.SelectedIndex = (int)chartAxis_[chart];
             numericTemplateNormalization.Value = (decimal)chartNormalization_[chart];
+            checkBoxSwapAxes.Checked = chartSwapAxes_[chart];
             treeTemplateObjects.Nodes.Clear();
             // Check if the type is defined
             if (type == ChartTypes.UNKNOWN)
@@ -364,6 +367,14 @@ namespace ResponseAnalyzer
                 return;
             ChartDirection iSelected = (ChartDirection)comboBoxTemplateAxis.SelectedIndex;
             chartAxis_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+        }
+
+        private void checkBoxSwapAxes_CheckedChanged(object sender, EventArgs e)
+        {
+            if (listBoxTemplateCharts.Items.Count == 0)
+                return;
+            string chart = listBoxTemplateCharts.SelectedItem.ToString();
+            chartSwapAxes_[chart] = checkBoxSwapAxes.Checked;
         }
 
         private void buttonAddTemplateObject_Click(object sender = null, EventArgs e = null)
@@ -488,7 +499,9 @@ namespace ResponseAnalyzer
             int direction = (int)chartAxis_[chart] - 1;
             string[] selectionInfo;
             Vector3d tCoordinates;
-            double tempValue, maxValue = 0.0;
+            double tempValue;
+            double minValue = double.MaxValue;
+            double maxValue = double.MinValue;
             foreach (ISelection line in selection)
             {
                 List<string> nodes = (List<string>)line.retrieveSelection();
@@ -496,14 +509,17 @@ namespace ResponseAnalyzer
                 {
                     selectionInfo = node.Split(selectionDelimiter_);
                     tCoordinates = modelRenderer_.getNodeCoordinates(selectionInfo[0], selectionInfo[1]);
-                    tempValue = Math.Abs(tCoordinates[direction]);
+                    tempValue = tCoordinates[direction];
                     if (tempValue > maxValue)
                         maxValue = tempValue;
+                    if (tempValue < minValue)
+                        minValue = tempValue;
                 }
         
             }
-            if (maxValue >= (double)numericTemplateNormalization.Minimum && maxValue <= (double)numericTemplateNormalization.Maximum)
-                numericTemplateNormalization.Value = (decimal)maxValue;
+            tempValue = maxValue - minValue;
+            if (tempValue >= (double)numericTemplateNormalization.Minimum && tempValue <= (double)numericTemplateNormalization.Maximum)
+                numericTemplateNormalization.Value = (decimal)tempValue;
         }
     }
 }

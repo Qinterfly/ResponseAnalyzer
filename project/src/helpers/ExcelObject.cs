@@ -144,7 +144,7 @@ namespace ResponseAnalyzer
             serie.Marker.Fill.Color = properties.fillColor; // Fill color
             serie.Marker.Style = properties.style;          // Style
             ++indMarkers_[objChart];
-            if (indMarkers_[objChart] > markersProperties_.Count)
+            if (indMarkers_[objChart] >= markersProperties_.Count)
                 indMarkers_[objChart] = 0;
             // Legend
             serie.Header = dataName;

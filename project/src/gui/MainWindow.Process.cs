@@ -98,6 +98,11 @@ namespace ResponseAnalyzer
                 // Norm
                 double norm = chartNormalization_[chart];
                 ChartDirection axis = chartAxis_[chart];
+                int indX = 0, indY = 1;
+                if (chartSwapAxes_[chart]) {
+                    indX = 1;
+                    indY = 0;
+                }
                 // Frequency response function: real and imaginary parts
                 if (type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF)
                 {
@@ -122,8 +127,8 @@ namespace ResponseAnalyzer
                         for (int i = 0; i != nSelectedFrequency; ++i)
                         {
                             iSelected = selectedFreqIndicies[i];
-                            data[i, 0] = response.frequency[iSelected];
-                            data[i, 1] = refFullData[iSelected, iType];
+                            data[i, indX] = response.frequency[iSelected];
+                            data[i, indY] = refFullData[iSelected, iType];
                         }
                         string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
                         excelResult.addSeries(chart, data, ptrNode);
@@ -167,8 +172,8 @@ namespace ResponseAnalyzer
                         double[,] data = new double[nNodes, 2];
                         for (int i = 0; i != nNodes; ++i)
                         {
-                            data[i, 0] = coordinates[i] / norm;
-                            data[i, 1] = values[i];
+                            data[i, indX] = coordinates[i] / norm;
+                            data[i, indY] = values[i];
                         }
                         excelResult.addSeries(chart, data, nameLine);
                     }
