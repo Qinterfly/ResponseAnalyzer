@@ -101,6 +101,7 @@
     </Compile>
     <Compile Include="src\helpers\ExcelObject.cs" />
     <Compile Include="src\helpers\Selection.cs" />
+    <Compile Include="src\model\CoordinateSystem.cs" />
     <Compile Include="src\model\LMSModel.Base.cs" />
     <Compile Include="src\model\LMSModel.Interface.cs" />
     <Compile Include="src\model\LMSModel.Renderer.cs" />

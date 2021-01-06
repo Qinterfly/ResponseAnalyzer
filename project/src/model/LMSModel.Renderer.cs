@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Text;
 using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -69,7 +68,15 @@ namespace ResponseAnalyzer
                 Colour = Color.Black,
                 DropShadowActive = false,
                 CharacterSpacing = 0.1f
-            };          
+            };
+            // Compiling a shader
+            shader_ = new Shader("../../shaders/shader.vert", "../../shaders/shader.frag");
+            // Coordinate system
+            coordinateSystem_ = new CoordinateSystem();
+            coordinateSystem_.font = font_;
+            coordinateSystem_.shader = shader_;
+            coordinateSystemOrigin_ = new Vector3(DrawOptions.originSystemX, DrawOptions.originSystemY, DrawOptions.originSystemZ);
+            coordinateSystemScaleTranslation_ = Matrix4.CreateScale(DrawOptions.defaultScale, DrawOptions.defaultScale, 1.0f) * Matrix4.CreateTranslation(coordinateSystemOrigin_);
         }
 
         public void resize()
@@ -86,8 +93,6 @@ namespace ResponseAnalyzer
             int lenVertices = vertices.Length;
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
             GL.BufferData(BufferTarget.ArrayBuffer, lenVertices * sizeof(float), vertices, BufferUsageHint.StaticDraw);
-            // Compiling a shader
-            shader_ = new Shader("../../shaders/shader.vert", "../../shaders/shader.frag");
             componentBuffers_.vertexBufferObject.Add(componentName, vertexBufferObject);
             // Buffers for each element
             Array elementTypes = Enum.GetValues(typeof(ElementType));
@@ -133,7 +138,7 @@ namespace ResponseAnalyzer
             foreach (string component in componentNames_)
             {
                 if (!componentShowMask_[component])
-                    continue; 
+                    continue;
                 VAO = componentBuffers_.vertexBufferObject[component];
                 GL.BindBuffer(BufferTarget.ArrayBuffer, VAO);
                 int attrib = shader_.GetAttribLocation("inPosition");
@@ -174,8 +179,8 @@ namespace ResponseAnalyzer
                 }
             }
             // Node names
-            if (isShowNodeNames) 
-            { 
+            if (isShowNodeNames)
+            {
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
                 fontDrawing_.DrawingPrimitives.Clear();
                 fontDrawing_.ProjectionMatrix = projection_;
@@ -183,14 +188,16 @@ namespace ResponseAnalyzer
                 string resName;
                 int iVert = 0;
                 Vector4 position = Vector4.Zero;
-                foreach (string component in componentNames_) {
+                foreach (string component in componentNames_)
+                {
                     if (!componentShowMask_[component])
                         continue;
                     iVert = 0;
                     string[] nodeNames = (string[])componentSet_.nodeNames[component];
                     float[] vertices = (float[])componentSet_.vertices[component];
                     nNodes = nodeNames.Length;
-                    for (int iNode = 0; iNode != nNodes; ++iNode) { 
+                    for (int iNode = 0; iNode != nNodes; ++iNode)
+                    {
                         resName = component + ":" + nodeNames[iNode];
                         position.X = vertices[iVert + 0];
                         position.Y = vertices[iVert + 1] + DrawOptions.shiftLabelY;
@@ -205,6 +212,8 @@ namespace ResponseAnalyzer
                 fontDrawing_.Draw();
                 GL.PolygonMode(MaterialFace.FrontAndBack, polygonMode_);
             }
+            // Coordinate system
+            coordinateSystem_.draw(modelRotation_ * coordinateSystemScaleTranslation_, view_, projection_);
             glControl_.SwapBuffers();
         }
 
@@ -229,6 +238,10 @@ namespace ResponseAnalyzer
         // Show mode
         public bool isShowNodeNames { get; set; }
         private Dictionary<string, bool> componentShowMask_;
+        // Cordinate system
+        private CoordinateSystem coordinateSystem_;
+        private Vector3 coordinateSystemOrigin_;
+        private Matrix4 coordinateSystemScaleTranslation_;
 
         public static class DrawOptions
         {
@@ -240,6 +253,10 @@ namespace ResponseAnalyzer
             public const float zFar = 10.0f;
             // Fonts
             public const float shiftLabelY = 0.04f;
+            // Coordinate system
+            public const float originSystemX = 200.0f;
+            public const float originSystemY = 250.0f;
+            public const float originSystemZ = 0.0f;
         }
 
         public enum Views
