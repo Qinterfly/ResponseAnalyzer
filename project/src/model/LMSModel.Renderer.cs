@@ -17,7 +17,7 @@ namespace ResponseAnalyzer
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             // Blending
             GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.BlendFunc(BlendingFactor.SrcAlpha , BlendingFactor.OneMinusSrcAlpha);
             GL.Enable(EnableCap.PolygonSmooth);
             GL.Enable(EnableCap.LineSmooth);
             GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Nicest);

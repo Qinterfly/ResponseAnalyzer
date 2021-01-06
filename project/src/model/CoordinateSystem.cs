@@ -23,21 +23,32 @@ namespace ResponseAnalyzer
                 lengthAxis, 0.0f, 0.0f,                       // X-end
                 0.0f, lengthAxis, 0.0f,                       // Y-end
                 0.0f, 0.0f, lengthAxis,                       // Z-end
-                // Tetrhedron at the end of X axis
+                // Tetrahedron at the end of X axis
                 lengthAxis + heightTetra, 0.0f, 0.0f,         // Peak
                 lengthAxis, -heightTriangle1, -halfSideTetra, // Left
                 lengthAxis, -heightTriangle1, halfSideTetra,  // Right
                 lengthAxis, heightTriangle2, 0.0f,            // Up
-                // Tetrhedron at the end of Y axis
+                // Tetrahedron at the end of Y axis
                 0.0f, lengthAxis + heightTetra, 0.0f,         // Peak
                 -heightTriangle1, lengthAxis, -halfSideTetra, // Left
                 -heightTriangle1, lengthAxis, halfSideTetra,  // Right
                 heightTriangle2, lengthAxis, 0.0f,            // Up
-                // Tetrhedron at the end of Z axis
+                // Tetrahedron at the end of Z axis
                 0.0f, 0.0f, lengthAxis + heightTetra,         // Peak
                 -heightTriangle1, -halfSideTetra, lengthAxis, // Left
                 -heightTriangle1, halfSideTetra, lengthAxis,  // Right
-                heightTriangle2, 0.0f, lengthAxis             // Up
+                heightTriangle2, 0.0f, lengthAxis,            // Up
+                // Box
+                    // XZ
+                0.0f, sideBox, 0.0f,                            
+                sideBox, sideBox, 0.0f,
+                sideBox, sideBox, sideBox,
+                0.0f, sideBox, sideBox,
+                    // XY
+                0.0f, 0.0f, sideBox,
+                sideBox, 0.0f, sideBox,
+                    // YZ
+                sideBox, 0.0f, 0.0f
             };
             vertexBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
@@ -54,13 +65,14 @@ namespace ResponseAnalyzer
             GL.BufferData(BufferTarget.ElementArrayBuffer, axesIndices.Length * sizeof(uint), axesIndices, BufferUsageHint.StaticDraw);
             // Tetrahedra
             tetrahedronBuffers = new int[3];
-            uint[] tetraIndices =
+            // Base indices for X axis
+            uint[] tetraIndices = 
             {
                 4, 5, 7,
                 4, 6, 7,
                 4, 5, 6,
                 5, 6, 7
-            }; // Base indices for X axis
+            }; 
             int nInd = tetraIndices.Length;
             for (uint iAxis = 0; iAxis != 3; ++iAxis)
             {
@@ -70,6 +82,16 @@ namespace ResponseAnalyzer
                 for (int i = 0; i != nInd; ++i)
                     tetraIndices[i] += 4;
             }
+            // Box
+            uint[] boxIndices =
+            {
+                16, 17, 18, 19,
+                18, 19, 20, 21,
+                17, 18, 21, 22,
+            };
+            boxBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, boxBuffer);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, boxIndices.Length * sizeof(uint), boxIndices, BufferUsageHint.StaticDraw);
             // Fonts
             fontRenderOptions = new QFontRenderOptions();
             fontDrawing = new QFontDrawing();
@@ -90,7 +112,6 @@ namespace ResponseAnalyzer
             GL.VertexAttribPointer(attrib, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
             // Drawing options
-            GL.Disable(EnableCap.DepthTest);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             // Axes
             int ptrDraw = 0;
@@ -101,6 +122,10 @@ namespace ResponseAnalyzer
                 GL.DrawElements(PrimitiveType.Lines, 2, DrawElementsType.UnsignedInt, ptrDraw * sizeof(uint));
                 ptrDraw += 2;
             }
+            // Box
+            GL.Uniform4(colorLocation, boxColor);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, boxBuffer);
+            GL.DrawElements(PrimitiveType.Quads, 12, DrawElementsType.UnsignedInt, 0);
             // Tetra
             for (int iAxis = 0; iAxis != 3; ++iAxis)
             {
@@ -118,7 +143,6 @@ namespace ResponseAnalyzer
             }
             fontDrawing.RefreshBuffers();
             fontDrawing.Draw();
-            GL.Enable(EnableCap.DepthTest);
         }
 
         // Shader
@@ -131,6 +155,7 @@ namespace ResponseAnalyzer
         private float lengthAxis = 0.2f;
         private double tetraSide = 0.03;
         private float heightTetra = 0.05f;
+        private float sideBox = 0.1f;
         // Vertices
         private int vertexBuffer;
         // Axes
@@ -140,5 +165,8 @@ namespace ResponseAnalyzer
         private QFontRenderOptions fontRenderOptions;
         // Tetrahedra
         private int[] tetrahedronBuffers;
+        // Box
+        private int boxBuffer;
+        private Color4 boxColor = Color4.DimGray;
     }
 }
