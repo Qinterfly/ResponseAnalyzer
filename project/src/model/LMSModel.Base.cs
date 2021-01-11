@@ -5,7 +5,6 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using LMSTestLabAutomation;
 
-
 namespace ResponseAnalyzer
 {
     // Defining types
@@ -29,6 +28,8 @@ namespace ResponseAnalyzer
             mapElements_[ElementType.LINES] = PrimitiveType.Lines;
             mapElements_[ElementType.TRIAS] = PrimitiveType.Triangles;
             mapElements_[ElementType.QUADS] = PrimitiveType.Quads;
+            if (!Program.DISTRIBUTE)
+                shaderPath_ = "../../";
         }
 
         // Retreiving drawing objects from the user specified geometry
@@ -191,7 +192,7 @@ namespace ResponseAnalyzer
                     vertices[i + j] = 2.0f * (vertices[i + j] - limits[j, 0]) / maxProj + shift[j];
             }
         }
-            
+        
         // Components data
         private List<string> componentNames_;
         public ComponentGeometry componentSet_ { get; set; }

@@ -33,20 +33,19 @@ namespace ResponseAnalyzer
 
         private void glWindow_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            var keyboard = Keyboard.GetState();
             switch (e.Button)
             {
                 case MouseButtons.Middle:
                     lastMousePosition_[0] = e.X;
                     lastMousePosition_[1] = e.Y;
-                    if (keyboard.IsKeyDown(Key.ControlLeft))
+                    if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl))
                         isTranslation_ = true;
                     else
                         isRotation_ = true;
                     break;
                 case MouseButtons.Left:
                     bool isNewSelection = true;
-                    if (keyboard.IsKeyDown(Key.ShiftLeft) || isEditSelection_)
+                    if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftShift) || isEditSelection_)
                         isNewSelection = false;
                     Tuple <Vector3d, string, string> info = modelRenderer_.select(e.X, e.Y, isNewSelection);
                     modelRenderer_.draw();
@@ -65,8 +64,6 @@ namespace ResponseAnalyzer
 
         private void glWindow_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
             if (isTranslation_)
             {
                 float dX = (e.X - lastMousePosition_[0]) * MouseWeights.translation;
@@ -91,13 +88,12 @@ namespace ResponseAnalyzer
 
         private void glWindow_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            var keyboard = Keyboard.GetState();
             if (e.Button == MouseButtons.Middle)
             {
                 isTranslation_ = false;
                 isRotation_ = false;
             }
-            if (keyboard.IsKeyUp(Key.ControlLeft))
+            if (System.Windows.Input.Keyboard.IsKeyUp(System.Windows.Input.Key.LeftCtrl))
                 isTranslation_ = false;
         }
 

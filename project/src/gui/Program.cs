@@ -8,9 +8,7 @@ namespace ResponseAnalyzer
 {
     static class Program
     {
-        /// <summary>
-        /// Главная точка входа для приложения.
-        /// </summary>
+        public static bool DISTRIBUTE = false;
         [STAThread]
         static void Main()
         {

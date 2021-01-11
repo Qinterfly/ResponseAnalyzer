@@ -60,20 +60,73 @@ namespace ResponseAnalyzer
                 package_ = new ExcelPackage(fileInfo);
                 charts_ = new List<ExcelDrawing>();
                 chartSheets_ = new List<string>();
-                indMarkers_ = new Dictionary<ExcelDrawing, int>();
+                indMarkers_ = new Dictionary<string, int>();
+                customMarkers_ = new Dictionary<string, List<MarkerProperty>>();
                 path_ = path;
                 retrieveCharts();
-                // Specifying the sequence of the styles
-                markersProperties_ = new List<MarkerProperties>();
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.White, style = eMarkerStyle.Square });
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.Black, style = eMarkerStyle.Square });
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.White, style = eMarkerStyle.Circle });
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.Black, style = eMarkerStyle.Circle });
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.White, style = eMarkerStyle.Triangle });
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.Black, style = eMarkerStyle.Triangle });
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.White, style = eMarkerStyle.Diamond });
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.Black, style = eMarkerStyle.Diamond });
-                markersProperties_.Add(new MarkerProperties { fillColor = Color.Black, style = eMarkerStyle.X });
+                createMarkers(); // Specifying the styles sequence
+            }
+        }
+
+        public void createMarkers()
+        {
+            // Standard markers
+            standardMarkers_ = new List<MarkerProperty>();
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.White, style = eMarkerStyle.Square   });
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.Black, style = eMarkerStyle.Square   });
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.White, style = eMarkerStyle.Circle   });
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.Black, style = eMarkerStyle.Circle   });
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.White, style = eMarkerStyle.Triangle });
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.Black, style = eMarkerStyle.Triangle });
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.White, style = eMarkerStyle.Diamond  });
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.Black, style = eMarkerStyle.Diamond  });
+            standardMarkers_.Add(new MarkerProperty { fillColor = Color.Black, style = eMarkerStyle.X        });
+            // Check if the sequence is defined in the template file
+            List<string> chartNames = getChartNames();
+            foreach (string chart in chartNames)
+                customMarkers_.Add(chart, null);
+            ExcelWorksheet markersSheet = null;
+            foreach (ExcelWorksheet sheet in package_.Workbook.Worksheets){
+                if (sheet.Name == markersSheetName_)
+                    markersSheet = sheet;
+            }
+            if (markersSheet == null)
+                return;
+            // Reading the defined sequence
+            int nColumns = markersSheet.Dimension.Columns;
+            int nRows = markersSheet.Dimension.Rows;
+            for (int iColumn = 1; iColumn <= nColumns; ++iColumn)
+            {
+                string chart = markersSheet.Cells[1, iColumn].Text;
+                if (!customMarkers_.ContainsKey(chart))
+                    continue;
+                List<MarkerProperty> properties = new List<MarkerProperty>();
+                for (int iRow = 2; iRow <= nRows; ++iRow)
+                {
+                    string description = markersSheet.Cells[iRow, iColumn].Text.ToLower();
+                    MarkerProperty marker = new MarkerProperty();
+                    marker.style = eMarkerStyle.None;
+                    marker.fillColor = Color.White;
+                    if (description.Contains("square"))
+                        marker.style = eMarkerStyle.Square;
+                    else if (description.Contains("circle"))
+                        marker.style = eMarkerStyle.Circle;
+                    else if (description.Contains("triangle"))
+                        marker.style = eMarkerStyle.Triangle;
+                    else if (description.Contains("diamond"))
+                        marker.style = eMarkerStyle.Diamond;
+                    else if (description.Contains("x"))
+                    {
+                        marker.style = eMarkerStyle.X;
+                        marker.fillColor = Color.Black;
+                    }
+                    if (description.Contains("fill"))
+                        marker.fillColor = Color.Black;
+                    // If a marker fits the set of the predefined words
+                    if (marker.style != eMarkerStyle.None)
+                        properties.Add(marker);
+                }
+                customMarkers_[chart] = properties;
             }
         }
 
@@ -134,8 +187,13 @@ namespace ResponseAnalyzer
             yVals = ExcelRange.GetFullAddress(workSheetName_, yVals);
             // Creating the serie
             ExcelScatterChartSerie serie = scatterChart.Series.Add(yVals, xVals);
-            // Specifying the style
-            MarkerProperties properties = markersProperties_[indMarkers_[objChart]];
+            // Use standard markers when custom ones is not available
+            List<MarkerProperty> markers; 
+            if (customMarkers_[chartName] != null)
+                markers = customMarkers_[chartName];
+            else
+                markers = standardMarkers_;
+            MarkerProperty properties = markers[indMarkers_[chartName]];
             serie.Border.Fill.Color = Color.Black;          // Line color
             serie.Border.Width = 1;                         // Line width
             serie.Marker.Border.Fill.Color = Color.Black;   // Marker border color
@@ -143,9 +201,9 @@ namespace ResponseAnalyzer
             serie.Marker.Size = 5;                          // Marker size
             serie.Marker.Fill.Color = properties.fillColor; // Fill color
             serie.Marker.Style = properties.style;          // Style
-            ++indMarkers_[objChart];
-            if (indMarkers_[objChart] >= markersProperties_.Count)
-                indMarkers_[objChart] = 0;
+            ++indMarkers_[chartName];
+            if (indMarkers_[chartName] >= markers.Count)
+                indMarkers_[chartName] = 0;
             // Legend
             serie.Header = dataName;
             // Shifting data locations
@@ -178,7 +236,8 @@ namespace ResponseAnalyzer
             chartSheets_ = another.chartSheets_;
             path_ = another.path_;
             indMarkers_ = another.indMarkers_;
-            markersProperties_ = another.markersProperties_;
+            standardMarkers_ = another.standardMarkers_;
+            customMarkers_ = another.customMarkers_;
         }
 
         public bool isOpened()
@@ -205,7 +264,7 @@ namespace ResponseAnalyzer
                     {
                         charts_.Add(drawing);
                         chartSheets_.Add(worksheet.Name);
-                        indMarkers_.Add(drawing, 0);
+                        indMarkers_.Add(drawing.Name, 0);
                     }
                 }
             }
@@ -223,8 +282,10 @@ namespace ResponseAnalyzer
         ExcelWorksheet workSheet_ = null;
         const string workSheetName_ = "ChartData";
         // Style
-        Dictionary<ExcelDrawing, int> indMarkers_;
-        List<MarkerProperties> markersProperties_;
+        Dictionary<string, int> indMarkers_;
+        List<MarkerProperty> standardMarkers_;
+        Dictionary<string, List<MarkerProperty>> customMarkers_;
+        const string markersSheetName_ = "Markers";
     }
 
     public struct ChartPosition
@@ -241,7 +302,7 @@ namespace ResponseAnalyzer
         public int col;
     }
 
-    public class MarkerProperties
+    public class MarkerProperty
     {
         public Color fillColor;
         public eMarkerStyle style;

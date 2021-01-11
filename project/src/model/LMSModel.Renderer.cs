@@ -72,7 +72,7 @@ namespace ResponseAnalyzer
                 CharacterSpacing = 0.1f
             };
             // Compiling a shader
-            shader_ = new Shader("../../shaders/shader.vert", "../../shaders/shader.frag");
+            shader_ = new Shader(shaderPath_ + "shaders/shader.vert", shaderPath_ + "shaders/shader.frag");
             // Coordinate system
             coordinateSystem_ = new CoordinateSystem();
             coordinateSystem_.font = font_;
@@ -235,6 +235,7 @@ namespace ResponseAnalyzer
             glControl_.SwapBuffers();
         }
 
+        string shaderPath_ = "";
         // Colors
         private List<Color4> availableColors_;
         private Color4 selectionColor_;
