@@ -187,7 +187,7 @@ namespace ResponseAnalyzer
             yVals = ExcelRange.GetFullAddress(workSheetName_, yVals);
             // Creating the serie
             ExcelScatterChartSerie serie = scatterChart.Series.Add(yVals, xVals);
-            // Use standard markers when custom ones is not available
+            // Using the standard markers when custom ones are not available
             List<MarkerProperty> markers; 
             if (customMarkers_[chartName] != null)
                 markers = customMarkers_[chartName];
