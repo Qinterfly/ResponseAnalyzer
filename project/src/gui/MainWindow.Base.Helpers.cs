@@ -1,19 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace ResponseAnalyzer
 {
     public partial class ResponseAnalyzer
     {
+		// Converting selection type
         private void convertSelection(string baseChart, string refChart, ChartTypes baseType, ChartTypes refType)
         {
-            List<ISelection> refObjects = chartSelection_[refChart];
+            List<ISelection> refObjects = charts_.selection[refChart];
             List<ISelection> tempObjects = refObjects.GetRange(0, refObjects.Count);
             // Convert to nodes
             if (isNodeType(baseType))
             {
                 // Nodes -> Nodes
                 if (isNodeType(refType))
-                    chartSelection_[baseChart] = tempObjects;
+                    charts_.selection[baseChart] = tempObjects;
                 // Lines -> Nodes
                 if (isLineType(refType))
                 {
@@ -21,7 +23,7 @@ namespace ResponseAnalyzer
                     {
                         List<string> nodeNames = (List<string>)item.retrieveSelection();
                         foreach (string name in nodeNames)
-                            chartSelection_[baseChart].Add(new Nodes { nodeName_ = name });
+                            charts_.selection[baseChart].Add(new Nodes { nodeName_ = name });
                     }
                 }
             }
@@ -30,7 +32,7 @@ namespace ResponseAnalyzer
             {
                 // Lines -> Lines
                 if (isLineType(refType))
-                    chartSelection_[baseChart] = tempObjects;
+                    charts_.selection[baseChart] = tempObjects;
                 // Nodes -> Line
                 if (isNodeType(refType))
                 {
@@ -41,63 +43,101 @@ namespace ResponseAnalyzer
                         line.nodeNames_.Add((string)item.retrieveSelection());
                     List<ISelection> res = new List<ISelection>();
                     res.Add((ISelection)line);
-                    chartSelection_[baseChart] = res;
+                    charts_.selection[baseChart] = res;
                 }
 
             }
         }
-
+		
+		// Check if a value type of a graph is nodal
         private bool isNodeType(ChartTypes type)
         {
             return type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF || type == ChartTypes.FORCE;
         }
 
+		// Check if a value type of a graph is linear
         private bool isLineType(ChartTypes type)
         {
             return type == ChartTypes.MODESET;
         }
 
+        // Select all items in a listbox
+        private void selectAllItems(ListBox listBox)
+        {
+            int nItems = listBox.Items.Count;
+            for (int i = 0; i != nItems; ++i)
+                listBox.SetSelected(i, true);
+            listBox.TopIndex = 0;
+        }
+
+        // Creating dependency between charts with specified types
         private void createDependency(ChartTypes masterType, ChartTypes slaveType)
         {
             string slaveChart = null;
             string masterChart = null;
-            foreach (string chart in chartTypes_.Keys)
+            foreach (string chart in charts_.type.Keys)
             {
-                if (chartTypes_[chart] == masterType)
+                if (charts_.type[chart] == masterType)
                     masterChart = chart;
-                if (chartTypes_[chart] == slaveType)
+                if (charts_.type[chart] == slaveType)
                     slaveChart = chart;
                 if (masterChart != null && slaveChart != null)
                 {
-                    chartDependency_[slaveChart] = masterChart;
+                    charts_.dependency[slaveChart] = masterChart;
                     break;
                 }
             }
         }
-
+		
+		// Reset all dependencies between charts
         private void resetDependencies()
         {
-            List<string> keys = new List<string>(chartDependency_.Keys);
+            List<string> keys = new List<string>(charts_.dependency.Keys);
             foreach (string chart in keys)
-                chartDependency_[chart] = null;
+                charts_.dependency[chart] = null;
         }
-
+		
+		// Copy template properties in accordance with the dependency map
         private void resolveDependencies()
         {
-            foreach (string chart in chartDependency_.Keys)
+            foreach (string chart in charts_.dependency.Keys)
             {
-                string masterChart = chartDependency_[chart];
+                string masterChart = charts_.dependency[chart];
                 if (masterChart == null)
                     continue;
                 // Properties
-                chartDirection_[chart] = chartDirection_[masterChart];
-                chartAxis_[chart] = chartAxis_[masterChart];
-                chartNormalization_[chart] = chartNormalization_[masterChart];
-                chartUnits_[chart] = chartUnits_[masterChart];
-                chartSwapAxes_[chart] = chartSwapAxes_[masterChart];
+                charts_.direction[chart] = charts_.direction[masterChart];
+                charts_.axis[chart] = charts_.axis[masterChart];
+                charts_.normalization[chart] = charts_.normalization[masterChart];
+                charts_.units[chart] = charts_.units[masterChart];
+                charts_.swapAxes[chart] = charts_.swapAxes[masterChart];
                 // Data
-                chartSelection_[chart] = chartSelection_[masterChart];
+                charts_.selection[chart] = charts_.selection[masterChart];
             }
         }
+    }
+
+    public class ChartsData
+    {
+        public ChartsData()
+        {
+            type = new Dictionary<string, ChartTypes>();
+            units = new Dictionary<string, SignalUnits>();
+            selection = new Dictionary<string, List<ISelection>>();
+            direction = new Dictionary<string, ChartDirection>();
+            normalization = new Dictionary<string, double>();
+            axis = new Dictionary<string, ChartDirection>();
+            swapAxes = new Dictionary<string, bool>();
+            dependency = new Dictionary<string, string>();
+        }
+
+        public Dictionary<string, ChartTypes> type;
+        public Dictionary<string, SignalUnits> units;
+        public Dictionary<string, List<ISelection>> selection;
+        public Dictionary<string, ChartDirection> direction;
+        public Dictionary<string, double> normalization;
+        public Dictionary<string, ChartDirection> axis;
+        public Dictionary<string, bool> swapAxes;
+        public Dictionary<string, string> dependency;
     }
 }

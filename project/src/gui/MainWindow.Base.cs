@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Collections.Generic;
-using OpenTK;
 
 namespace ResponseAnalyzer
 {
@@ -95,17 +94,10 @@ namespace ResponseAnalyzer
         {
             listBoxTemplateCharts.Items.Clear();
             treeTemplateObjects.Nodes.Clear();
-            List<string> charts = excelTemplate_.getChartNames();
+            List<string> chartNames = excelTemplate_.getChartNames();
             // Preparing containers to hold the properties of charts
-            chartTypes_ = new Dictionary<string, ChartTypes>();
-            chartUnits_ = new Dictionary<string, SignalUnits>();
-            chartSelection_ = new Dictionary<string, List<ISelection>>();
-            chartDirection_ = new Dictionary<string, ChartDirection>();
-            chartNormalization_ = new Dictionary<string, double>();
-            chartAxis_ = new Dictionary<string, ChartDirection>();
-            chartSwapAxes_ = new Dictionary<string, bool>();
-            chartDependency_ = new Dictionary<string, string>();
-            foreach (string chart in charts) { 
+            charts_ = new ChartsData();
+            foreach (string chart in chartNames) { 
                 listBoxTemplateCharts.Items.Add(chart);
                 ChartTypes defaultType = ChartTypes.UNKNOWN;
                 SignalUnits defaultUnits = SignalUnits.UNKNOWN;
@@ -127,19 +119,19 @@ namespace ResponseAnalyzer
                     defaultUnits = SignalUnits.METERS_PER_SECOND2;
                 }
                 // Specifying the data
-                chartTypes_.Add(chart, defaultType);
-                chartUnits_.Add(chart, defaultUnits);
-                chartDirection_.Add(chart, ChartDirection.UNKNOWN);
-                chartSelection_.Add(chart, new List<ISelection>());
-                chartNormalization_.Add(chart, 1.0);
-                chartAxis_.Add(chart, ChartDirection.UNKNOWN);
-                chartSwapAxes_.Add(chart, false);
-                chartDependency_.Add(chart, null);
+                charts_.type.Add(chart, defaultType);
+                charts_.units.Add(chart, defaultUnits);
+                charts_.direction.Add(chart, ChartDirection.UNKNOWN);
+                charts_.selection.Add(chart, new List<ISelection>());
+                charts_.normalization.Add(chart, 1.0);
+                charts_.axis.Add(chart, ChartDirection.UNKNOWN);
+                charts_.swapAxes.Add(chart, false);
+                charts_.dependency.Add(chart, null);
             }
             listBoxTemplateCharts.SelectedIndex = 0;
             string selectedChart = listBoxTemplateCharts.SelectedItem.ToString();
-            comboBoxTemplateType.SelectedIndex = (int)chartTypes_[selectedChart];
-            comboBoxTemplateUnits.SelectedIndex = (int)chartUnits_[selectedChart];
+            comboBoxTemplateType.SelectedIndex = (int)charts_.type[selectedChart];
+            comboBoxTemplateUnits.SelectedIndex = (int)charts_.units[selectedChart];
             // Constructing dependencies
             createDependency(ChartTypes.IMAGFRF, ChartTypes.REALFRF);
             setDependencyEnabled();
@@ -175,7 +167,7 @@ namespace ResponseAnalyzer
         private void listBoxTemplateCharts_SelectedIndexChanged(object sender = null, EventArgs e = null)
         {
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            ChartTypes type = chartTypes_[chart];
+            ChartTypes type = charts_.type[chart];
             // Copy template objects
             if (!buttonCopyTemplateObjects.Enabled && buttonCopyTemplateObjects.Tag != null)
             {
@@ -184,38 +176,38 @@ namespace ResponseAnalyzer
                 if (baseChart.Equals(chart))
                     return;
                 listBoxTemplateCharts.SelectedItem = baseChart;
-                ChartTypes baseType = chartTypes_[baseChart];
-                if (chartSelection_[chart].Count == 0 || baseType == ChartTypes.UNKNOWN || type == ChartTypes.UNKNOWN)
+                ChartTypes baseType = charts_.type[baseChart];
+                if (charts_.selection[chart].Count == 0 || baseType == ChartTypes.UNKNOWN || type == ChartTypes.UNKNOWN)
                     return;
                 convertSelection(baseChart, chart, baseType, type);
                 type = baseType;
                 chart = baseChart;
             }
             comboBoxTemplateType.SelectedIndex = (int)type;
-            comboBoxTemplateUnits.SelectedIndex = (int)chartUnits_[chart];
-            comboBoxTemplateDirection.SelectedIndex = (int)chartDirection_[chart];
-            comboBoxTemplateAxis.SelectedIndex = (int)chartAxis_[chart];
-            numericTemplateNormalization.Value = (decimal)chartNormalization_[chart];
-            checkBoxSwapAxes.Checked = chartSwapAxes_[chart];
+            comboBoxTemplateUnits.SelectedIndex = (int)charts_.units[chart];
+            comboBoxTemplateDirection.SelectedIndex = (int)charts_.direction[chart];
+            comboBoxTemplateAxis.SelectedIndex = (int)charts_.axis[chart];
+            numericTemplateNormalization.Value = (decimal)charts_.normalization[chart];
+            checkBoxSwapAxes.Checked = charts_.swapAxes[chart];
             treeTemplateObjects.Nodes.Clear();
             // Check if the type is defined
             if (type == ChartTypes.UNKNOWN)
                 return;
             // Check if the selected signal is dependent
             setDependencyEnabled();
-            if (chartDependency_[chart] != null)
+            if (charts_.dependency[chart] != null)
                 return;
             // Nodes
             if (isNodeType(type))
             {
-                List<ISelection> objects = chartSelection_[chart];
+                List<ISelection> objects = charts_.selection[chart];
                 foreach (ISelection item in objects)
                     treeTemplateObjects.Nodes.Add((string)item.retrieveSelection());
             }
             // Lines
             if (isLineType(type))
             {
-                List<ISelection> objects = chartSelection_[chart];
+                List<ISelection> objects = charts_.selection[chart];
                 foreach (ISelection item in objects)
                 {
                     Lines line = (Lines)item;
@@ -231,7 +223,7 @@ namespace ResponseAnalyzer
         private void setDependencyEnabled()
         {
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            bool isDependent = chartDependency_[chart] == null;
+            bool isDependent = charts_.dependency[chart] == null;
             treeTemplateObjects.Enabled = isDependent;
             // Properties
             comboBoxTemplateUnits.Enabled = isDependent;

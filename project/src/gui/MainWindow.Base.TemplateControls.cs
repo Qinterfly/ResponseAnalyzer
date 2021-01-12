@@ -19,7 +19,7 @@ namespace ResponseAnalyzer
                 return;
             // Adding the object to the tree
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            if (chartDependency_[chart] != null) // Cannot add items to the dependent chart
+            if (charts_.dependency[chart] != null) // Cannot add items to the dependent chart
                 return;
             if (isLineType(type))
             {
@@ -30,7 +30,7 @@ namespace ResponseAnalyzer
                 Lines selLines = new Lines();
                 selLines.lineName_ = line.Text;
                 selLines.nodeNames_ = selection;
-                chartSelection_[chart].Add(selLines);
+                charts_.selection[chart].Add(selLines);
             }
             if (isNodeType(type))
             {
@@ -39,7 +39,7 @@ namespace ResponseAnalyzer
                     treeTemplateObjects.Nodes.Add(node);
                     Nodes selNode = new Nodes();
                     selNode.nodeName_ = node;
-                    chartSelection_[chart].Add(selNode);
+                    charts_.selection[chart].Add(selNode);
                 }
             }
         }
@@ -51,7 +51,7 @@ namespace ResponseAnalyzer
                 return;
             int iSelected = treeTemplateObjects.SelectedNode.Index;
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            chartSelection_[chart].RemoveAt(iSelected);
+            charts_.selection[chart].RemoveAt(iSelected);
             treeTemplateObjects.Nodes.RemoveAt(iSelected);
         }
 
@@ -67,7 +67,7 @@ namespace ResponseAnalyzer
                 line.Nodes.Clear();
                 var selection = modelRenderer_.getSelection();
                 string chart = listBoxTemplateCharts.SelectedItem.ToString();
-                List<ISelection> objects = chartSelection_[chart];
+                List<ISelection> objects = charts_.selection[chart];
                 Lines selLine = null;
                 int iSelectedLine = 0;
                 bool isFound = false;
@@ -85,7 +85,7 @@ namespace ResponseAnalyzer
                     return;
                 if (selection.Count < 1)
                 {
-                    chartSelection_[chart].RemoveAt(iSelectedLine);
+                    charts_.selection[chart].RemoveAt(iSelectedLine);
                     line.Remove();
                 }
                 else
@@ -127,7 +127,8 @@ namespace ResponseAnalyzer
                 buttonCopyTemplateObjects.Tag = listBoxTemplateCharts.SelectedItem.ToString();
             }
         }
-
+		
+		// Modify template objects
         private void treeTemplateObjects_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyData)

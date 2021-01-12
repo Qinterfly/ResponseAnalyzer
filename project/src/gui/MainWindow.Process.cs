@@ -43,20 +43,14 @@ namespace ResponseAnalyzer
             textBoxResonanceFrequency.Tag = -1;
         }
 
+        // Select all the frequencies via ctrl+A
         private void listBoxFrequencies_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.A)
                 selectAllItems(listBoxFrequencies);
         }
 
-        private void selectAllItems(ListBox listBox)
-        {
-            int nItems = listBox.Items.Count;
-            for (int i = 0; i != nItems; ++i)
-                listBox.SetSelected(i, true);
-            listBox.TopIndex = 0;
-        }
-
+        // Select the resulting directory
         private void buttonSelectDirectory_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog openFolderDialog = new FolderBrowserDialog();
@@ -65,9 +59,19 @@ namespace ResponseAnalyzer
                 textBoxDirectoryExcel.Text = openFolderDialog.SelectedPath;
         }
 
+        // Select the resonance frequency
+        private void buttonSelectResonanceFrequency_Click(object sender, EventArgs e)
+        {
+            if (listBoxFrequencies.SelectedIndices.Count == 0)
+                return;
+            textBoxResonanceFrequency.Tag = listBoxFrequencies.SelectedIndices[0];
+            textBoxResonanceFrequency.Text = listBoxFrequencies.Items[(int)textBoxResonanceFrequency.Tag].ToString();
+            selectAllItems(listBoxFrequencies);
+        }
+
+        // Processing all the data
         private void buttonProcess_Click(object sender = null, EventArgs e = null)
         {
-            int iError = 0;
             ExcelObject excelResult = new ExcelObject(excelTemplate_, textBoxDirectoryExcel.Text, textBoxNameExcel.Text);
             // Checking the project, template and selected signals
             if (!project.isProjectOpened() || !excelTemplate_.isOpened() || listBoxFoundSignals.Items.Count == 0)
@@ -80,28 +84,36 @@ namespace ResponseAnalyzer
                 selectedFreqIndicies.Add(index);
             int nSelectedFrequency = selectedFreqIndicies.Count;
             ChartPosition.lastRow = 0;
+            // Error handling
+            errorMessage_ = null;
+            int iError = 0;
             // Creating series
-            foreach (string chart in listBoxTemplateCharts.Items) // Charts
+            foreach (string chart in listBoxTemplateCharts.Items)
             {
                 // Nodes selection
-                List<ISelection> selectedObjects = chartSelection_[chart];
+                List<ISelection> selectedObjects = charts_.selection[chart];
                 // Type and direction
-                ChartTypes type = chartTypes_[chart];
-                ChartDirection direction = chartDirection_[chart];
-                SignalUnits units = chartUnits_[chart];
-                if (type == ChartTypes.UNKNOWN || direction == ChartDirection.UNKNOWN || units == SignalUnits.UNKNOWN)
+                ChartTypes type = charts_.type[chart];
+                ChartDirection direction = charts_.direction[chart];
+                SignalUnits units = charts_.units[chart];
+                // Error handling
+                if (type == ChartTypes.UNKNOWN || selectedObjects.Count == 0)
                     continue;
-                if (selectedObjects.Count == 0)
-                {
-                    setStatus("Template objects for " + chart + " were not specified");
-                    iError = 1;
+                if (direction == ChartDirection.UNKNOWN)
+                { 
+                    throwError(ref iError, "The direction for '" + chart + "' is not specified");
+                    continue;
+                }
+                if (units == SignalUnits.UNKNOWN) 
+                { 
+                    throwError(ref iError, "The units for '" + chart + "' are not specified");
                     continue;
                 }
                 // Norm
-                double norm = chartNormalization_[chart];
-                ChartDirection axis = chartAxis_[chart];
+                double norm = charts_.normalization[chart];
+                ChartDirection axis = charts_.axis[chart];
                 int indX = 0, indY = 1;
-                if (chartSwapAxes_[chart]) {
+                if (charts_.swapAxes[chart]) {
                     indX = 1;
                     indY = 0;
                 }
@@ -116,8 +128,7 @@ namespace ResponseAnalyzer
                         // Check if there is an appropriate signal
                         if (!project.signals_.ContainsKey(node) || !project.signals_[node].ContainsKey(direction))
                         {
-                            iError = 2;
-                            setStatus("The chosen signals do not contain the node" + node);
+                            throwError(ref iError, "The chosen signals do not contain the node '" + node + "'");
                             continue;
                         }
                         ResponseHolder response = project.signals_[node][direction][0];
@@ -139,9 +150,17 @@ namespace ResponseAnalyzer
                 // Modeset
                 if (type == ChartTypes.MODESET)
                 {
-                    int indResonance = (int)textBoxResonanceFrequency.Tag;
-                    if (axis == ChartDirection.UNKNOWN || indResonance < 0)
+                    int indResonance = (int) textBoxResonanceFrequency.Tag;
+                    if (axis == ChartDirection.UNKNOWN)
+                    {
+                        throwError(ref iError, "The coordinate axis for '" + chart + "' is not specified");
                         continue;
+                    }
+                    if (indResonance < 0)
+                    {
+                        throwError(ref iError, "The resonance frequency is not chosen");
+                        continue;
+                    }
                     // For each line
                     foreach (ISelection item in selectedObjects)
                     {
@@ -155,8 +174,7 @@ namespace ResponseAnalyzer
                             // Check if there is an appropriate signal
                             if (!project.signals_.ContainsKey(node) || !project.signals_[node].ContainsKey(direction))
                             {
-                                iError = 2;
-                                setStatus("The chosen signals do not contain the node " + node);
+                                throwError(ref iError, "The chosen signals do not contain the node '" + node + "'");
                                 continue;
                             }
                             // Retreiving the coordinate along the choosen axis
@@ -185,15 +203,23 @@ namespace ResponseAnalyzer
             excelResult.open();
             if (iError == 0)
                 setStatus("The results were successfully processed");
+            else
+                showErrors(iError);
         }
 
-        private void buttonSelectResonanceFrequency_Click(object sender, EventArgs e)
+        // Accumulate errors
+        private void throwError(ref int iError, string message)
         {
-            if (listBoxFrequencies.SelectedIndices.Count == 0)
-                return;
-            textBoxResonanceFrequency.Tag = listBoxFrequencies.SelectedIndices[0];
-            textBoxResonanceFrequency.Text = listBoxFrequencies.Items[(int)textBoxResonanceFrequency.Tag].ToString();
-            selectAllItems(listBoxFrequencies);
+            ++iError;
+            errorMessage_ += "● " + message + "\n";
         }
+
+        // Show all the errors at once
+        private void showErrors(int iError)
+        {
+            MessageBox.Show(errorMessage_, "The number of errors occured: " + iError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        string errorMessage_;
     }
 }

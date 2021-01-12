@@ -6,18 +6,13 @@ using System.Threading.Tasks;
 
 namespace ResponseAnalyzer
 {
-    interface ISelection
+    public interface ISelection
     {
         object retrieveSelection();
     }
 
     class Lines : ISelection
     {
-        public Lines()
-        {
-
-        }
-
         // Get all the nodes binded to the line
         public object retrieveSelection()
         {
@@ -30,11 +25,6 @@ namespace ResponseAnalyzer
 
     class Nodes : ISelection
     {
-        public Nodes()
-        {
-
-        }
-
         // Get the selected node
         public object retrieveSelection()
         {

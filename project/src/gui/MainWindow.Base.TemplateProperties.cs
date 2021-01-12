@@ -14,11 +14,11 @@ namespace ResponseAnalyzer
                 return;
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
             ChartTypes iSelected = (ChartTypes)comboBoxTemplateType.SelectedIndex;
-            if (chartTypes_[chart] == iSelected) // If the type has not changed
+            if (charts_.type[chart] == iSelected) // If the type has not changed
                 return;
-            chartTypes_[chart] = iSelected;
+            charts_.type[chart] = iSelected;
             // Clearing data
-            chartSelection_[chart].Clear();
+            charts_.selection[chart].Clear();
             treeTemplateObjects.Nodes.Clear();
             // Constructing dependencies
             resetDependencies();
@@ -32,7 +32,7 @@ namespace ResponseAnalyzer
             if (listBoxTemplateCharts.Items.Count == 0)
                 return;
             SignalUnits iSelected = (SignalUnits)comboBoxTemplateUnits.SelectedIndex;
-            chartUnits_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+            charts_.units[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
         }
 
         // Defining a template direction
@@ -41,7 +41,7 @@ namespace ResponseAnalyzer
             if (listBoxTemplateCharts.Items.Count == 0)
                 return;
             ChartDirection iSelected = (ChartDirection)comboBoxTemplateDirection.SelectedIndex;
-            chartDirection_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+            charts_.direction[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
         }
 
         // Defining a template normalization
@@ -49,7 +49,7 @@ namespace ResponseAnalyzer
         {
             if (listBoxTemplateCharts.Items.Count == 0)
                 return;
-            chartNormalization_[listBoxTemplateCharts.SelectedItem.ToString()] = (double)numericTemplateNormalization.Value;
+            charts_.normalization[listBoxTemplateCharts.SelectedItem.ToString()] = (double)numericTemplateNormalization.Value;
         }
 
         // Deciding along which axis take coordinates
@@ -58,7 +58,7 @@ namespace ResponseAnalyzer
             if (listBoxTemplateCharts.Items.Count == 0)
                 return;
             ChartDirection iSelected = (ChartDirection)comboBoxTemplateAxis.SelectedIndex;
-            chartAxis_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+            charts_.axis[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
         }
 
         // Check if it is needed to swap axes
@@ -67,7 +67,7 @@ namespace ResponseAnalyzer
             if (listBoxTemplateCharts.Items.Count == 0)
                 return;
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            chartSwapAxes_[chart] = checkBoxSwapAxes.Checked;
+            charts_.swapAxes[chart] = checkBoxSwapAxes.Checked;
         }
 
         // Fill out normalization value automatically
@@ -76,10 +76,10 @@ namespace ResponseAnalyzer
             if (e.KeyData != Keys.F1)
                 return;
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            List<ISelection> selection = chartSelection_[chart];
-            if (selection.Count == 0 || chartTypes_[chart] != ChartTypes.MODESET || chartAxis_[chart] == ChartDirection.UNKNOWN)
+            List<ISelection> selection = charts_.selection[chart];
+            if (selection.Count == 0 || charts_.type[chart] != ChartTypes.MODESET || charts_.axis[chart] == ChartDirection.UNKNOWN)
                 return;
-            int direction = (int)chartAxis_[chart] - 1;
+            int direction = (int)charts_.axis[chart] - 1;
             string[] selectionInfo;
             Vector3d tCoordinates;
             double tempValue;
