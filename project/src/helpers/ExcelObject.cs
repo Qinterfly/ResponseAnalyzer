@@ -98,6 +98,8 @@ namespace ResponseAnalyzer
             for (int iColumn = 1; iColumn <= nColumns; ++iColumn)
             {
                 string chart = markersSheet.Cells[1, iColumn].Text;
+                if (String.IsNullOrEmpty(chart))
+                    break;
                 if (!customMarkers_.ContainsKey(chart))
                     continue;
                 List<MarkerProperty> properties = new List<MarkerProperty>();
@@ -107,24 +109,46 @@ namespace ResponseAnalyzer
                     MarkerProperty marker = new MarkerProperty();
                     marker.style = eMarkerStyle.None;
                     marker.fillColor = Color.White;
-                    if (description.Contains("square"))
-                        marker.style = eMarkerStyle.Square;
-                    else if (description.Contains("circle"))
-                        marker.style = eMarkerStyle.Circle;
-                    else if (description.Contains("triangle"))
-                        marker.style = eMarkerStyle.Triangle;
-                    else if (description.Contains("diamond"))
-                        marker.style = eMarkerStyle.Diamond;
-                    else if (description.Contains("x"))
+                    switch (description)
                     {
-                        marker.style = eMarkerStyle.X;
-                        marker.fillColor = Color.Black;
+                        case "□":
+                            marker.style = eMarkerStyle.Square;
+                            break;
+                        case "■":
+                            marker.style = eMarkerStyle.Square;
+                            marker.fillColor = Color.Black;
+                            break;
+                        case "○":
+                            marker.style = eMarkerStyle.Circle;
+                            break;
+                        case "●":
+                            marker.style = eMarkerStyle.Circle;
+                            marker.fillColor = Color.Black;
+                            break;
+                        case "△":
+                            marker.style = eMarkerStyle.Triangle;
+                            break;
+                        case "▲":
+                            marker.style = eMarkerStyle.Triangle;
+                            marker.fillColor = Color.Black;
+                            break;
+                        case "◇":
+                            marker.style = eMarkerStyle.Diamond;
+                            break;
+                        case "◆":
+                            marker.style = eMarkerStyle.Diamond;
+                            marker.fillColor = Color.Black;
+                            break;
+                        case "x":
+                            marker.style = eMarkerStyle.X;
+                            marker.fillColor = Color.Black;
+                            break;
                     }
-                    if (description.Contains("fill"))
-                        marker.fillColor = Color.Black;
                     // If a marker fits the set of the predefined words
                     if (marker.style != eMarkerStyle.None)
                         properties.Add(marker);
+                    else
+                        break;
                 }
                 customMarkers_[chart] = properties;
             }
@@ -188,10 +212,8 @@ namespace ResponseAnalyzer
             // Creating the serie
             ExcelScatterChartSerie serie = scatterChart.Series.Add(yVals, xVals);
             // Using the standard markers when custom ones are not available
-            List<MarkerProperty> markers; 
-            if (customMarkers_[chartName] != null)
-                markers = customMarkers_[chartName];
-            else
+            List<MarkerProperty> markers = customMarkers_[chartName]; 
+            if (markers == null || markers.Count == 0)
                 markers = standardMarkers_;
             MarkerProperty properties = markers[indMarkers_[chartName]];
             serie.Border.Fill.Color = Color.Black;          // Line color
