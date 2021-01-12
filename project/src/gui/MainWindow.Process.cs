@@ -72,6 +72,8 @@ namespace ResponseAnalyzer
             // Checking the project, template and selected signals
             if (!project.isProjectOpened() || !excelTemplate_.isOpened() || listBoxFoundSignals.Items.Count == 0)
                 return;
+            // Resolving dependencies
+            resolveDependencies();
             // Retrieve selected frequencies
             List<int> selectedFreqIndicies = new List<int>();
             foreach (int index in listBoxFrequencies.SelectedIndices)

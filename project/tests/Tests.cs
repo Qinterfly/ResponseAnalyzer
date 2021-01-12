@@ -15,7 +15,7 @@ namespace ResponseAnalyzer
             modelRenderer_.setGeometry(project.geometry_);
             modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
             createComponentStrips();
-            setEnabled();
+            setProjectEnabled();
         }
 
         private void testExcel()
@@ -26,7 +26,7 @@ namespace ResponseAnalyzer
             textBoxDirectoryExcel.Text = "C:\\Users\\qinterfly\\Desktop";
             textBoxNameExcel.Text = "TestMe";
             updateExcelTemplateList();
-            setEnabled();
+            setProjectEnabled();
         }
     }
 }

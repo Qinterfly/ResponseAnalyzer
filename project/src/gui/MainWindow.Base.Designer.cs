@@ -34,6 +34,7 @@ namespace ResponseAnalyzer
         private Dictionary<string, double> chartNormalization_;
         private Dictionary<string, ChartDirection> chartAxis_;
         private Dictionary<string, bool> chartSwapAxes_;
+        private Dictionary<string, string> chartDependency_;
         // Opengl
         private int[] lastMousePosition_;
         private bool isTranslation_ = false;

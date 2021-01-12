@@ -45,7 +45,7 @@ namespace ResponseAnalyzer
                 modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
                 modelRenderer_.draw();
                 createComponentStrips();
-                setEnabled();
+                setProjectEnabled();
             }
             else if (dialogResult != DialogResult.Cancel)
             {
@@ -58,96 +58,7 @@ namespace ResponseAnalyzer
             }
         }
 
-        // Set the status label
-        private void setStatus(string status)
-        {
-            statusStripLabel.Text = status;
-        }
-
-        // Clear the status label
-        private void clearStatus()
-        {
-            statusStripLabel.Text = null;
-        }
-
-        // Clear project controls
-        private void clearProjectControls()
-        {
-            textBoxProjectPath.Clear();
-        }
-
-        // Add/remove template objects to/from the selected line
-        private void buttonEditTemplateSelection_Click(object sender = null, EventArgs e = null)
-        {
-            // If not a line was selected
-            if (!isEditSelection_ && (treeTemplateObjects.SelectedNode == null || treeTemplateObjects.SelectedNode.Nodes.Count == 0))
-                return;
-            if (isEditSelection_)
-            {
-                TreeNode line = treeTemplateObjects.Nodes[iSelectedSet_];
-                line.Nodes.Clear();
-                var selection = modelRenderer_.getSelection();
-                string chart = listBoxTemplateCharts.SelectedItem.ToString();
-                List<ISelection> objects = chartSelection_[chart];
-                Lines selLine = null;
-                int iSelectedLine = 0;
-                bool isFound = false;
-                foreach (ISelection item in objects)
-                {
-                    selLine = (Lines)item;
-                    if (selLine.lineName_ == line.Text) {
-                        isFound = true;
-                        break;
-                    }
-                    ++iSelectedLine;
-                }
-                if (isFound == false)
-                    return;
-                if (selection.Count < 2)
-                {
-                    chartSelection_[chart].RemoveAt(iSelectedLine);
-                    line.Remove();
-                }
-                else
-                {
-                    selLine.nodeNames_.Clear();
-                    foreach (string item in selection)
-                    {
-                        line.Nodes.Add(item);
-                        selLine.nodeNames_.Add(item);
-                    }
-                }
-                iSelectedSet_ = -1;
-            }
-            else
-            {
-                iSelectedSet_ = treeTemplateObjects.SelectedNode.Index;
-                modelRenderer_.clearSelection();
-                // Select all the nodes in the set
-                foreach (TreeNode item in treeTemplateObjects.SelectedNode.Nodes)
-                {
-                    string[] selectionInfo = item.Text.Split(selectionDelimiter_);
-                    modelRenderer_.select(selectionInfo[0], selectionInfo[1], false);
-                }
-                modelRenderer_.draw();
-            }
-            // Invert the states of the controls
-            buttonAddTemplateObject.Enabled = isEditSelection_;
-            buttonRemoveTemplateObject.Enabled = isEditSelection_;
-            listBoxTemplateCharts.Enabled = isEditSelection_;
-            isEditSelection_ = !isEditSelection_;
-        }
-
-        private void setEnabled()
-        {
-            // Excel template
-            bool flag = excelTemplate_ != null;
-            buttonAddTemplateObject.Enabled = flag;
-            buttonEditTemplateSelection.Enabled = flag;
-            buttonRemoveTemplateObject.Enabled = flag;
-            comboBoxTemplateType.Enabled = flag;
-        }
-
+        // Opening an Excel template
         private void buttonOpenExcelTemplate_Click(object sender, EventArgs e)
         {
             clearStatus();
@@ -164,7 +75,7 @@ namespace ResponseAnalyzer
                 {
                     textBoxExcelTemplatePath.Text = filePath;
                     updateExcelTemplateList();
-                    setEnabled();
+                    setProjectEnabled();
                     setStatus("The Excel template file was successfully opened");
                 }
             }
@@ -178,12 +89,14 @@ namespace ResponseAnalyzer
                 return;
             }
         }
-        
+
+        // Updating all template properties
         private void updateExcelTemplateList()
         {
             listBoxTemplateCharts.Items.Clear();
             treeTemplateObjects.Nodes.Clear();
             List<string> charts = excelTemplate_.getChartNames();
+            // Preparing containers to hold the properties of charts
             chartTypes_ = new Dictionary<string, ChartTypes>();
             chartUnits_ = new Dictionary<string, SignalUnits>();
             chartSelection_ = new Dictionary<string, List<ISelection>>();
@@ -191,6 +104,7 @@ namespace ResponseAnalyzer
             chartNormalization_ = new Dictionary<string, double>();
             chartAxis_ = new Dictionary<string, ChartDirection>();
             chartSwapAxes_ = new Dictionary<string, bool>();
+            chartDependency_ = new Dictionary<string, string>();
             foreach (string chart in charts) { 
                 listBoxTemplateCharts.Items.Add(chart);
                 ChartTypes defaultType = ChartTypes.UNKNOWN;
@@ -220,19 +134,50 @@ namespace ResponseAnalyzer
                 chartNormalization_.Add(chart, 1.0);
                 chartAxis_.Add(chart, ChartDirection.UNKNOWN);
                 chartSwapAxes_.Add(chart, false);
+                chartDependency_.Add(chart, null);
             }
             listBoxTemplateCharts.SelectedIndex = 0;
             string selectedChart = listBoxTemplateCharts.SelectedItem.ToString();
             comboBoxTemplateType.SelectedIndex = (int)chartTypes_[selectedChart];
             comboBoxTemplateUnits.SelectedIndex = (int)chartUnits_[selectedChart];
+            // Constructing dependencies
+            createDependency(ChartTypes.IMAGFRF, ChartTypes.REALFRF);
+            setDependencyEnabled();
         }
 
+        private void ResponseAnalyzer_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.KeyData)
+            {
+                // Add a template object
+                case Keys.A:
+                    buttonAddTemplateObject_Click();
+                    break;
+                // Copy template objects from a selected chart
+                case Keys.C:
+                    buttonCopyTemplateObjects_Click();
+                    break;
+                // Edit a selected line
+                case Keys.E:
+                    buttonEditTemplateSelection_Click();
+                    break;
+                // Clear the selection
+                case Keys.Escape:
+                    modelRenderer_.clearSelection();
+                    modelRenderer_.draw();
+                    clearStatus();
+                    break;
+            }
+        }
+
+        // -- Template  ---------------------------------------------------------------------------------------------------------------------------
+
         private void listBoxTemplateCharts_SelectedIndexChanged(object sender = null, EventArgs e = null)
-        {          
+        {
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
             ChartTypes type = chartTypes_[chart];
             // Copy template objects
-            if (!buttonCopyTemplateObjects.Enabled)
+            if (!buttonCopyTemplateObjects.Enabled && buttonCopyTemplateObjects.Tag != null)
             {
                 buttonCopyTemplateObjects.Enabled = true;
                 string baseChart = buttonCopyTemplateObjects.Tag.ToString();
@@ -256,6 +201,10 @@ namespace ResponseAnalyzer
             // Check if the type is defined
             if (type == ChartTypes.UNKNOWN)
                 return;
+            // Check if the selected signal is dependent
+            setDependencyEnabled();
+            if (chartDependency_[chart] != null)
+                return;
             // Nodes
             if (isNodeType(type))
             {
@@ -277,249 +226,56 @@ namespace ResponseAnalyzer
             }
         }
 
-        private void convertSelection(string baseChart, string refChart, ChartTypes baseType, ChartTypes refType)
-        {
-            List<ISelection> refObjects = chartSelection_[refChart];
-            List<ISelection> tempObjects = refObjects.GetRange(0, refObjects.Count);
-            // Convert to nodes
-            if (isNodeType(baseType))
-            {
-                // Nodes -> Nodes
-                if (isNodeType(refType))
-                    chartSelection_[baseChart] = tempObjects;
-                // Lines -> Nodes
-                if (isLineType(refType)) { 
-                    foreach (ISelection item in tempObjects)
-                    {
-                        List<string> nodeNames = (List<string>)item.retrieveSelection();
-                        foreach (string name in nodeNames)
-                            chartSelection_[baseChart].Add(new Nodes { nodeName_ = name });
-                    }
-                }
-            }
-            // Convert to lines
-            if (isLineType(baseType))
-            {
-                // Lines -> Lines
-                if (isLineType(refType))
-                    chartSelection_[baseChart] = tempObjects;
-                // Nodes -> Line
-                if (isNodeType(refType))
-                {
-                    Lines line = new Lines();
-                    line.nodeNames_ = new List<string>();
-                    line.lineName_ = "Line" + indLine_.ToString();
-                    foreach (ISelection item in tempObjects)
-                        line.nodeNames_.Add((string)item.retrieveSelection());
-                    List<ISelection> res = new List<ISelection>();
-                    res.Add((ISelection)line);
-                    chartSelection_[baseChart] = res;
-                }
+        // -- Setters ---------------------------------------------------------------------------------------------------------------------
 
-            }
-        }
-
-        private bool isNodeType(ChartTypes type)
+        private void setDependencyEnabled()
         {
-            return type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF || type == ChartTypes.FORCE;
-        }
-
-        private bool isLineType(ChartTypes type)
-        {
-            return type == ChartTypes.MODESET;
-        }
-
-        private void comboBoxTemplateType_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (listBoxTemplateCharts.Items.Count == 0)
-                return;
             string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            ChartTypes iSelected = (ChartTypes)comboBoxTemplateType.SelectedIndex;
-            chartTypes_[chart] = iSelected;
+            bool isDependent = chartDependency_[chart] == null;
+            treeTemplateObjects.Enabled = isDependent;
+            // Properties
+            comboBoxTemplateUnits.Enabled = isDependent;
+            comboBoxTemplateDirection.Enabled = isDependent;
+            numericTemplateNormalization.Enabled = isDependent;
+            comboBoxTemplateAxis.Enabled = isDependent;
+            checkBoxSwapAxes.Enabled = isDependent;
+            // Manage
+            buttonAddTemplateObject.Enabled = isDependent;
+            buttonRemoveTemplateObject.Enabled = isDependent;
+            buttonCopyTemplateObjects.Enabled = isDependent;
+            buttonCopyTemplateObjects.Tag = null;
+            buttonEditTemplateSelection.Enabled = isDependent;
         }
 
-        private void comboBoxTemplateUnits_SelectedIndexChanged(object sender, EventArgs e)
+        // Set a state of the project controls
+        private void setProjectEnabled()
         {
-            if (listBoxTemplateCharts.Items.Count == 0)
-                return;
-            SignalUnits iSelected = (SignalUnits)comboBoxTemplateUnits.SelectedIndex;
-            chartUnits_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+            // Excel template
+            bool flag = excelTemplate_ != null;
+            buttonAddTemplateObject.Enabled = flag;
+            buttonEditTemplateSelection.Enabled = flag;
+            buttonRemoveTemplateObject.Enabled = flag;
+            comboBoxTemplateType.Enabled = flag;
         }
 
-        private void comboBoxTemplateDirection_SelectedIndexChanged(object sender, EventArgs e)
+        // Set the status label
+        private void setStatus(string status)
         {
-            if (listBoxTemplateCharts.Items.Count == 0)
-                return;
-            ChartDirection iSelected = (ChartDirection)comboBoxTemplateDirection.SelectedIndex;
-            chartDirection_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
+            statusStripLabel.Text = status;
         }
 
-        private void numericNormalization_ValueChanged(object sender, EventArgs e)
+        // -- Clearing -----------------------------------------------------------------------------------------------------------------------
+
+        // Clear the status label
+        private void clearStatus()
         {
-            if (listBoxTemplateCharts.Items.Count == 0)
-                return;
-            chartNormalization_[listBoxTemplateCharts.SelectedItem.ToString()] = (double)numericTemplateNormalization.Value;
+            statusStripLabel.Text = null;
         }
 
-        private void comboBoxTemplateAxis_SelectedIndexChanged(object sender, EventArgs e)
+        // Clear project controls
+        private void clearProjectControls()
         {
-            if (listBoxTemplateCharts.Items.Count == 0)
-                return;
-            ChartDirection iSelected = (ChartDirection)comboBoxTemplateAxis.SelectedIndex;
-            chartAxis_[listBoxTemplateCharts.SelectedItem.ToString()] = iSelected;
-        }
-
-        private void checkBoxSwapAxes_CheckedChanged(object sender, EventArgs e)
-        {
-            if (listBoxTemplateCharts.Items.Count == 0)
-                return;
-            string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            chartSwapAxes_[chart] = checkBoxSwapAxes.Checked;
-        }
-
-        private void buttonAddTemplateObject_Click(object sender = null, EventArgs e = null)
-        {
-            // Check the type of the current chart
-            ChartTypes type = (ChartTypes)comboBoxTemplateType.SelectedIndex;
-            if (type == ChartTypes.UNKNOWN)
-                return;
-            var selection = modelRenderer_.getSelection();
-            int nSelection = selection.Count;
-            if (nSelection == 0)
-                return;
-            // Adding the object to the tree
-            string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            if (nSelection > 1 && isLineType(type))
-            {
-                TreeNode line = treeTemplateObjects.Nodes.Add("Line" + indLine_.ToString());
-                foreach (string item in selection)
-                    line.Nodes.Add(item);
-                ++indLine_;
-                Lines selLines = new Lines();
-                selLines.lineName_ = line.Text;
-                selLines.nodeNames_ = selection;
-                chartSelection_[chart].Add(selLines);
-            }
-            if (isNodeType(type))
-            {
-                foreach (string node in selection)
-                { 
-                    treeTemplateObjects.Nodes.Add(node);
-                    Nodes selNode = new Nodes();
-                    selNode.nodeName_ = node;
-                    chartSelection_[chart].Add(selNode);
-                }
-            }
-        }
-
-        private void buttonRemoveTemplateObject_Click(object sender = null, EventArgs e = null)
-        {
-            if (treeTemplateObjects.SelectedNode == null || treeTemplateObjects.SelectedNode.Parent != null)
-                return;
-            int iSelected = treeTemplateObjects.SelectedNode.Index;
-            string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            chartSelection_[chart].RemoveAt(iSelected);
-            treeTemplateObjects.Nodes.RemoveAt(iSelected);
-        }
-
-        private void treeTemplateObjects_KeyDown(object sender, KeyEventArgs e)
-        {
-            switch (e.KeyData) {
-                // Delete a selected template object
-                case Keys.D:
-                    buttonRemoveTemplateObject_Click();
-                    break;
-            }
-        }
-
-        private void ResponseAnalyzer_KeyDown(object sender, KeyEventArgs e)
-        {
-            switch (e.KeyData) { 
-                // Add a template object
-                case Keys.A:
-                    buttonAddTemplateObject_Click();
-                    break;
-                // Copy template objects from a selected chart
-                case Keys.C:
-                    buttonCopyTemplateObjects_Click();
-                    break;
-                // Edit a selected line
-                case Keys.E:
-                    buttonEditTemplateSelection_Click();
-                    break;
-                // Clear the selection
-                case Keys.Escape:
-                    modelRenderer_.clearSelection();
-                    modelRenderer_.draw();
-                    clearStatus();
-                    break;
-            }
-        }
-
-        private void buttonCopyTemplateObjects_Click(object sender = null, EventArgs e = null)
-        {
-            if (listBoxTemplateCharts.SelectedIndex >= 0)
-            {
-                buttonCopyTemplateObjects.Enabled = false;
-                buttonCopyTemplateObjects.Tag = listBoxTemplateCharts.SelectedItem.ToString();
-            }
-        }
-
-        private void createComponentStrips()
-        {
-            List<string> componentNames = modelRenderer_.getComponentNames();
-            ToolStripItemCollection items = stripComponentVisualisation.DropDownItems;
-            items.Clear();
-            // Show all the components
-            ToolStripMenuItem item = (ToolStripMenuItem)items.Add("Show all");
-            item.Name = "All";
-            item.Click += new EventHandler(showComponents);
-            // Show nothing
-            item = (ToolStripMenuItem)items.Add("Show none");
-            item.Name = "Nothing";
-            item.Click += new EventHandler(showComponents);
-            items.Add(new ToolStripSeparator());
-            // Component names
-            foreach (string component in componentNames) {
-                item = (ToolStripMenuItem)items.Add(component);
-                item.Checked = true;
-                item.CheckOnClick = true;
-                item.CheckedChanged += showComponents;
-            }
-        }
-
-        private void numericTemplateNormalization_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyData != Keys.F1)
-                return;
-            string chart = listBoxTemplateCharts.SelectedItem.ToString();
-            List<ISelection> selection = chartSelection_[chart];
-            if (selection.Count == 0 || chartTypes_[chart] != ChartTypes.MODESET || chartAxis_[chart] == ChartDirection.UNKNOWN)
-                return;
-            int direction = (int)chartAxis_[chart] - 1;
-            string[] selectionInfo;
-            Vector3d tCoordinates;
-            double tempValue;
-            double minValue = double.MaxValue;
-            double maxValue = double.MinValue;
-            foreach (ISelection line in selection)
-            {
-                List<string> nodes = (List<string>)line.retrieveSelection();
-                foreach(string node in nodes)
-                {
-                    selectionInfo = node.Split(selectionDelimiter_);
-                    tCoordinates = modelRenderer_.getNodeCoordinates(selectionInfo[0], selectionInfo[1]);
-                    tempValue = tCoordinates[direction];
-                    if (tempValue > maxValue)
-                        maxValue = tempValue;
-                    if (tempValue < minValue)
-                        minValue = tempValue;
-                }
-        
-            }
-            tempValue = maxValue - minValue;
-            if (tempValue >= (double)numericTemplateNormalization.Minimum && tempValue <= (double)numericTemplateNormalization.Maximum)
-                numericTemplateNormalization.Value = (decimal)tempValue;
+            textBoxProjectPath.Clear();
         }
     }
 }
