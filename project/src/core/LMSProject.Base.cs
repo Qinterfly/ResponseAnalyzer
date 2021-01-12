@@ -4,6 +4,7 @@ using LMSTestLabAutomation;
 
 namespace ResponseAnalyzer
 {
+    using ResponseArray = Dictionary<string, Dictionary<ChartDirection, List<ResponseHolder>>>;
     public partial class LMSProject
     {
 
@@ -12,7 +13,7 @@ namespace ResponseAnalyzer
         {
             try
             {
-                app_ = new LMSTestLabAutomation.Application();
+                app_ = new Application();
                 if (app_.Name == "")
                     app_.Init("-w DesktopStandard ");
                 app_.OpenProject(filePath);
@@ -26,6 +27,7 @@ namespace ResponseAnalyzer
             path_ = filePath;
             database_ = app_.ActiveBook.Database();
             geometry_ = (IGeometry)database_.GetItem("Geometry");
+            multiSignals_ = new ResponseArray();
         }
 
         // User's methods
@@ -34,8 +36,13 @@ namespace ResponseAnalyzer
             return app_ != null; 
         }
 
+        public void clearAccumulatedSignals()
+        {
+            multiSignals_ = new ResponseArray();
+        }
+
         // Select a folder through the navigator
-        public int selectSignals(in ComponentGeometry componentSet) 
+        public int selectSignals(in ComponentGeometry componentSet, bool isAccumulate) 
         {
             DataWatch dataWatch = app_.ActiveBook.FindDataWatch("Navigator_SelectedOIDs");
             IData dataSelected = dataWatch.Data;
@@ -44,13 +51,22 @@ namespace ResponseAnalyzer
             {
                 AttributeMap attributeMap = dataSelected.AttributeMap;
                 int nSelected = attributeMap.Count;
-                signals_ = new Dictionary<string, Dictionary<ChartDirection, ResponseHolder>>();
+                ResponseArray resultSignals;
+                if (isAccumulate)
+                    resultSignals = multiSignals_;
+                else
+                {
+                    signals_ = new ResponseArray();
+                    resultSignals = signals_;
+                }             
                 for (int iSignal = 0; iSignal != nSelected; ++iSignal)
                 {
                     DataWatch blockWatch = app_.FindDataWatch(attributeMap[iSignal]);
-                    string t = blockWatch.Data.Type;
                     if (blockWatch.Data.Type != "LmsHq::DataModelI::Expression::CBufferIBlock")
                         continue;
+                    // Retrieving path
+                    IData dataOID = attributeMap[iSignal].AttributeMap["OID"];
+                    string path = dataOID.AttributeMap["Path"].AttributeMap["PathString"];
                     // Retreiving signals
                     IBlock2 signal = blockWatch.Data;
                     Array frequency = signal.XValues;
@@ -88,6 +104,7 @@ namespace ResponseAnalyzer
                     // Creating the holder for the response
                     ResponseHolder responseHolder = new ResponseHolder();
                     responseHolder.signalName = signalName;
+                    responseHolder.path = path;
                     responseHolder.frequency = (double[]) frequency;
                     responseHolder.data[SignalUnits.MILLIMETERS] = (double[,])responseMM;
                     responseHolder.data[SignalUnits.METERS_PER_SECOND2] = (double[,]) responseMS2;
@@ -106,12 +123,15 @@ namespace ResponseAnalyzer
                             break;
                     }
                     // Adding the results
-                    Dictionary<ChartDirection, ResponseHolder> ptrResponse = null;
                     string nodeFullName = properties["Point id"];
-                    if (!signals_.ContainsKey(nodeFullName))
-                        signals_.Add(nodeFullName, new Dictionary<ChartDirection, ResponseHolder>());
-                    ptrResponse = signals_[nodeFullName];
-                    ptrResponse.Add(chartDir, responseHolder);
+                    if (!resultSignals.ContainsKey(nodeFullName)) {
+                        resultSignals.Add(nodeFullName, new Dictionary<ChartDirection, List<ResponseHolder>>());
+                    }
+                    Dictionary<ChartDirection, List<ResponseHolder>> dictDirections = null;
+                    dictDirections = resultSignals[nodeFullName];
+                    if (!dictDirections.ContainsKey(chartDir))
+                        dictDirections.Add(chartDir, new List<ResponseHolder>());
+                    dictDirections[chartDir].Add(responseHolder); // Each node may have several responses along one direction (selection from several folders)
                     ++iSelected;
                 }
                 return iSelected;
@@ -128,10 +148,11 @@ namespace ResponseAnalyzer
         private const char PATH_DELIMITER = '/';
         private const double METERS_TO_MILLIMETERS = 1000.0;
         // Project info
-        private readonly LMSTestLabAutomation.Application app_ = null;
+        private readonly Application app_ = null;
         private readonly IDatabase database_;
-        public LMSTestLabAutomation.IGeometry geometry_ { get; }
-        public Dictionary<string, Dictionary<ChartDirection, ResponseHolder>> signals_ { get; set; }
+        public IGeometry geometry_ { get; }
+        public ResponseArray signals_ { get; set; }
+        public ResponseArray multiSignals_ { get; set; } // Signals from several folders
         private string path_;
     }
 
@@ -146,6 +167,7 @@ namespace ResponseAnalyzer
         public Dictionary<SignalUnits, double[,]> data { get; set; }
         public double[] frequency { get; set; }
         public string signalName { get; set; }
+        public string path { get; set; }
     }
 
 }

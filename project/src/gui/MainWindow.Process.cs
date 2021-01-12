@@ -12,7 +12,7 @@ namespace ResponseAnalyzer
             // Check if all the fields are correct
             if (!project.isProjectOpened() || !excelTemplate_.isOpened())
                 return;
-            int nSelected = project.selectSignals(modelRenderer_.componentSet_);
+            int nSelected = project.selectSignals(modelRenderer_.componentSet_, false);
             labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
             listBoxFoundSignals.Items.Clear();
             listBoxFrequencies.Items.Clear();
@@ -27,7 +27,7 @@ namespace ResponseAnalyzer
             {
                 foreach (ChartDirection dir in project.signals_[nodeName].Keys)
                 {
-                    response = project.signals_[nodeName][dir];
+                    response = project.signals_[nodeName][dir][0];
                     listBoxFoundSignals.Items.Add(response.signalName);
                 }
             }
@@ -118,7 +118,7 @@ namespace ResponseAnalyzer
                             setStatus("The chosen signals do not contain the node" + node);
                             continue;
                         }
-                        ResponseHolder response = project.signals_[node][direction];
+                        ResponseHolder response = project.signals_[node][direction][0];
                         // Slice data by the selected index
                         double[,] refFullData = response.data[units];
                         double[,] data = new double[nSelectedFrequency, 2];
@@ -164,7 +164,7 @@ namespace ResponseAnalyzer
                             int tInd = (int)axis - 1;
                             coordinates.Add(componentCoordinates[indNode, tInd]);
                             // Retreiving the function value
-                            ResponseHolder response = project.signals_[node][direction];
+                            ResponseHolder response = project.signals_[node][direction][0];
                             double[,] refFullData = response.data[units];
                             values.Add(refFullData[indResonance, 1]); // Imaginary part of the signal
                         }
