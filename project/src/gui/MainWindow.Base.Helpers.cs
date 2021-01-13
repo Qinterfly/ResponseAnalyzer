@@ -1,4 +1,8 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Windows.Forms;
 using System.Collections.Generic;
 
 namespace ResponseAnalyzer
@@ -117,6 +121,7 @@ namespace ResponseAnalyzer
         }
     }
 
+    [Serializable]
     public class ChartsData
     {
         public ChartsData()
@@ -131,13 +136,80 @@ namespace ResponseAnalyzer
             dependency = new Dictionary<string, string>();
         }
 
+        public void write(string fileName)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            using (Stream stream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                formatter.Serialize(stream, this);
+        }
+
+        public void read(string fileName, Func<string, string, bool> checkNode, char nodeNameDelimiter)
+        {
+            // Reading another instance
+            IFormatter formatter = new BinaryFormatter();
+            using (Stream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            {
+                ChartsData another = (ChartsData)formatter.Deserialize(stream);
+                List<string> anotherCharts = new List<string>(another.type.Keys);
+                // Copying fields
+                string[] selectionInfo;
+                bool isLineCorrect;
+                foreach (string chart in anotherCharts)
+                {
+                    if (!type.ContainsKey(chart))
+                        continue;
+                    // Properties
+                    type[chart] = another.type[chart];
+                    units[chart] = another.units[chart];
+                    direction[chart] = another.direction[chart];
+                    normalization[chart] = another.normalization[chart];
+                    axis[chart] = another.axis[chart];
+                    swapAxes[chart] = another.swapAxes[chart];
+                    dependency[chart] = another.dependency[chart];
+                    // Selection
+                    List<ISelection> checkedSelection = new List<ISelection>();
+                    foreach (ISelection item in another.selection[chart])
+                    {
+                        // Nodes
+                        if (item.GetType() == typeof(Nodes))
+                        {
+                            string fullName = (string)item.retrieveSelection();
+                            selectionInfo = fullName.Split(nodeNameDelimiter);
+                            if (checkNode(selectionInfo[0], selectionInfo[1]))
+                                checkedSelection.Add(item); 
+                        }
+                        // Lines
+                        if (item.GetType() == typeof(Lines))
+                        {
+                            List<string> nodes = (List<string>)item.retrieveSelection();
+                            isLineCorrect = true;
+                            foreach (string fullName in nodes)
+                            {
+                                selectionInfo = fullName.Split(nodeNameDelimiter);
+                                // If the current geometry contains all the specified nodes 
+                                if (!checkNode(selectionInfo[0], selectionInfo[1]))
+                                {
+                                    isLineCorrect = false;
+                                    break;
+                                }
+                            }
+                            if (isLineCorrect)
+                                checkedSelection.Add(item);
+                        }
+                    }
+                    selection[chart] = checkedSelection;
+                }
+            }
+        }
+
+        public Dictionary<string, List<ISelection>> selection;
         public Dictionary<string, ChartTypes> type;
         public Dictionary<string, SignalUnits> units;
-        public Dictionary<string, List<ISelection>> selection;
         public Dictionary<string, ChartDirection> direction;
         public Dictionary<string, double> normalization;
         public Dictionary<string, ChartDirection> axis;
         public Dictionary<string, bool> swapAxes;
         public Dictionary<string, string> dependency;
+        public const string binaryExtension = ".rep";
     }
 }

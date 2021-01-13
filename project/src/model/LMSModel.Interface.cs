@@ -149,8 +149,7 @@ namespace ResponseAnalyzer
 
         public void select(string component, string nodeName, bool isNewSelection)
         {
-            if (!componentSet_.mapNodeNames.ContainsKey(component)
-                || !componentSet_.mapNodeNames[component].ContainsKey(nodeName))
+            if (!containesNode(component, nodeName))
                 return;
             uint iSelectedNode = componentSet_.mapNodeNames[component][nodeName];
             addToSelection(component, iSelectedNode, isNewSelection);
@@ -194,6 +193,12 @@ namespace ResponseAnalyzer
 
             uint iNode = componentSet_.mapNodeNames[component][nodeName];
             return getNodeCoordinates(component, iNode);
+        }
+
+        public bool containesNode(string component, string nodeName)
+        {
+            return componentSet_.mapNodeNames.ContainsKey(component) 
+                && componentSet_.mapNodeNames[component].ContainsKey(nodeName);
         }
 
         // Control

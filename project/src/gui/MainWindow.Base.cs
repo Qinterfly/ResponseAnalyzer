@@ -217,6 +217,29 @@ namespace ResponseAnalyzer
                 }
             }
         }
+        
+        // Save template settings
+        private void buttonSaveTemplateSettings_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.Filter = "ResponseAnalyzer settings files (*" + ChartsData.binaryExtension + ")|*" + ChartsData.binaryExtension;
+            dialog.FilterIndex = 1;
+            dialog.RestoreDirectory = true;
+            if (dialog.ShowDialog() == DialogResult.OK) 
+                charts_.write(dialog.FileName);
+        }
+
+        // Read template settings from a file
+        private void buttonOpenTemplateSettings_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "ResponseAnalyzer settings files (*" + ChartsData.binaryExtension + ")|*" + ChartsData.binaryExtension;
+            dialog.FilterIndex = 1;
+            dialog.RestoreDirectory = true;
+            if (dialog.ShowDialog() == DialogResult.OK)
+                charts_.read(dialog.FileName, modelRenderer_.containesNode, selectionDelimiter_);
+            listBoxTemplateCharts_SelectedIndexChanged();
+        }
 
         // -- Setters ---------------------------------------------------------------------------------------------------------------------
 
@@ -248,6 +271,8 @@ namespace ResponseAnalyzer
             buttonEditTemplateSelection.Enabled = flag;
             buttonRemoveTemplateObject.Enabled = flag;
             comboBoxTemplateType.Enabled = flag;
+            buttonSaveTemplateSettings.Enabled = flag;
+            buttonOpenTemplateSettings.Enabled = flag;
         }
 
         // Set the status label

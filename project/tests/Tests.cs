@@ -17,16 +17,18 @@ namespace ResponseAnalyzer
             createComponentStrips();
             setProjectEnabled();
         }
-
         private void testExcel()
         {
-            string path = Path.GetFullPath(@"..\..\..\templates\Base.xlsx");
+            string templateDir = @"..\..\..\templates\";
+            string path = Path.GetFullPath(templateDir + "Base.xlsx");
             excelTemplate_ = new ExcelObject(path);
             textBoxExcelTemplatePath.Text = path;
-            textBoxDirectoryExcel.Text = "C:\\Users\\qinterfly\\Desktop";
+            textBoxDirectoryExcel.Text = @"C:\Users\qinterfly\Desktop";
             textBoxNameExcel.Text = "TestMe";
             updateExcelTemplateList();
             setProjectEnabled();
+            //charts_.read(templateDir + "Base.rep", modelRenderer_.containesNode, selectionDelimiter_);
+            //listBoxTemplateCharts_SelectedIndexChanged();
         }
     }
 }

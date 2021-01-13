@@ -9,8 +9,10 @@ namespace ResponseAnalyzer
     public interface ISelection
     {
         object retrieveSelection();
+
     }
 
+    [Serializable]
     class Lines : ISelection
     {
         // Get all the nodes binded to the line
@@ -23,6 +25,7 @@ namespace ResponseAnalyzer
         public List<string> nodeNames_ { get; set; }
     }
 
+    [Serializable]
     class Nodes : ISelection
     {
         // Get the selected node
