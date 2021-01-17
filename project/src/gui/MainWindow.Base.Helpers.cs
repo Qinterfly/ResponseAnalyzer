@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Globalization;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
@@ -56,7 +57,9 @@ namespace ResponseAnalyzer
 		// Check if a value type of a graph is nodal
         private bool isNodeType(ChartTypes type)
         {
-            return type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF || type == ChartTypes.FORCE;
+            return type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF 
+                   || type == ChartTypes.MULTIREALFRF || type == ChartTypes.MULTIIMAGFRF
+                   || type == ChartTypes.PHASE_FREQUENCY || type == ChartTypes.AMP_FREQUENCY;
         }
 
 		// Check if a value type of a graph is linear
@@ -65,12 +68,22 @@ namespace ResponseAnalyzer
             return type == ChartTypes.MODESET;
         }
 
-        // Select all items in a listbox
-        private void selectAllItems(ListBox listBox)
+        // Select items in a listbox
+        private void selectItems(ListBox listBox, EventHandler method, List<int> indices = null)
         {
             int nItems = listBox.Items.Count;
-            for (int i = 0; i != nItems; ++i)
-                listBox.SetSelected(i, true);
+            listBox.SelectedIndexChanged -= method;
+            if (indices == null)
+            {
+                for (int i = 0; i != nItems; ++i)
+                    listBox.SetSelected(i, true);
+            }
+            else
+            {
+                foreach (int index in indices)
+                    listBox.SetSelected(index, true);
+            }
+            listBox.SelectedIndexChanged += method;
             listBox.TopIndex = 0;
         }
 
@@ -118,6 +131,35 @@ namespace ResponseAnalyzer
                 // Data
                 charts_.selection[chart] = charts_.selection[masterChart];
             }
+        }
+
+        // Retrieve force value from a signal path
+        private string getForceValue(string path)
+        {
+            int lenPath = path.Length;
+            bool isFound = false;
+            bool isValueStarted = false;
+            string force = null;
+            for (int k = lenPath - 1; k >= 0; --k)
+            {
+                if (isFound)
+                {
+                    // Copying value
+                    if (double.TryParse(path[k].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out double tempVal))
+                    {
+                        force = path[k] + force;
+                        isValueStarted = true;
+                    }
+                    else if (isValueStarted)
+                    {
+                        break;
+                    }
+                }
+                // Looking for force units (En / Ru)
+                if (path[k] == 'Н' || path[k] == 'Н')
+                    isFound = true;
+            }
+            return force;
         }
     }
 

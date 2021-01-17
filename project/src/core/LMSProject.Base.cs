@@ -5,6 +5,7 @@ using LMSTestLabAutomation;
 namespace ResponseAnalyzer
 {
     using ResponseArray = Dictionary<string, Dictionary<ChartDirection, List<ResponseHolder>>>;
+
     public partial class LMSProject
     {
 
@@ -27,6 +28,8 @@ namespace ResponseAnalyzer
             path_ = filePath;
             database_ = app_.ActiveBook.Database();
             geometry_ = (IGeometry)database_.GetItem("Geometry");
+            // Allocating memory for further responses
+            signals_ = new ResponseArray();
             multiSignals_ = new ResponseArray();
         }
 
@@ -36,6 +39,13 @@ namespace ResponseAnalyzer
             return app_ != null; 
         }
 
+        // Clear signals selected at once
+        public void clearSignals()
+        {
+            signals_ = new ResponseArray();
+        }
+
+        // Clear accumulated signals
         public void clearAccumulatedSignals()
         {
             multiSignals_ = new ResponseArray();

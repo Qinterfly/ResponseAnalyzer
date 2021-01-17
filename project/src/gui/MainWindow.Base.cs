@@ -10,6 +10,7 @@ namespace ResponseAnalyzer
         {
             InitializeComponent();
             comboBoxTemplateType.SelectedIndex = 0;
+            comboBoxTestlabSelectionMode.SelectedIndex = 0;
             modelRenderer_ = new LMSModel();
             lastMousePosition_ = new int[2] { 0, 0 };
             ToolTip toolTip = new ToolTip();
@@ -97,25 +98,39 @@ namespace ResponseAnalyzer
             List<string> chartNames = excelTemplate_.getChartNames();
             // Preparing containers to hold the properties of charts
             charts_ = new ChartsData();
+            singleFrequencyIndices_ = new List<int>();
+            //multiFrequencyIndices_ = new List<List<int>>(); // TODO
             foreach (string chart in chartNames) { 
                 listBoxTemplateCharts.Items.Add(chart);
                 ChartTypes defaultType = ChartTypes.UNKNOWN;
                 SignalUnits defaultUnits = SignalUnits.UNKNOWN;
                 // Presetting based on a chart name
                 string lowerChart = chart.ToLower();
-                if (lowerChart.Contains("мним") || lowerChart.Contains("imag"))
+                // FRF
+                if (lowerChart.Contains("мним"))
                 {
                     defaultType = ChartTypes.IMAGFRF;
+                    if (lowerChart.Contains("-вр"))
+                        defaultType = ChartTypes.MULTIIMAGFRF;
                     defaultUnits = SignalUnits.METERS_PER_SECOND2;
                 }
-                if (lowerChart.Contains("реал") || lowerChart.Contains("действ") || lowerChart.Contains("real"))
+                else if (lowerChart.Contains("реал") || lowerChart.Contains("действ"))
                 {
                     defaultType = ChartTypes.REALFRF;
+                    if (lowerChart.Contains("-вр"))
+                        defaultType = ChartTypes.MULTIREALFRF;
                     defaultUnits = SignalUnits.METERS_PER_SECOND2;
                 }
-                if (lowerChart.Contains("-ф") )
+                // Modeset
+                else if (lowerChart.Contains("-ф") )
                 {
                     defaultType = ChartTypes.MODESET;
+                    defaultUnits = SignalUnits.METERS_PER_SECOND2;
+                }
+                // Frequency function
+                else if (lowerChart.Contains("f(a)"))
+                {
+                    defaultType = ChartTypes.PHASE_FREQUENCY;
                     defaultUnits = SignalUnits.METERS_PER_SECOND2;
                 }
                 // Specifying the data
@@ -134,6 +149,7 @@ namespace ResponseAnalyzer
             comboBoxTemplateUnits.SelectedIndex = (int)charts_.units[selectedChart];
             // Constructing dependencies
             createDependency(ChartTypes.IMAGFRF, ChartTypes.REALFRF);
+            createDependency(ChartTypes.MULTIIMAGFRF, ChartTypes.MULTIREALFRF);
             setDependencyEnabled();
         }
 

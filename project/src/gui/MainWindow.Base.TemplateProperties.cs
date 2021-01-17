@@ -23,6 +23,7 @@ namespace ResponseAnalyzer
             // Constructing dependencies
             resetDependencies();
             createDependency(ChartTypes.IMAGFRF, ChartTypes.REALFRF);
+            createDependency(ChartTypes.MULTIIMAGFRF, ChartTypes.MULTIREALFRF);
             setDependencyEnabled();
         }
 

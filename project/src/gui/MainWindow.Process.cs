@@ -5,49 +5,77 @@ using System.Collections.Generic;
 
 namespace ResponseAnalyzer
 {
+    public enum SelectionMode { SINGLE, MULTI }
+
     public partial class ResponseAnalyzer
     {
+        // Select new set of signals
         private void buttonSelectTestLab_Click(object sender, EventArgs e)
         {
             // Check if all the fields are correct
             if (!project.isProjectOpened() || !excelTemplate_.isOpened())
                 return;
-            int nSelected = project.selectSignals(modelRenderer_.componentSet_, false);
-            labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
-            listBoxFoundSignals.Items.Clear();
-            listBoxFrequencies.Items.Clear();
+            SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            int nSelected = project.selectSignals(modelRenderer_.componentSet_, mode == SelectionMode.MULTI);
             if (nSelected < 1)
             {
                 if (nSelected == -1)
                     setStatus("Wrong TestLab selection");
                 return;
             }
-            ResponseHolder response = null;
-            foreach (string nodeName in project.signals_.Keys)
+            retrieveTestLabSelection();
+            if (mode == SelectionMode.SINGLE)
             {
-                foreach (ChartDirection dir in project.signals_[nodeName].Keys)
-                {
-                    response = project.signals_[nodeName][dir][0];
-                    listBoxFoundSignals.Items.Add(response.signalName);
-                }
+                selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged);
+                // Resonance frequency
+                textBoxResonanceFrequency.Clear();
+                textBoxResonanceFrequency.Tag = -1;
             }
-            int k = 0;
-            foreach (double freq in response.frequency)
+            nSelected = listBoxFoundSignals.Items.Count;
+            labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
+            // Update the list of the selected frequencies
+            if (mode == SelectionMode.SINGLE)
+                listBoxFrequencies_SelectedIndexChanged(); 
+        }
+
+        // Selecting frequencies
+        private void listBoxFrequencies_SelectedIndexChanged(object sender = null, EventArgs e = null)
+        {
+            singleFrequencyIndices_.Clear();
+            foreach (int index in listBoxFrequencies.SelectedIndices)
+                singleFrequencyIndices_.Add(index);
+        }
+
+        // Changing selection mode
+        private void comboBoxTestlabSelectionMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (project == null)
+                return;
+            retrieveTestLabSelection();
+            SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            if (mode == SelectionMode.SINGLE && project.signals_.Count != 0)
             {
-                listBoxFrequencies.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
-                listBoxFrequencies.SetSelected(k++, true);
+                selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged, singleFrequencyIndices_);
+                int indResonanceFrequency = (int)textBoxResonanceFrequency.Tag;
+                if (indResonanceFrequency > 0)
+                    textBoxResonanceFrequency.Text = listBoxFrequencies.Items[indResonanceFrequency].ToString();
             }
-            listBoxFrequencies.TopIndex = 0;
-            // Resonance frequency
-            textBoxResonanceFrequency.Clear();
-            textBoxResonanceFrequency.Tag = -1;
+            else if (mode == SelectionMode.MULTI)
+            {
+                textBoxResonanceFrequency.Text = "";
+            }
+            int nSelected = listBoxFoundSignals.Items.Count;
+            labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
         }
 
         // Select all the frequencies via ctrl+A
         private void listBoxFrequencies_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.A)
-                selectAllItems(listBoxFrequencies);
+            {
+                selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged);
+                listBoxFrequencies_SelectedIndexChanged();
+            }
         }
 
         // Select the resulting directory
@@ -59,14 +87,36 @@ namespace ResponseAnalyzer
                 textBoxDirectoryExcel.Text = openFolderDialog.SelectedPath;
         }
 
+        // Clear Testlab selection
+        private void buttonClearTestlabSelection_Click(object sender, EventArgs e)
+        {
+            SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            switch (mode)
+            {
+                case SelectionMode.SINGLE:
+                    project.clearSignals();
+                    break;
+                case SelectionMode.MULTI:
+                    project.clearAccumulatedSignals();
+                    break;
+            }
+            listBoxFoundSignals.Items.Clear();
+            listBoxFrequencies.Items.Clear();
+            labelSelectionInfo.Text = "Selected signals: ";
+        }
+
         // Select the resonance frequency
         private void buttonSelectResonanceFrequency_Click(object sender, EventArgs e)
         {
             if (listBoxFrequencies.SelectedIndices.Count == 0)
                 return;
+            SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            if (mode != SelectionMode.SINGLE)
+                return;
             textBoxResonanceFrequency.Tag = listBoxFrequencies.SelectedIndices[0];
             textBoxResonanceFrequency.Text = listBoxFrequencies.Items[(int)textBoxResonanceFrequency.Tag].ToString();
-            selectAllItems(listBoxFrequencies);
+            selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged);
+            listBoxFrequencies_SelectedIndexChanged();
         }
 
         // Processing all the data
@@ -74,15 +124,12 @@ namespace ResponseAnalyzer
         {
             ExcelObject excelResult = new ExcelObject(excelTemplate_, textBoxDirectoryExcel.Text, textBoxNameExcel.Text);
             // Checking the project, template and selected signals
-            if (!project.isProjectOpened() || !excelTemplate_.isOpened() || listBoxFoundSignals.Items.Count == 0)
+            if (!project.isProjectOpened() || !excelTemplate_.isOpened())
                 return;
             // Resolving dependencies
             resolveDependencies();
             // Retrieve selected frequencies
-            List<int> selectedFreqIndicies = new List<int>();
-            foreach (int index in listBoxFrequencies.SelectedIndices)
-                selectedFreqIndicies.Add(index);
-            int nSelectedFrequency = selectedFreqIndicies.Count;
+            int nSingleFrequencies = singleFrequencyIndices_.Count;
             ChartPosition.lastRow = 0;
             // Error handling
             errorMessage_ = null;
@@ -118,11 +165,12 @@ namespace ResponseAnalyzer
                     indY = 0;
                 }
                 // Frequency response function: real and imaginary parts
-                if (type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF)
+                if ((type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF) && project.signals_.Count != 0)
                 {
                     List<string> chartNodes = new List<string>();
                     foreach (ISelection item in selectedObjects)
                         chartNodes.Add((string)item.retrieveSelection());
+                    int iType = (int)type - 1;
                     foreach (string node in chartNodes) // Node
                     {
                         // Check if there is an appropriate signal
@@ -134,12 +182,11 @@ namespace ResponseAnalyzer
                         ResponseHolder response = project.signals_[node][direction][0];
                         // Slice data by the selected index
                         double[,] refFullData = response.data[units];
-                        double[,] data = new double[nSelectedFrequency, 2];
+                        double[,] data = new double[nSingleFrequencies, 2];
                         int iSelected;
-                        int iType = (int)type - 1;
-                        for (int i = 0; i != nSelectedFrequency; ++i)
+                        for (int i = 0; i != nSingleFrequencies; ++i)
                         {
-                            iSelected = selectedFreqIndicies[i];
+                            iSelected = singleFrequencyIndices_[i];
                             data[i, indX] = response.frequency[iSelected];
                             data[i, indY] = refFullData[iSelected, iType];
                         }
@@ -148,9 +195,9 @@ namespace ResponseAnalyzer
                     }
                 }
                 // Modeset
-                if (type == ChartTypes.MODESET)
+                else if (type == ChartTypes.MODESET && project.signals_.Count != 0)
                 {
-                    int indResonance = (int) textBoxResonanceFrequency.Tag;
+                    int indResonance = (int)textBoxResonanceFrequency.Tag;
                     if (axis == ChartDirection.UNKNOWN)
                     {
                         throwError(ref iError, "The coordinate axis for '" + chart + "' is not specified");
@@ -198,6 +245,41 @@ namespace ResponseAnalyzer
                         excelResult.addSeries(chart, data, nameLine);
                     }
                 }
+                // Multi-FRF
+                else if ((type == ChartTypes.MULTIREALFRF || type == ChartTypes.MULTIIMAGFRF) && project.multiSignals_.Count != 0)
+                {
+                    List<string> chartNodes = new List<string>();
+                    int iType = 0;
+                    if (type == ChartTypes.MULTIIMAGFRF)
+                        iType = 1;
+                    foreach (ISelection item in selectedObjects)
+                        chartNodes.Add((string)item.retrieveSelection());
+                    foreach (string node in chartNodes) // Node
+                    {
+                        // Check if there is an appropriate signal
+                        if (!project.multiSignals_.ContainsKey(node) || !project.multiSignals_[node].ContainsKey(direction))
+                        {
+                            throwError(ref iError, "The chosen signals do not contain the node '" + node + "'");
+                            continue;
+                        }
+                        var dirNodeSignals = project.multiSignals_[node][direction];
+                        foreach (ResponseHolder response in dirNodeSignals)
+                        {
+                            // Slice data by the selected index
+                            double[,] refFullData = response.data[units];
+                            int nFrequencies = refFullData.GetLength(0);
+                            double[,] data = new double[nFrequencies, 2];
+                            for (int i = 0; i != nFrequencies; ++i)
+                            {
+                                data[i, indX] = response.frequency[i];
+                                data[i, indY] = refFullData[i, iType];
+                            }
+                            // Retrieving force value
+                            string force = "F = " + getForceValue(response.path) + " Н";
+                            excelResult.addSeries(chart, data, force);
+                        }
+                    }
+                }
             }
             ChartPosition.lastRow = 0;
             excelResult.open();
@@ -205,6 +287,54 @@ namespace ResponseAnalyzer
                 setStatus("The results were successfully processed");
             else
                 showErrors(iError);
+        }
+
+        // Retrieve all the selected sets
+        public void retrieveTestLabSelection()
+        {
+            listBoxFoundSignals.Items.Clear();
+            listBoxFrequencies.Items.Clear();
+            SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            switch (mode)
+            {
+                case SelectionMode.SINGLE:
+                    ResponseHolder response = null;
+                    var signals = project.signals_;
+                    foreach (string nodeName in signals.Keys)
+                    {
+                        var nodeSignal = signals[nodeName];
+                        foreach (ChartDirection dir in nodeSignal.Keys)
+                        {
+                            response = nodeSignal[dir][0];
+                            listBoxFoundSignals.Items.Add(response.signalName);
+                        }
+                    }
+                    // If signals have been selected
+                    if (response != null) 
+                    {
+                        foreach (double freq in response.frequency)
+                            listBoxFrequencies.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
+                    }
+                    break;
+                case SelectionMode.MULTI:
+                    var multiSignals = project.multiSignals_;
+                    string label;
+                    foreach (string nodeName in multiSignals.Keys)
+                    {
+                        var nodeSignal = multiSignals[nodeName];
+                        foreach (ChartDirection dir in nodeSignal.Keys)
+                        {
+                            var dirNodeSignal = multiSignals[nodeName][dir];
+                            foreach (ResponseHolder multiResponse in dirNodeSignal)
+                            {
+                                label = multiResponse.signalName + " (" + getForceValue(multiResponse.path) + "H)";
+                                listBoxFoundSignals.Items.Add(label);
+                            }
+                                
+                        }
+                    }
+                    break;
+            }
         }
 
         // Accumulate errors

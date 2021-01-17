@@ -27,8 +27,8 @@ namespace ResponseAnalyzer
             textBoxNameExcel.Text = "TestMe";
             updateExcelTemplateList();
             setProjectEnabled();
-            //charts_.read(templateDir + "Base.rep", modelRenderer_.containesNode, selectionDelimiter_);
-            //listBoxTemplateCharts_SelectedIndexChanged();
+            charts_.read(templateDir + "Base.rep", modelRenderer_.containesNode, selectionDelimiter_);
+            listBoxTemplateCharts_SelectedIndexChanged();
         }
     }
 }
