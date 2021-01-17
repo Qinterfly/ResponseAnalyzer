@@ -99,6 +99,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\core\LMSProject.Base.cs" />
+    <Compile Include="src\core\Response.cs" />
     <Compile Include="src\gui\MainWindow.Base.Helpers.cs">
       <SubType>Form</SubType>
     </Compile>

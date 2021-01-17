@@ -5,7 +5,6 @@ using LMSTestLabAutomation;
 namespace ResponseAnalyzer
 {
     using ResponseArray = Dictionary<string, Dictionary<ChartDirection, List<Response>>>;
-    using PairDouble = Tuple<double, double>;
 
     public partial class LMSProject
     {
@@ -80,7 +79,7 @@ namespace ResponseAnalyzer
                     string path = dataOID.AttributeMap["Path"].AttributeMap["PathString"];
                     // Retreiving signals
                     IBlock2 signal = blockWatch.Data;
-                    Array frequency = signal.XValues;
+                    double[] frequencies = (double[])signal.XValues;
                     double[,] responseMS2  = (double[,])signal.YValues; // Units: m / s ^ 2
                     // Retrieving additional info
                     AttributeMap properties = signal.Properties;
@@ -97,28 +96,27 @@ namespace ResponseAnalyzer
                         multAngles *= Math.Cos(refAngles[indNode, k]);
                     // Integrating the acceleration twice
                     IBlock2 signalIntergral2 = app_.cmd.BLOCK_INTEGRATE(signal, 2, CONST_EnumIntegrationMethod.IntegrationMethodBode);
-                    Array responseM = signalIntergral2.YValues; // Units: m (!)
-                    double[,] responseMM = (double[,])responseM.Clone();
-                    int nResponse = responseMM.GetLength(0);
+                    double[,] responseMM = (double[,])signalIntergral2.YValues; // Units: m (!)
                     // Normalizing signals
                     double resMultMS2 = sign * multAngles;
                     double resMultMM = resMultMS2 * METERS_TO_MILLIMETERS;
+                    int nResponse = responseMM.GetLength(0);
                     for (int k = 0; k != nResponse; ++k)
                     {
                         // Meters per seconds2
                         responseMS2[k, 0] *= resMultMS2;
                         responseMS2[k, 1] *= resMultMS2 * (-1.0);
-                        // Millimeters
+                        // Meters -> Millimeters
                         responseMM[k, 0] *= resMultMM;
                         responseMM[k, 1] *= resMultMM * (-1.0);
                     }
                     // Creating the holder for the response
-                    Response response = new Response();
-                    response.signalName = signalName;
-                    response.path = path;
-                    response.frequencies = (double[]) frequency;
-                    response.data[SignalUnits.MILLIMETERS] = responseMM;
-                    response.data[SignalUnits.METERS_PER_SECOND2] = responseMS2;
+                    Response currentResponse = new Response();
+                    currentResponse.signalName = signalName;
+                    currentResponse.path = path;
+                    currentResponse.frequencies = frequencies;
+                    currentResponse.data[SignalUnits.MILLIMETERS] = responseMM;
+                    currentResponse.data[SignalUnits.METERS_PER_SECOND2] = responseMS2;
                     string direction = properties["Point direction absolute"];
                     ChartDirection chartDir = ChartDirection.UNKNOWN;
                     switch (direction)
@@ -142,7 +140,18 @@ namespace ResponseAnalyzer
                     dictDirections = resultSignals[nodeFullName];
                     if (!dictDirections.ContainsKey(chartDir))
                         dictDirections.Add(chartDir, new List<Response>());
-                    dictDirections[chartDir].Add(response); // Each node may have several responses along one direction (selection from several folders)
+                    // Check if the signal duplicates an already added one
+                    List<Response> existedResponses = dictDirections[chartDir];
+                    bool isDuplicate = false;
+                    foreach (Response tempResponse in existedResponses)
+                    {
+                        isDuplicate = tempResponse.equals(currentResponse);
+                        if (isDuplicate)
+                            break;
+                    }
+                    // Each node may have several responses along one direction (selection from several folders)
+                    if (!isDuplicate)
+                        existedResponses.Add(currentResponse); 
                     ++iSelected;
                 }
                 return iSelected;
@@ -165,84 +174,6 @@ namespace ResponseAnalyzer
         public ResponseArray signals_ { get; set; }
         public ResponseArray multiSignals_ { get; set; } // Signals from several folders
         private string path_;
-    }
-
-    public class Response 
-    {
-        public Response()
-        {
-            data = new Dictionary<SignalUnits, double[,]>();
-            data.Add(SignalUnits.MILLIMETERS, null);
-            data.Add(SignalUnits.METERS_PER_SECOND2, null);
-        }
-
-        public PairDouble evaluateResonanceFrequency(ChartTypes type, SignalUnits units)
-        {
-            switch (type)
-            {
-                case ChartTypes.REAL_FREQUENCY:
-                    return findRoot(frequencies, data[units], 0);
-                case ChartTypes.IMAG_FREQUENCY:
-                    return findPeak(frequencies, data[units], 1);
-            }
-            return null;
-        }
-
-        private PairDouble findPeak(double[] X, double[,] Y, int iColumn)
-        {
-            int nY = Y.Length;
-            double prevValue = Y[0, iColumn];
-            double sign = Y[1, iColumn] - prevValue;
-            double root = -1.0;
-            double amplitude = 0.0;
-            bool isFound = false;
-            for (int i = 1; i != nY; ++i)
-            {
-                isFound = sign * (Y[i, iColumn] - prevValue) < 0.0;
-                if (isFound)
-                {
-                    root = (X[i] + X[i - 1]) / 2.0;
-                    // Calculating amplitude
-                    amplitude = Math.Sqrt(Math.Pow(Y[i - 1, 0], 2.0) + Math.Pow(Y[i - 1, 1], 2.0)); // First
-                    amplitude += Math.Sqrt(Math.Pow(Y[i, 0], 2.0) + Math.Pow(Y[i, 1], 2.0));        // Second
-                    amplitude /= 2.0;                                                               // Mean
-                    break;
-                }
-                prevValue = Y[i, iColumn];
-            }
-            return isFound ? new PairDouble(root, amplitude) : null;
-        }
-
-        private PairDouble findRoot(double[] X, double[,] Y, int iColumn)
-        {
-            int nY = Y.Length;
-            double prevValue = Y[0, iColumn];
-            double root = -1.0;
-            double amplitude = 0.0;
-            bool isFound = false;
-            for (int i = 1; i != nY; ++i)
-            {
-                isFound = Y[i, iColumn] * prevValue < 0.0;
-                if (isFound)
-                {
-                    root = (X[i] + X[i - 1]) / 2.0;
-                    // Calculating amplitude
-                    amplitude = Math.Sqrt(Math.Pow(Y[i - 1, 0], 2.0) + Math.Pow(Y[i - 1, 1], 2.0)); // First
-                    amplitude += Math.Sqrt(Math.Pow(Y[i, 0], 2.0) + Math.Pow(Y[i, 1], 2.0));        // Second
-                    amplitude /= 2.0;                                                               // Mean
-                    break;
-                }
-                prevValue = Y[i, iColumn];
-            }
-            return isFound ? new PairDouble(root, amplitude) : null;
-        }
-
-        // Data
-        public Dictionary<SignalUnits, double[,]> data { get; set; }
-        public double[] frequencies { get; set; }
-        // Info
-        public string signalName { get; set; }
-        public string path { get; set; }
     }
 
 }

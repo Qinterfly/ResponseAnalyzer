@@ -96,6 +96,8 @@ namespace ResponseAnalyzer
             {
                 case SelectionMode.SINGLE:
                     project.clearSignals();
+                    textBoxResonanceFrequency.Text = "";
+                    textBoxResonanceFrequency.Tag = -1;
                     break;
                 case SelectionMode.MULTI:
                     project.clearAccumulatedSignals();
