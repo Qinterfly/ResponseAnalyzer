@@ -13,7 +13,9 @@ namespace ResponseAnalyzer
     using ElementDictionary = Dictionary<ElementType, Dictionary<string, Array>>;
     using ColorDictionary = Dictionary<string, Color4>;
     public enum ElementType { QUADS, TRIAS, LINES}
-    public enum ChartTypes { UNKNOWN, REALFRF, IMAGFRF, MODESET, MULTIREALFRF, MULTIIMAGFRF, PHASE_FREQUENCY, AMP_FREQUENCY }
+    public enum ChartTypes { UNKNOWN, REAL_FRF, IMAG_FRF, MODESET, 
+                             MULTI_REAL_FRF, MULTI_IMAG_FRF, 
+                             REAL_FREQUENCY, IMAG_FREQUENCY }
     public enum SignalUnits { UNKNOWN, MILLIMETERS, METERS_PER_SECOND2}
     public enum ChartDirection { UNKNOWN, X, Y, Z}
 

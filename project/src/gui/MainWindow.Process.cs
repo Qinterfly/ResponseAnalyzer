@@ -53,6 +53,7 @@ namespace ResponseAnalyzer
                 return;
             retrieveTestLabSelection();
             SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            buttonSelectResonanceFrequency.Enabled = mode != SelectionMode.MULTI;
             if (mode == SelectionMode.SINGLE && project.signals_.Count != 0)
             {
                 selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged, singleFrequencyIndices_);
@@ -165,7 +166,7 @@ namespace ResponseAnalyzer
                     indY = 0;
                 }
                 // Frequency response function: real and imaginary parts
-                if ((type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF) && project.signals_.Count != 0)
+                if ((type == ChartTypes.REAL_FRF || type == ChartTypes.IMAG_FRF) && project.signals_.Count != 0)
                 {
                     List<string> chartNodes = new List<string>();
                     foreach (ISelection item in selectedObjects)
@@ -179,7 +180,7 @@ namespace ResponseAnalyzer
                             throwError(ref iError, "The chosen signals do not contain the node '" + node + "'");
                             continue;
                         }
-                        ResponseHolder response = project.signals_[node][direction][0];
+                        Response response = project.signals_[node][direction][0];
                         // Slice data by the selected index
                         double[,] refFullData = response.data[units];
                         double[,] data = new double[nSingleFrequencies, 2];
@@ -187,7 +188,7 @@ namespace ResponseAnalyzer
                         for (int i = 0; i != nSingleFrequencies; ++i)
                         {
                             iSelected = singleFrequencyIndices_[i];
-                            data[i, indX] = response.frequency[iSelected];
+                            data[i, indX] = response.frequencies[iSelected];
                             data[i, indY] = refFullData[iSelected, iType];
                         }
                         string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
@@ -211,7 +212,7 @@ namespace ResponseAnalyzer
                     // For each line
                     foreach (ISelection item in selectedObjects)
                     {
-                        Lines currentLine = (Lines) item;
+                        Lines currentLine = (Lines)item;
                         string nameLine = currentLine.lineName_;
                         List<string> lineNodes = (List<string>)currentLine.retrieveSelection();
                         List<double> coordinates = new List<double>();
@@ -231,7 +232,7 @@ namespace ResponseAnalyzer
                             int tInd = (int)axis - 1;
                             coordinates.Add(componentCoordinates[indNode, tInd]);
                             // Retreiving the function value
-                            ResponseHolder response = project.signals_[node][direction][0];
+                            Response response = project.signals_[node][direction][0];
                             double[,] refFullData = response.data[units];
                             values.Add(refFullData[indResonance, 1]); // Imaginary part of the signal
                         }
@@ -246,11 +247,11 @@ namespace ResponseAnalyzer
                     }
                 }
                 // Multi-FRF
-                else if ((type == ChartTypes.MULTIREALFRF || type == ChartTypes.MULTIIMAGFRF) && project.multiSignals_.Count != 0)
+                else if ((type == ChartTypes.MULTI_REAL_FRF || type == ChartTypes.MULTI_IMAG_FRF) && project.multiSignals_.Count != 0)
                 {
                     List<string> chartNodes = new List<string>();
                     int iType = 0;
-                    if (type == ChartTypes.MULTIIMAGFRF)
+                    if (type == ChartTypes.MULTI_IMAG_FRF)
                         iType = 1;
                     foreach (ISelection item in selectedObjects)
                         chartNodes.Add((string)item.retrieveSelection());
@@ -263,7 +264,7 @@ namespace ResponseAnalyzer
                             continue;
                         }
                         var dirNodeSignals = project.multiSignals_[node][direction];
-                        foreach (ResponseHolder response in dirNodeSignals)
+                        foreach (Response response in dirNodeSignals)
                         {
                             // Slice data by the selected index
                             double[,] refFullData = response.data[units];
@@ -271,13 +272,43 @@ namespace ResponseAnalyzer
                             double[,] data = new double[nFrequencies, 2];
                             for (int i = 0; i != nFrequencies; ++i)
                             {
-                                data[i, indX] = response.frequency[i];
+                                data[i, indX] = response.frequencies[i];
                                 data[i, indY] = refFullData[i, iType];
                             }
                             // Retrieving force value
                             string force = "F = " + getForceValue(response.path) + " Н";
                             excelResult.addSeries(chart, data, force);
                         }
+                    }
+                }
+                // Frequency function
+                else if ((type == ChartTypes.REAL_FREQUENCY || type == ChartTypes.IMAG_FREQUENCY) && project.multiSignals_.Count != 0)
+                {
+                    List<string> chartNodes = new List<string>();
+                    foreach (ISelection item in selectedObjects)
+                        chartNodes.Add((string)item.retrieveSelection());
+                    foreach (string node in chartNodes) // Node
+                    {
+                        // Check if there is an appropriate signal
+                        if (!project.multiSignals_.ContainsKey(node) || !project.multiSignals_[node].ContainsKey(direction))
+                        {
+                            throwError(ref iError, "The chosen signals do not contain the node '" + node + "'");
+                            continue;
+                        }
+                        var dirNodeSignals = project.multiSignals_[node][direction];
+                        double[,] data = new double[dirNodeSignals.Count, 2];
+                        int k = 0;
+                        foreach (Response response in dirNodeSignals)
+                        {
+                            Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units);
+                            if (pair != null) { 
+                                data[k, indX] = pair.Item1; // Frequency
+                                data[k, indY] = pair.Item2; // Amplitude
+                                ++k;
+                            }
+                        }
+                        string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
+                        excelResult.addSeries(chart, data, ptrNode);
                     }
                 }
             }
@@ -298,7 +329,7 @@ namespace ResponseAnalyzer
             switch (mode)
             {
                 case SelectionMode.SINGLE:
-                    ResponseHolder response = null;
+                    Response response = null;
                     var signals = project.signals_;
                     foreach (string nodeName in signals.Keys)
                     {
@@ -312,7 +343,7 @@ namespace ResponseAnalyzer
                     // If signals have been selected
                     if (response != null) 
                     {
-                        foreach (double freq in response.frequency)
+                        foreach (double freq in response.frequencies)
                             listBoxFrequencies.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
                     }
                     break;
@@ -325,7 +356,7 @@ namespace ResponseAnalyzer
                         foreach (ChartDirection dir in nodeSignal.Keys)
                         {
                             var dirNodeSignal = multiSignals[nodeName][dir];
-                            foreach (ResponseHolder multiResponse in dirNodeSignal)
+                            foreach (Response multiResponse in dirNodeSignal)
                             {
                                 label = multiResponse.signalName + " (" + getForceValue(multiResponse.path) + "H)";
                                 listBoxFoundSignals.Items.Add(label);

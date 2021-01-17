@@ -22,8 +22,8 @@ namespace ResponseAnalyzer
             treeTemplateObjects.Nodes.Clear();
             // Constructing dependencies
             resetDependencies();
-            createDependency(ChartTypes.IMAGFRF, ChartTypes.REALFRF);
-            createDependency(ChartTypes.MULTIIMAGFRF, ChartTypes.MULTIREALFRF);
+            createDependency(ChartTypes.IMAG_FRF, ChartTypes.REAL_FRF);
+            createDependency(ChartTypes.MULTI_IMAG_FRF, ChartTypes.MULTI_REAL_FRF);
             setDependencyEnabled();
         }
 

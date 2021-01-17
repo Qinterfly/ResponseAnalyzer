@@ -109,16 +109,16 @@ namespace ResponseAnalyzer
                 // FRF
                 if (lowerChart.Contains("мним"))
                 {
-                    defaultType = ChartTypes.IMAGFRF;
+                    defaultType = ChartTypes.IMAG_FRF;
                     if (lowerChart.Contains("-вр"))
-                        defaultType = ChartTypes.MULTIIMAGFRF;
+                        defaultType = ChartTypes.MULTI_IMAG_FRF;
                     defaultUnits = SignalUnits.METERS_PER_SECOND2;
                 }
                 else if (lowerChart.Contains("реал") || lowerChart.Contains("действ"))
                 {
-                    defaultType = ChartTypes.REALFRF;
+                    defaultType = ChartTypes.REAL_FRF;
                     if (lowerChart.Contains("-вр"))
-                        defaultType = ChartTypes.MULTIREALFRF;
+                        defaultType = ChartTypes.MULTI_REAL_FRF;
                     defaultUnits = SignalUnits.METERS_PER_SECOND2;
                 }
                 // Modeset
@@ -130,7 +130,7 @@ namespace ResponseAnalyzer
                 // Frequency function
                 else if (lowerChart.Contains("f(a)"))
                 {
-                    defaultType = ChartTypes.PHASE_FREQUENCY;
+                    defaultType = ChartTypes.IMAG_FREQUENCY;
                     defaultUnits = SignalUnits.METERS_PER_SECOND2;
                 }
                 // Specifying the data
@@ -148,8 +148,8 @@ namespace ResponseAnalyzer
             comboBoxTemplateType.SelectedIndex = (int)charts_.type[selectedChart];
             comboBoxTemplateUnits.SelectedIndex = (int)charts_.units[selectedChart];
             // Constructing dependencies
-            createDependency(ChartTypes.IMAGFRF, ChartTypes.REALFRF);
-            createDependency(ChartTypes.MULTIIMAGFRF, ChartTypes.MULTIREALFRF);
+            createDependency(ChartTypes.IMAG_FRF, ChartTypes.REAL_FRF);
+            createDependency(ChartTypes.MULTI_IMAG_FRF, ChartTypes.MULTI_REAL_FRF);
             setDependencyEnabled();
         }
 

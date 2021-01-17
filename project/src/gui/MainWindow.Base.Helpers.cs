@@ -57,9 +57,9 @@ namespace ResponseAnalyzer
 		// Check if a value type of a graph is nodal
         private bool isNodeType(ChartTypes type)
         {
-            return type == ChartTypes.REALFRF || type == ChartTypes.IMAGFRF 
-                   || type == ChartTypes.MULTIREALFRF || type == ChartTypes.MULTIIMAGFRF
-                   || type == ChartTypes.PHASE_FREQUENCY || type == ChartTypes.AMP_FREQUENCY;
+            return type == ChartTypes.REAL_FRF || type == ChartTypes.IMAG_FRF 
+                   || type == ChartTypes.MULTI_REAL_FRF || type == ChartTypes.MULTI_IMAG_FRF
+                   || type == ChartTypes.REAL_FREQUENCY || type == ChartTypes.IMAG_FREQUENCY;
         }
 
 		// Check if a value type of a graph is linear
