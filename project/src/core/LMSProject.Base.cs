@@ -42,13 +42,13 @@ namespace ResponseAnalyzer
         // Clear signals selected at once
         public void clearSignals()
         {
-            signals_ = new ResponseArray();
+            signals_.Clear();
         }
 
         // Clear accumulated signals
         public void clearAccumulatedSignals()
         {
-            multiSignals_ = new ResponseArray();
+            multiSignals_.Clear();
         }
 
         // Select a folder through the navigator
@@ -66,7 +66,7 @@ namespace ResponseAnalyzer
                     resultSignals = multiSignals_;
                 else
                 {
-                    signals_ = new ResponseArray();
+                    signals_.Clear();
                     resultSignals = signals_;
                 }             
                 for (int iSignal = 0; iSignal != nSelected; ++iSignal)

@@ -33,36 +33,31 @@ namespace ResponseAnalyzer
 
         private PairDouble findPeak(double[] X, double[,] Y, int iColumn)
         {
-            int nY = Y.Length;
-            double prevValue = Y[0, iColumn];
-            double sign = Y[1, iColumn] - prevValue;
-            double root = -1.0;
+            double maxValue = 0.0;
+            double tempValue;
             double amplitude = 0.0;
-            bool isFound = false;
-            for (int i = 1; i != nY; ++i)
+            double root = -1.0;
+            int nY = Y.GetLength(0);
+            for (int i = 0; i != nY; ++i)
             {
-                isFound = sign * (Y[i, iColumn] - prevValue) < 0.0;
-                if (isFound)
+                tempValue = Math.Abs(Y[i, iColumn]);
+                if (tempValue > maxValue)
                 {
-                    root = (X[i] + X[i - 1]) / 2.0;
-                    // Calculating amplitude
-                    amplitude = Math.Sqrt(Math.Pow(Y[i - 1, 0], 2.0) + Math.Pow(Y[i - 1, 1], 2.0)); // First
-                    amplitude += Math.Sqrt(Math.Pow(Y[i, 0], 2.0) + Math.Pow(Y[i, 1], 2.0));        // Second
-                    amplitude /= 2.0;                                                               // Mean
-                    break;
+                    maxValue = tempValue; 
+                    amplitude = Math.Sqrt(Math.Pow(Y[i, 0], 2.0) + Math.Pow(Y[i, 1], 2.0));
+                    root = X[i];
                 }
-                prevValue = Y[i, iColumn];
             }
-            return isFound ? new PairDouble(root, amplitude) : null;
+            return new PairDouble(root, amplitude);
         }
 
         private PairDouble findRoot(double[] X, double[,] Y, int iColumn)
         {
-            int nY = Y.Length;
             double prevValue = Y[0, iColumn];
             double root = -1.0;
             double amplitude = 0.0;
             bool isFound = false;
+            int nY = Y.GetLength(0);
             for (int i = 1; i != nY; ++i)
             {
                 isFound = Y[i, iColumn] * prevValue < 0.0;

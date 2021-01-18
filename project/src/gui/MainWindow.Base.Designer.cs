@@ -282,7 +282,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel8.ColumnCount = 3;
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 18.47826F));
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 81.52174F));
-            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 41F));
+            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 43F));
             this.tableLayoutPanel8.Controls.Add(this.labelExcelPath, 0, 0);
             this.tableLayoutPanel8.Controls.Add(this.textBoxExcelTemplatePath, 1, 0);
             this.tableLayoutPanel8.Controls.Add(this.buttonOpenExcelTemplate, 2, 0);
@@ -309,10 +309,10 @@ namespace ResponseAnalyzer
             // 
             this.textBoxExcelTemplatePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxExcelTemplatePath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxExcelTemplatePath.Location = new System.Drawing.Point(57, 5);
+            this.textBoxExcelTemplatePath.Location = new System.Drawing.Point(56, 5);
             this.textBoxExcelTemplatePath.Name = "textBoxExcelTemplatePath";
             this.textBoxExcelTemplatePath.ReadOnly = true;
-            this.textBoxExcelTemplatePath.Size = new System.Drawing.Size(232, 21);
+            this.textBoxExcelTemplatePath.Size = new System.Drawing.Size(231, 21);
             this.textBoxExcelTemplatePath.TabIndex = 1;
             // 
             // buttonOpenExcelTemplate
@@ -320,7 +320,7 @@ namespace ResponseAnalyzer
             this.buttonOpenExcelTemplate.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenExcelTemplate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.buttonOpenExcelTemplate.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonOpenExcelTemplate.Location = new System.Drawing.Point(295, 4);
+            this.buttonOpenExcelTemplate.Location = new System.Drawing.Point(293, 4);
             this.buttonOpenExcelTemplate.Name = "buttonOpenExcelTemplate";
             this.buttonOpenExcelTemplate.Size = new System.Drawing.Size(34, 23);
             this.buttonOpenExcelTemplate.TabIndex = 2;
@@ -441,6 +441,7 @@ namespace ResponseAnalyzer
             // buttonCopyTemplateObjects
             // 
             this.buttonCopyTemplateObjects.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.buttonCopyTemplateObjects.Enabled = false;
             this.buttonCopyTemplateObjects.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.buttonCopyTemplateObjects.Image = global::ResponseAnalyzer.Properties.Resources.copy;
             this.buttonCopyTemplateObjects.Location = new System.Drawing.Point(121, 0);
@@ -899,8 +900,8 @@ namespace ResponseAnalyzer
             // 
             this.layoutSelectedSignals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)));
             this.layoutSelectedSignals.ColumnCount = 2;
-            this.layoutSelectedSignals.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 63.60544F));
-            this.layoutSelectedSignals.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 36.39456F));
+            this.layoutSelectedSignals.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 67.94118F));
+            this.layoutSelectedSignals.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 32.05882F));
             this.layoutSelectedSignals.Controls.Add(this.listBoxFoundSignals, 0, 0);
             this.layoutSelectedSignals.Controls.Add(this.listBoxFrequencies, 1, 0);
             this.layoutSelectedSignals.Location = new System.Drawing.Point(0, 59);
@@ -921,7 +922,7 @@ namespace ResponseAnalyzer
             this.listBoxFoundSignals.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
             this.listBoxFoundSignals.Name = "listBoxFoundSignals";
             this.listBoxFoundSignals.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.listBoxFoundSignals.Size = new System.Drawing.Size(213, 376);
+            this.listBoxFoundSignals.Size = new System.Drawing.Size(228, 376);
             this.listBoxFoundSignals.TabIndex = 0;
             // 
             // listBoxFrequencies
@@ -930,11 +931,11 @@ namespace ResponseAnalyzer
             this.listBoxFrequencies.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.listBoxFrequencies.FormattingEnabled = true;
             this.listBoxFrequencies.ItemHeight = 15;
-            this.listBoxFrequencies.Location = new System.Drawing.Point(219, 0);
+            this.listBoxFrequencies.Location = new System.Drawing.Point(234, 0);
             this.listBoxFrequencies.Margin = new System.Windows.Forms.Padding(3, 0, 0, 0);
             this.listBoxFrequencies.Name = "listBoxFrequencies";
             this.listBoxFrequencies.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.listBoxFrequencies.Size = new System.Drawing.Size(121, 376);
+            this.listBoxFrequencies.Size = new System.Drawing.Size(106, 376);
             this.listBoxFrequencies.TabIndex = 1;
             this.listBoxFrequencies.SelectedIndexChanged += new System.EventHandler(this.listBoxFrequencies_SelectedIndexChanged);
             this.listBoxFrequencies.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listBoxFrequencies_KeyDown);
@@ -1017,7 +1018,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel14.ColumnCount = 3;
             this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 23.80952F));
             this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 76.19048F));
-            this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 40F));
+            this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 42F));
             this.tableLayoutPanel14.Controls.Add(this.labelDirectoryExcel, 0, 0);
             this.tableLayoutPanel14.Controls.Add(this.buttonSelectDirectory, 2, 0);
             this.tableLayoutPanel14.Controls.Add(this.textBoxDirectoryExcel, 1, 0);
@@ -1046,7 +1047,7 @@ namespace ResponseAnalyzer
             this.buttonSelectDirectory.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonSelectDirectory.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.buttonSelectDirectory.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonSelectDirectory.Location = new System.Drawing.Point(296, 5);
+            this.buttonSelectDirectory.Location = new System.Drawing.Point(294, 5);
             this.buttonSelectDirectory.Name = "buttonSelectDirectory";
             this.buttonSelectDirectory.Size = new System.Drawing.Size(32, 22);
             this.buttonSelectDirectory.TabIndex = 1;
@@ -1060,7 +1061,7 @@ namespace ResponseAnalyzer
             this.textBoxDirectoryExcel.Location = new System.Drawing.Point(72, 6);
             this.textBoxDirectoryExcel.Name = "textBoxDirectoryExcel";
             this.textBoxDirectoryExcel.ReadOnly = true;
-            this.textBoxDirectoryExcel.Size = new System.Drawing.Size(218, 21);
+            this.textBoxDirectoryExcel.Size = new System.Drawing.Size(216, 21);
             this.textBoxDirectoryExcel.TabIndex = 2;
             // 
             // groupBoxProject
@@ -1086,7 +1087,7 @@ namespace ResponseAnalyzer
             this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15.95745F));
             this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 84.04256F));
             this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 34F));
-            this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 37F));
+            this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 39F));
             this.layoutProjectPath.Controls.Add(this.labelProjectPath, 0, 0);
             this.layoutProjectPath.Controls.Add(this.buttonOpenProject, 2, 0);
             this.layoutProjectPath.Controls.Add(this.buttonUpdateProject, 3, 0);
@@ -1115,7 +1116,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonOpenProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenProject.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonOpenProject.Location = new System.Drawing.Point(285, 4);
+            this.buttonOpenProject.Location = new System.Drawing.Point(283, 4);
             this.buttonOpenProject.Name = "buttonOpenProject";
             this.buttonOpenProject.Size = new System.Drawing.Size(28, 22);
             this.buttonOpenProject.TabIndex = 2;
@@ -1126,7 +1127,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonUpdateProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonUpdateProject.Image = global::ResponseAnalyzer.Properties.Resources.refresh;
-            this.buttonUpdateProject.Location = new System.Drawing.Point(319, 4);
+            this.buttonUpdateProject.Location = new System.Drawing.Point(317, 4);
             this.buttonUpdateProject.Name = "buttonUpdateProject";
             this.buttonUpdateProject.Size = new System.Drawing.Size(30, 22);
             this.buttonUpdateProject.TabIndex = 3;
@@ -1136,10 +1137,10 @@ namespace ResponseAnalyzer
             // 
             this.textBoxProjectPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxProjectPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxProjectPath.Location = new System.Drawing.Point(48, 4);
+            this.textBoxProjectPath.Location = new System.Drawing.Point(47, 4);
             this.textBoxProjectPath.Name = "textBoxProjectPath";
             this.textBoxProjectPath.ReadOnly = true;
-            this.textBoxProjectPath.Size = new System.Drawing.Size(231, 21);
+            this.textBoxProjectPath.Size = new System.Drawing.Size(230, 21);
             this.textBoxProjectPath.TabIndex = 1;
             // 
             // glWindow

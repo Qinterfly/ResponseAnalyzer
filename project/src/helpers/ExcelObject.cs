@@ -15,6 +15,17 @@ namespace ResponseAnalyzer
         {
             string originalPath = template.path_;
             string resPath = path + "\\" + name + ".xlsx";
+            // Looking for an available name if a template equals a resulting file
+            if (Path.GetFileNameWithoutExtension(originalPath).Equals(name))
+            {
+                bool isAvailable = false;
+                while (!isAvailable)
+                {
+                    name += "-copy";
+                    resPath = path + "\\" + name + ".xlsx";
+                    isAvailable = !(new FileInfo(name).Exists);
+                }
+            }
             // Retreiving a copy of an already running application
             try 
             { 
@@ -37,7 +48,18 @@ namespace ResponseAnalyzer
                 File.Copy(originalPath, resPath, true);
             }
             Copy(new ExcelObject(resPath));
-            workSheet_ = package_.Workbook.Worksheets.Add(workSheetName_);
+            // Delete the data worksheet if existed
+            ExcelWorkbook book = package_.Workbook;
+            foreach (ExcelWorksheet sheet in book.Worksheets)
+            {
+                if (sheet.Name.Equals(workSheetName_))
+                {
+                    book.Worksheets.Delete(workSheetName_);
+                    break;
+                }
+            }
+            // Add a new one
+            workSheet_ = book.Worksheets.Add(workSheetName_);
             posCharts_ = new Dictionary<ExcelDrawing, ChartPosition>();
             path_ = resPath;
             // Clear all the series
@@ -47,8 +69,6 @@ namespace ResponseAnalyzer
                 while (chart.Series.Count > 0)
                     chart.Series.Delete(0);
             }
-            // Save
-            package_.Save();
         }
 
         public ExcelObject(string path)
@@ -203,9 +223,9 @@ namespace ResponseAnalyzer
             workSheet_.Cells[pos.header.row + 1, jCol + 1].Value = dataName; // Set the name
             // Retrieving the data address
             ExcelScatterChart scatterChart = (ExcelScatterChart) objChart;
-            string xVals = ExcelRange.GetAddress(iRow, jCol,
+            string xVals = ExcelRange.GetAddress(iRow,             jCol,
                                                  iRow + nData - 1, jCol);
-            string yVals = ExcelRange.GetAddress(iRow, jCol + 1,
+            string yVals = ExcelRange.GetAddress(iRow,             jCol + 1,
                                                  iRow + nData - 1, jCol + 1);
             xVals = ExcelRange.GetFullAddress(workSheetName_, xVals);
             yVals = ExcelRange.GetFullAddress(workSheetName_, yVals);
@@ -231,6 +251,11 @@ namespace ResponseAnalyzer
             // Shifting data locations
             pos.availablePosition.col = pos.availablePosition.col + 2;
             pos.length = Math.Max(pos.length, nData);
+        }
+
+        // Save changes
+        public void save()
+        {
             package_.Save();
         }
 
@@ -240,13 +265,13 @@ namespace ResponseAnalyzer
                 return;
             Workbook book = excelApplication_.Workbooks.Open(path_);
             excelApplication_.Visible = true;
-            try 
-            { 
+            try
+            {
                 if (!string.IsNullOrEmpty(lastSheet_))
                     book.Worksheets[lastSheet_].Activate();
             }
-            catch 
-            { 
+            catch
+            {
 
             }
         }

@@ -286,6 +286,7 @@ namespace ResponseAnalyzer
             buttonAddTemplateObject.Enabled = flag;
             buttonEditTemplateSelection.Enabled = flag;
             buttonRemoveTemplateObject.Enabled = flag;
+            buttonCopyTemplateObjects.Enabled = flag;
             comboBoxTemplateType.Enabled = flag;
             buttonSaveTemplateSettings.Enabled = flag;
             buttonOpenTemplateSettings.Enabled = flag;

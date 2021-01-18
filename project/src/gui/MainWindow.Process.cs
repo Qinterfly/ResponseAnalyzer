@@ -315,6 +315,8 @@ namespace ResponseAnalyzer
                 }
             }
             ChartPosition.lastRow = 0;
+            // Saving and opening the results
+            excelResult.save();
             excelResult.open();
             if (iError == 0)
                 setStatus("The results were successfully processed");
