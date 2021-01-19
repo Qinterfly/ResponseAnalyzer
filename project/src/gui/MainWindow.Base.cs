@@ -99,7 +99,9 @@ namespace ResponseAnalyzer
             // Preparing containers to hold the properties of charts
             charts_ = new ChartsData();
             singleFrequencyIndices_ = new List<int>();
-            //multiFrequencyIndices_ = new List<List<int>>(); // TODO
+            multiFrequency_ = new Dictionary<string, double[]>();
+            multiFrequencyIndices_ = new Dictionary<string, List<int>>();
+            mapResponses_ = new Dictionary<string, string>();
             foreach (string chart in chartNames) { 
                 listBoxTemplateCharts.Items.Add(chart);
                 ChartTypes defaultType = ChartTypes.UNKNOWN;

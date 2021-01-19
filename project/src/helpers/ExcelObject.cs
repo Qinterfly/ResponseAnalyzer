@@ -251,6 +251,9 @@ namespace ResponseAnalyzer
             // Shifting data locations
             pos.availablePosition.col = pos.availablePosition.col + 2;
             pos.length = Math.Max(pos.length, nData);
+            int lastRowColumn = pos.availablePosition.row + pos.length;
+            if (lastRowColumn > ChartPosition.lastRow)
+                ChartPosition.lastRow = lastRowColumn;
         }
 
         // Save changes

@@ -32,8 +32,8 @@ namespace ResponseAnalyzer
         private static Vector3 UnProject(int[] viewport, Vector3 screen, Matrix4 modelView, Matrix4 projection)
         {
             Vector4 pos = new Vector4();
-            pos.X = (screen.X - (float)viewport[0]) / (float)viewport[2] * 2.0f - 1.0f;
-            pos.Y = 1.0f - (screen.Y - (float)viewport[1]) / (float)viewport[3] * 2.0f;
+            pos.X = (screen.X - viewport[0]) / viewport[2] * 2.0f - 1.0f;
+            pos.Y = 1.0f - (screen.Y - viewport[1]) / viewport[3] * 2.0f;
             pos.Z = screen.Z * 2.0f - 1.0f;
             pos.W = 1.0f;
             Vector4 pos2 = Vector4.Transform(pos, Matrix4.Invert(projection) * Matrix4.Invert(modelView));

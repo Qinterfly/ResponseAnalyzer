@@ -79,7 +79,7 @@ namespace ResponseAnalyzer
                     string path = dataOID.AttributeMap["Path"].AttributeMap["PathString"];
                     // Retreiving signals
                     IBlock2 signal = blockWatch.Data;
-                    double[] frequencies = (double[])signal.XValues;
+                    double[] frequency = (double[])signal.XValues;
                     double[,] responseMS2  = (double[,])signal.YValues; // Units: m / s ^ 2
                     // Retrieving additional info
                     AttributeMap properties = signal.Properties;
@@ -114,7 +114,7 @@ namespace ResponseAnalyzer
                     Response currentResponse = new Response();
                     currentResponse.signalName = signalName;
                     currentResponse.path = path;
-                    currentResponse.frequencies = frequencies;
+                    currentResponse.frequency = frequency;
                     currentResponse.data[SignalUnits.MILLIMETERS] = responseMM;
                     currentResponse.data[SignalUnits.METERS_PER_SECOND2] = responseMS2;
                     string direction = properties["Point direction absolute"];

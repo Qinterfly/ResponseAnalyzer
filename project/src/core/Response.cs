@@ -24,9 +24,9 @@ namespace ResponseAnalyzer
             switch (type)
             {
                 case ChartTypes.REAL_FREQUENCY:
-                    return findRoot(frequencies, data[units], 0);
+                    return findRoot(frequency, data[units], 0);
                 case ChartTypes.IMAG_FREQUENCY:
-                    return findPeak(frequencies, data[units], 1);
+                    return findPeak(frequency, data[units], 1);
             }
             return null;
         }
@@ -77,7 +77,7 @@ namespace ResponseAnalyzer
 
         // Data
         public Dictionary<SignalUnits, double[,]> data { get; set; }
-        public double[] frequencies { get; set; }
+        public double[] frequency { get; set; }
         // Info
         public string signalName { get; set; }
         public string path { get; set; }

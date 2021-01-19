@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ResponseAnalyzer
 {
@@ -26,7 +27,7 @@ namespace ResponseAnalyzer
             retrieveTestLabSelection();
             if (mode == SelectionMode.SINGLE)
             {
-                selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged);
+                selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged);
                 // Resonance frequency
                 textBoxResonanceFrequency.Clear();
                 textBoxResonanceFrequency.Tag = -1;
@@ -35,15 +36,40 @@ namespace ResponseAnalyzer
             labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
             // Update the list of the selected frequencies
             if (mode == SelectionMode.SINGLE)
-                listBoxFrequencies_SelectedIndexChanged(); 
+                listBoxFrequency_SelectedIndexChanged(); 
         }
 
         // Selecting frequencies
-        private void listBoxFrequencies_SelectedIndexChanged(object sender = null, EventArgs e = null)
+        private void listBoxFrequency_SelectedIndexChanged(object sender = null, EventArgs e = null)
         {
-            singleFrequencyIndices_.Clear();
-            foreach (int index in listBoxFrequencies.SelectedIndices)
-                singleFrequencyIndices_.Add(index);
+            SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            List<int> indices = null;
+            if (mode == SelectionMode.SINGLE)
+                indices = singleFrequencyIndices_;
+            else if (mode == SelectionMode.MULTI)
+                indices = multiFrequencyIndices_[listBoxFoundSignals.SelectedItem.ToString()];
+            if (indices != null)
+            {
+                indices.Clear();
+                foreach (int index in listBoxFrequency.SelectedIndices)
+                    indices.Add(index);
+            }
+        }
+
+        // Selecting signals
+        private void listBoxFoundSignals_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if ((SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex != SelectionMode.MULTI)
+                return;
+            if (listBoxFoundSignals.SelectedIndex < 0 || listBoxFoundSignals.Items.Count == 0)
+                return;
+            listBoxFrequency.Items.Clear();
+            string label = listBoxFoundSignals.SelectedItem.ToString();
+            double[] frequency = multiFrequency_[label];
+            // Add frequencies for the specified signal
+            foreach (double freq in frequency)
+                listBoxFrequency.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
+            selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged, multiFrequencyIndices_[label]);
         }
 
         // Changing selection mode
@@ -51,19 +77,24 @@ namespace ResponseAnalyzer
         {
             if (project == null)
                 return;
-            retrieveTestLabSelection();
             SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            // Specifying the states of the controls
             buttonSelectResonanceFrequency.Enabled = mode != SelectionMode.MULTI;
-            if (mode == SelectionMode.SINGLE && project.signals_.Count != 0)
-            {
-                selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged, singleFrequencyIndices_);
-                int indResonanceFrequency = (int)textBoxResonanceFrequency.Tag;
-                if (indResonanceFrequency > 0)
-                    textBoxResonanceFrequency.Text = listBoxFrequencies.Items[indResonanceFrequency].ToString();
-            }
+            if (mode == SelectionMode.SINGLE)
+                listBoxFoundSignals.SelectionMode = System.Windows.Forms.SelectionMode.None;
             else if (mode == SelectionMode.MULTI)
             {
+                listBoxFoundSignals.SelectionMode = System.Windows.Forms.SelectionMode.One;
                 textBoxResonanceFrequency.Text = "";
+            }
+            // Acquiring the Testlab selection
+            retrieveTestLabSelection();
+            if (mode == SelectionMode.SINGLE && project.signals_.Count != 0)
+            {
+                selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged, singleFrequencyIndices_);
+                int indResonanceFrequency = (int)textBoxResonanceFrequency.Tag;
+                if (indResonanceFrequency > 0)
+                    textBoxResonanceFrequency.Text = listBoxFrequency.Items[indResonanceFrequency].ToString();
             }
             int nSelected = listBoxFoundSignals.Items.Count;
             labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
@@ -74,8 +105,8 @@ namespace ResponseAnalyzer
         {
             if (e.Control && e.KeyCode == Keys.A)
             {
-                selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged);
-                listBoxFrequencies_SelectedIndexChanged();
+                selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged);
+                listBoxFrequency_SelectedIndexChanged();
             }
         }
 
@@ -101,25 +132,28 @@ namespace ResponseAnalyzer
                     break;
                 case SelectionMode.MULTI:
                     project.clearAccumulatedSignals();
+                    multiFrequency_.Clear();
+                    multiFrequencyIndices_.Clear();
+                    mapResponses_.Clear();
                     break;
             }
             listBoxFoundSignals.Items.Clear();
-            listBoxFrequencies.Items.Clear();
+            listBoxFrequency.Items.Clear();
             labelSelectionInfo.Text = "Selected signals: ";
         }
 
         // Select the resonance frequency
         private void buttonSelectResonanceFrequency_Click(object sender, EventArgs e)
         {
-            if (listBoxFrequencies.SelectedIndices.Count == 0)
+            if (listBoxFrequency.SelectedIndices.Count == 0)
                 return;
             SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
             if (mode != SelectionMode.SINGLE)
                 return;
-            textBoxResonanceFrequency.Tag = listBoxFrequencies.SelectedIndices[0];
-            textBoxResonanceFrequency.Text = listBoxFrequencies.Items[(int)textBoxResonanceFrequency.Tag].ToString();
-            selectItems(listBoxFrequencies, listBoxFrequencies_SelectedIndexChanged);
-            listBoxFrequencies_SelectedIndexChanged();
+            textBoxResonanceFrequency.Tag = listBoxFrequency.SelectedIndices[0];
+            textBoxResonanceFrequency.Text = listBoxFrequency.Items[(int)textBoxResonanceFrequency.Tag].ToString();
+            selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged);
+            listBoxFrequency_SelectedIndexChanged();
         }
 
         // Processing all the data
@@ -132,7 +166,7 @@ namespace ResponseAnalyzer
             // Resolving dependencies
             resolveDependencies();
             // Retrieve selected frequencies
-            int nSingleFrequencies = singleFrequencyIndices_.Count;
+            int nSingleFrequency = singleFrequencyIndices_.Count;
             ChartPosition.lastRow = 0;
             // Error handling
             errorMessage_ = null;
@@ -185,12 +219,12 @@ namespace ResponseAnalyzer
                         Response response = project.signals_[node][direction][0];
                         // Slice data by the selected index
                         double[,] refFullData = response.data[units];
-                        double[,] data = new double[nSingleFrequencies, 2];
+                        double[,] data = new double[nSingleFrequency, 2];
                         int iSelected;
-                        for (int i = 0; i != nSingleFrequencies; ++i)
+                        for (int i = 0; i != nSingleFrequency; ++i)
                         {
                             iSelected = singleFrequencyIndices_[i];
-                            data[i, indX] = response.frequencies[iSelected];
+                            data[i, indX] = response.frequency[iSelected];
                             data[i, indY] = refFullData[iSelected, iType];
                         }
                         string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
@@ -270,12 +304,15 @@ namespace ResponseAnalyzer
                         {
                             // Slice data by the selected index
                             double[,] refFullData = response.data[units];
-                            int nFrequencies = refFullData.GetLength(0);
-                            double[,] data = new double[nFrequencies, 2];
-                            for (int i = 0; i != nFrequencies; ++i)
+                            List<int> indices = multiFrequencyIndices_[mapResponses_[response.path]];
+                            int nIndices = indices.Count;
+                            double[,] data = new double[nIndices, 2];
+                            int iSelected;
+                            for (int i = 0; i != nIndices; ++i)
                             {
-                                data[i, indX] = response.frequencies[i];
-                                data[i, indY] = refFullData[i, iType];
+                                iSelected = indices[i];
+                                data[i, indX] = response.frequency[iSelected];
+                                data[i, indY] = refFullData[iSelected, iType];
                             }
                             // Retrieving force value
                             string force = "F = " + getForceValue(response.path) + " Н";
@@ -328,7 +365,7 @@ namespace ResponseAnalyzer
         public void retrieveTestLabSelection()
         {
             listBoxFoundSignals.Items.Clear();
-            listBoxFrequencies.Items.Clear();
+            listBoxFrequency.Items.Clear();
             SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
             switch (mode)
             {
@@ -347,11 +384,14 @@ namespace ResponseAnalyzer
                     // If signals have been selected
                     if (response != null) 
                     {
-                        foreach (double freq in response.frequencies)
-                            listBoxFrequencies.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
+                        foreach (double freq in response.frequency)
+                            listBoxFrequency.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
                     }
                     break;
                 case SelectionMode.MULTI:
+                    multiFrequency_.Clear();
+                    multiFrequencyIndices_.Clear();
+                    mapResponses_.Clear();
                     var multiSignals = project.multiSignals_;
                     string label;
                     foreach (string nodeName in multiSignals.Keys)
@@ -363,11 +403,21 @@ namespace ResponseAnalyzer
                             foreach (Response multiResponse in dirNodeSignal)
                             {
                                 label = multiResponse.signalName + " (" + getForceValue(multiResponse.path) + "H)";
+                                // Check if a label is a dubplicate
+                                foreach (string item in listBoxFoundSignals.Items)
+                                {
+                                    if (item.Equals(label))
+                                        label += "-Copy";
+                                }
                                 listBoxFoundSignals.Items.Add(label);
+                                multiFrequency_.Add(label, multiResponse.frequency);
+                                multiFrequencyIndices_.Add(label, Enumerable.Range(0, multiResponse.frequency.Length).ToList());
+                                mapResponses_.Add(multiResponse.path, label);
                             }
-                                
                         }
                     }
+                    if (listBoxFoundSignals.Items.Count > 0)
+                        listBoxFoundSignals.SelectedIndex = listBoxFoundSignals.Items.Count - 1;
                     break;
             }
         }
