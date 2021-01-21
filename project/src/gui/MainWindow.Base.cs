@@ -45,6 +45,8 @@ namespace ResponseAnalyzer
                 modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
                 modelRenderer_.draw();
                 createComponentStrips();
+                if (excelTemplate_ != null && excelTemplate_.isOpened())
+                    updateExcelTemplateList();
                 setProjectEnabled();
             }
             else if (dialogResult != DialogResult.Cancel)

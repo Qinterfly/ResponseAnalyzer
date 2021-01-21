@@ -172,6 +172,9 @@ namespace ResponseAnalyzer
             errorMessage_ = null;
             int iError = 0;
             // Creating series
+            double signData = 1.0;
+            if (checkBoxInverseResults.Checked)
+                signData = -1.0;
             foreach (string chart in listBoxTemplateCharts.Items)
             {
                 // Nodes selection
@@ -225,7 +228,7 @@ namespace ResponseAnalyzer
                         {
                             iSelected = singleFrequencyIndices_[i];
                             data[i, indX] = response.frequency[iSelected];
-                            data[i, indY] = refFullData[iSelected, iType];
+                            data[i, indY] = refFullData[iSelected, iType] * signData;
                         }
                         string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
                         excelResult.addSeries(chart, data, ptrNode);
@@ -277,7 +280,7 @@ namespace ResponseAnalyzer
                         for (int i = 0; i != nNodes; ++i)
                         {
                             data[i, indX] = coordinates[i] / norm;
-                            data[i, indY] = values[i];
+                            data[i, indY] = values[i] * signData;
                         }
                         excelResult.addSeries(chart, data, nameLine);
                     }
@@ -312,7 +315,7 @@ namespace ResponseAnalyzer
                             {
                                 iSelected = indices[i];
                                 data[i, indX] = response.frequency[iSelected];
-                                data[i, indY] = refFullData[iSelected, iType];
+                                data[i, indY] = refFullData[iSelected, iType] * signData;
                             }
                             // Retrieving force value
                             string force = "F = " + getForceValue(response.path) + " Н";
