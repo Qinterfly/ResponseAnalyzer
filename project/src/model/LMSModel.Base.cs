@@ -108,7 +108,7 @@ namespace ResponseAnalyzer
                 }
                 // Finding the maximum and minimum of the nodal coordinates { (:, 1) -- minimum, (:, 2) -- maximum }
                 int lenVertices = vertices.Length;
-                for (int i = 0; i != lenVertices; i = i + 3)
+                for (int i = 0; i != lenVertices; i += 3)
                 {
                     for (int j = 0; j != 3; ++j)
                     {
@@ -159,6 +159,14 @@ namespace ResponseAnalyzer
                     insertInd = insertInd + 4;
                 }
                 componentSet_.elementData[ElementType.QUADS].Add(component, quadsInd);
+                // Calculating normals
+                float[] normals = new float[lenVertices];
+                for (int i = 0; i != lenVertices; ++i)
+                    normals[i] = 0.0f;
+                calculateNormals(vertices, normals, triasInd, ElementType.TRIAS);
+                calculateNormals(vertices, normals, quadsInd, ElementType.QUADS);
+                normalizeNormals(normals);
+                componentSet_.normals.Add(component, normals);
                 // Specifying colors
                 indexCurrentColor = indexCurrentColor >= nColors - 1 ? 0 : indexCurrentColor + 1;
                 componentSet_.colors.Add(component, availableColors_[indexCurrentColor]);
@@ -185,10 +193,68 @@ namespace ResponseAnalyzer
             }
         }
 
+        // Calculate normals
+
+        private void calculateNormals(float[] vertices, float[] normals, uint[] elementIndices, ElementType type)
+        {
+            int shiftInd = 0;
+            if (type == ElementType.TRIAS)
+                shiftInd = 3;
+            else if (type == ElementType.QUADS)
+                shiftInd = 4;
+            else
+                return;
+            int nIndices = elementIndices.Length;
+            Vector3[] points = new Vector3[3];
+            uint ptrNode;
+            for (int i = 0; i != nIndices; i += shiftInd)
+            {
+                // Slice node coordinates
+                for (int j = 0; j != 2; ++j)
+                {
+                    ptrNode = elementIndices[i + j] * 3;
+                    for (int k = 0; k != 3; ++k)
+                        points[j][k] = vertices[ptrNode + k];
+                }
+                // Index of the last node depends on the element type
+                ptrNode = elementIndices[i + shiftInd - 1] * 3;
+                for (int k = 0; k != 3; ++k)
+                    points[2][k] = vertices[ptrNode + k];
+                // Calculate the current element normal
+                points[0] = Vector3.Cross(points[0] - points[1], points[0] - points[2]); // Left-handed basis
+                // Add the element normal
+                for (int k = 0; k != shiftInd; ++k)
+                {
+                    ptrNode = elementIndices[i + k] * 3;
+                    for (int m = 0; m != 3; ++m)
+                        normals[ptrNode + m] += points[0][m];
+                }
+            }
+        }
+
+        // Normalize data
+        private void normalizeNormals(float[] data)
+        {
+            int nData = data.Length;
+            float norm;
+            for (int i = 0; i != nData; i += 3)
+            {
+                norm = 0.0f;
+                for (int j = 0; j != 3; ++j)
+                    norm += data[i + j] * data[i + j];
+                norm = (float)Math.Sqrt(norm);
+                if (norm < float.Epsilon)
+                    norm = 1.0f;
+                for (int j = 0; j != 3; ++j)
+                    data[i + j] /= norm;
+            }
+        }
+
+        // Normalize node coordinates to NDC
         private void normalizeVertices(float[] vertices, float[,] limits, float[] shift, float maxProj)
         {
             int lenVertices = vertices.Length;
-            for (int i = 0; i != lenVertices; i = i + 3)
+            for (int i = 0; i != lenVertices; i += 3)
             {
                 for (int j = 0; j != 3; ++j)
                     vertices[i + j] = 2.0f * (vertices[i + j] - limits[j, 0]) / maxProj + shift[j];
@@ -198,7 +264,6 @@ namespace ResponseAnalyzer
         // Components data
         private List<string> componentNames_;
         public ComponentGeometry componentSet_ { get; set; }
-        private Shader shader_;
         private ComponentBufferPointers componentBuffers_;
         private Array elementTypes_;
         private Dictionary<ElementType, PrimitiveType> mapElements_;
@@ -215,6 +280,7 @@ namespace ResponseAnalyzer
             nodeCoordinates = new ArrayDictionary();
             elementData = new ElementDictionary();
             vertices = new ArrayDictionary();
+            normals = new ArrayDictionary();
             foreach (ElementType type in elementTypes)
                 elementData.Add(type, new Dictionary<string, Array>());
             colors = new ColorDictionary();
@@ -226,6 +292,7 @@ namespace ResponseAnalyzer
         public ArrayDictionary nodeCoordinates;
         public ElementDictionary elementData;
         public ArrayDictionary vertices;
+        public ArrayDictionary normals;
         public ColorDictionary colors;
     }
 
@@ -234,10 +301,12 @@ namespace ResponseAnalyzer
         public ComponentBufferPointers()
         {
             vertexBufferObject = new Dictionary<string, int>();
+            normalBufferObject = new Dictionary<string, int>();
             elements = new Dictionary<string, int[]>();
             selection = new Dictionary<string, int>();
         }
         public Dictionary<string, int> vertexBufferObject;
+        public Dictionary<string, int> normalBufferObject;
         public Dictionary<string, int[]> elements;
         public Dictionary<string, int> selection;
     }

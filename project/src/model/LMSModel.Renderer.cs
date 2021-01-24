@@ -18,11 +18,6 @@ namespace ResponseAnalyzer
             // Blending
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-            GL.Enable(EnableCap.PolygonSmooth);
-            GL.Enable(EnableCap.LineSmooth);
-            GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Nicest);
-            GL.Hint(HintTarget.LineSmoothHint, HintMode.Nicest);
-            GL.Hint(HintTarget.PointSmoothHint, HintMode.Nicest);
             // Z-buffer
             GL.ClearDepth(1.0f);
             GL.DepthMask(true);
@@ -33,8 +28,11 @@ namespace ResponseAnalyzer
             GL.Enable(EnableCap.StencilTest);
             GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
             // Smoothing
-            GL.Enable(EnableCap.LineSmooth);
             GL.Enable(EnableCap.PolygonSmooth);
+            GL.Enable(EnableCap.LineSmooth);
+            GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Nicest);
+            GL.Hint(HintTarget.LineSmoothHint, HintMode.Nicest);
+            GL.Hint(HintTarget.PointSmoothHint, HintMode.Nicest);
             // Sizes
             GL.PointSize(DrawOptions.pointSize);
             GL.LineWidth(DrawOptions.lineWidth);
@@ -71,8 +69,17 @@ namespace ResponseAnalyzer
                 DropShadowActive = false,
                 CharacterSpacing = 0.1f
             };
-            // Compiling a shader
+            // Compiling the shader
             shader_ = new Shader(shaderPath_ + "shaders/shader.vert", shaderPath_ + "shaders/shader.frag");
+            // Lighting
+            shader_.SetVector3("light.ambient", LightingOptions.lightAmbient);
+            shader_.SetVector3("light.diffuse", LightingOptions.lightDiffuse); 
+            shader_.SetVector3("light.specular", LightingOptions.lightSpecular);
+            // Material
+            shader_.SetVector3("material.ambient", LightingOptions.materialAmbient);
+            shader_.SetVector3("material.diffuse", LightingOptions.materialDiffuse);
+            shader_.SetVector3("material.specular", LightingOptions.materialSpecular);
+            shader_.SetFloat("material.shininess", LightingOptions.materialShininess);
             // Coordinate system
             coordinateSystem_ = new CoordinateSystem();
             coordinateSystem_.font = font_;
@@ -112,6 +119,12 @@ namespace ResponseAnalyzer
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
             GL.BufferData(BufferTarget.ArrayBuffer, lenVertices * sizeof(float), vertices, BufferUsageHint.StaticDraw);
             componentBuffers_.vertexBufferObject.Add(componentName, vertexBufferObject);
+            // Creating a normal buffer object
+            int normalBufferObject = GL.GenBuffer();
+            float[] normals = (float[])componentSet_.normals[componentName];
+            GL.BindBuffer(BufferTarget.ArrayBuffer, normalBufferObject);
+            GL.BufferData(BufferTarget.ArrayBuffer, lenVertices * sizeof(float), normals, BufferUsageHint.StaticDraw);
+            componentBuffers_.normalBufferObject.Add(componentName, normalBufferObject);
             // Buffers for each element
             Array elementTypes = Enum.GetValues(typeof(ElementType));
             int nElements = elementTypes.Length;
@@ -144,33 +157,46 @@ namespace ResponseAnalyzer
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             GL.PolygonMode(MaterialFace.FrontAndBack, polygonMode_);
             // Drawing the components
-            shader_.Use();
             Matrix4 model = modelRotation_ * modelScale_ * modelTranslation_;
+            Vector4 lightPos = model * LightingOptions.lightPosition;
+            // Shader
+            shader_.Use();
             shader_.SetMatrix4("model", model);
             shader_.SetMatrix4("view", view_);
             shader_.SetMatrix4("projection", projection_);
-            int colorLocation = shader_.GetUniformLocation("definedColor");
-            int VAO, EBO;
+            shader_.SetVector3("light.position", lightPos.Xyz);
+            shader_.SetVector3("viewPos", Vector3.Zero);
+            // Attributes
+            int attribPos = shader_.GetAttribLocation("inPosition");
+            int attribNorm = shader_.GetAttribLocation("inNormal");
+            int VAO, EBO, NBO;
             int sizeElement;
-            int nVertices = 0;
+            int nVertices;
             foreach (string component in componentNames_)
             {
                 if (!componentShowMask_[component])
                     continue;
+                shader_.SetInt("isLighting", LightingOptions.isEnabled);
+                // VAO
                 VAO = componentBuffers_.vertexBufferObject[component];
                 GL.BindBuffer(BufferTarget.ArrayBuffer, VAO);
-                int attrib = shader_.GetAttribLocation("inPosition");
-                GL.VertexAttribPointer(attrib, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-                GL.EnableVertexAttribArray(0);
+                GL.VertexAttribPointer(attribPos, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                // NBO
+                NBO = componentBuffers_.normalBufferObject[component];
+                GL.BindBuffer(BufferTarget.ArrayBuffer, NBO);
+                GL.VertexAttribPointer(attribNorm, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                // Enable attributes
+                GL.EnableVertexAttribArray(attribPos);
+                GL.EnableVertexAttribArray(attribNorm);
+                // Retrieve color
                 Color4 componentColor = componentSet_.colors[component];
                 // Points
                 GL.StencilMask(0xFF);
                 GL.StencilFunc(StencilFunction.Always, 1, 0xFF); // Drawing all the points
-                GL.Uniform4(colorLocation, componentColor);
+                shader_.SetVector3("objectColor", convertColor(componentColor));
                 nVertices = componentSet_.vertices[component].Length / 3;
                 GL.DrawArrays(PrimitiveType.Points, 0, nVertices);
                 // Elements
-                GL.Uniform4(colorLocation, componentColor);
                 foreach (ElementType type in elementTypes_)
                 {
                     EBO = componentBuffers_.elements[component][(int)type];
@@ -184,10 +210,11 @@ namespace ResponseAnalyzer
                 // Selected points
                 if (selection_.Count != 0 && selection_.ContainsKey(component))
                 {
+                    shader_.SetInt("isLighting", 0);
                     GL.StencilFunc(StencilFunction.Notequal, 1, 0xFF); // Discarding previously drawn points
                     GL.StencilMask(0x00);
                     GL.Disable(EnableCap.DepthTest);
-                    GL.Uniform4(colorLocation, selectionColor_);
+                    shader_.SetVector3("objectColor", convertColor(selectionColor_));
                     uint[] indices = selection_[component].ToArray();
                     GL.BindBuffer(BufferTarget.ElementArrayBuffer, componentBuffers_.selection[component]);
                     GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.DynamicDraw);
@@ -197,14 +224,15 @@ namespace ResponseAnalyzer
                 }
             }
             // Node names
+            shader_.SetInt("isLighting", 0);
             if (isShowNodeNames)
             {
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
                 fontDrawing_.DrawingPrimitives.Clear();
                 fontDrawing_.ProjectionMatrix = projection_;
-                int nNodes = 0;
+                int nNodes;
                 string resName;
-                int iVert = 0;
+                int iVert;
                 Vector4 position = Vector4.Zero;
                 foreach (string component in componentNames_)
                 {
@@ -235,7 +263,15 @@ namespace ResponseAnalyzer
             glControl_.SwapBuffers();
         }
 
+        // Converter
+        public static Vector3 convertColor(Color4 color)
+        {
+            return new Vector3(color.R, color.G, color.B);
+        }
+
+        // Shaders
         string shaderPath_ = "";
+        private Shader shader_;
         // Colors
         private List<Color4> availableColors_;
         private Color4 selectionColor_;
@@ -290,6 +326,21 @@ namespace ResponseAnalyzer
         {
             FRONT, BACK,
             UP, DOWN, LEFT, RIGHT, ISOMETRIC
+        }
+
+        public class LightingOptions
+        {
+            public static int isEnabled = 1;
+            // Light
+            public static Vector4 lightPosition = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
+            public static Vector3 lightAmbient = new Vector3(0.9f, 0.9f, 0.9f);
+            public static Vector3 lightDiffuse = new Vector3(0.5f, 0.5f, 0.5f);
+            public static Vector3 lightSpecular = new Vector3(1.0f, 1.0f, 1.0f);
+            // Material
+            public static Vector3 materialAmbient = new Vector3(1.0f, 1.0f, 1.0f);
+            public static Vector3 materialDiffuse = new Vector3(1.0f, 1.0f, 1.0f);
+            public static Vector3 materialSpecular = new Vector3(0.5f, 0.5f, 0.5f);
+            public static float materialShininess = 32.0f;
         }
     }
 }

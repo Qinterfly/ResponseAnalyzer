@@ -18,37 +18,37 @@ namespace ResponseAnalyzer
             // Vertices
             float[] vertices =
             {
-                0.0f, 0.0f, 0.0f,                             // Origin
-                // Axes
-                lengthAxis, 0.0f, 0.0f,                       // X-end
-                0.0f, lengthAxis, 0.0f,                       // Y-end
-                0.0f, 0.0f, lengthAxis,                       // Z-end
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,                             // Origin
+                // Axes                                                         
+                lengthAxis, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,                       // X-end
+                0.0f, lengthAxis, 0.0f, 0.0f, 0.0f, 0.0f,                       // Y-end
+                0.0f, 0.0f, lengthAxis, 0.0f, 0.0f, 0.0f,                       // Z-end
                 // Tetrahedron at the end of X axis
-                lengthAxis + heightTetra, 0.0f, 0.0f,         // Peak
-                lengthAxis, -heightTriangle1, -halfSideTetra, // Left
-                lengthAxis, -heightTriangle1, halfSideTetra,  // Right
-                lengthAxis, heightTriangle2, 0.0f,            // Up
+                lengthAxis + heightTetra, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,         // Peak
+                lengthAxis, -heightTriangle1, -halfSideTetra, 0.0f, 0.0f, 0.0f, // Left
+                lengthAxis, -heightTriangle1, halfSideTetra, 0.0f, 0.0f, 0.0f,  // Right
+                lengthAxis, heightTriangle2, 0.0f, 0.0f, 0.0f, 0.0f,            // Up
                 // Tetrahedron at the end of Y axis
-                0.0f, lengthAxis + heightTetra, 0.0f,         // Peak
-                -heightTriangle1, lengthAxis, -halfSideTetra, // Left
-                -heightTriangle1, lengthAxis, halfSideTetra,  // Right
-                heightTriangle2, lengthAxis, 0.0f,            // Up
+                0.0f, lengthAxis + heightTetra, 0.0f, 0.0f, 0.0f, 0.0f,         // Peak
+                -heightTriangle1, lengthAxis, -halfSideTetra, 0.0f, 0.0f, 0.0f, // Left
+                -heightTriangle1, lengthAxis, halfSideTetra, 0.0f, 0.0f, 0.0f,  // Right
+                heightTriangle2, lengthAxis, 0.0f, 0.0f, 0.0f, 0.0f,            // Up
                 // Tetrahedron at the end of Z axis
-                0.0f, 0.0f, lengthAxis + heightTetra,         // Peak
-                -heightTriangle1, -halfSideTetra, lengthAxis, // Left
-                -heightTriangle1, halfSideTetra, lengthAxis,  // Right
-                heightTriangle2, 0.0f, lengthAxis,            // Up
+                0.0f, 0.0f, lengthAxis + heightTetra, 0.0f, 0.0f, 0.0f,         // Peak
+                -heightTriangle1, -halfSideTetra, lengthAxis, 0.0f, 0.0f, 0.0f, // Left
+                -heightTriangle1, halfSideTetra, lengthAxis, 0.0f, 0.0f, 0.0f,  // Right
+                heightTriangle2, 0.0f, lengthAxis, 0.0f, 0.0f, 0.0f,            // Up
                 // Box
                     // XZ
-                0.0f, sideBox, 0.0f,                            
-                sideBox, sideBox, 0.0f,
-                sideBox, sideBox, sideBox,
-                0.0f, sideBox, sideBox,
+                0.0f, sideBox, 0.0f, 0.0f, -1.0f, 0.0f,
+                sideBox, sideBox, 0.0f, 0.0f, -1.0f, 0.0f,
+                sideBox, sideBox, sideBox, 0.0f, -1.0f, 0.0f,
+                0.0f, sideBox, sideBox, 0.0f, -1.0f, 0.0f,
                     // XY
-                0.0f, 0.0f, sideBox,
-                sideBox, 0.0f, sideBox,
+                0.0f, 0.0f, sideBox, 0.0f, 0.0f, -1.0f,
+                sideBox, 0.0f, sideBox, 0.0f, 0.0f, -1.0f,
                     // YZ
-                sideBox, 0.0f, 0.0f
+                sideBox, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f
             };
             vertexBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
@@ -102,15 +102,18 @@ namespace ResponseAnalyzer
             // Shader
             shader.SetMatrix4("model", model);
             shader.SetMatrix4("view", view);
+            shader.SetInt("isLighting", 0);
             // Fonts
             fontDrawing.DrawingPrimitives.Clear();
             fontDrawing.ProjectionMatrix = projection;
             // Vertex buffer
-            int colorLocation = shader.GetUniformLocation("definedColor");
-            int attrib = shader.GetAttribLocation("inPosition");
+            int attribPos = shader.GetAttribLocation("inPosition");
+            int attribNorm = shader.GetAttribLocation("inNormal");
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-            GL.VertexAttribPointer(attrib, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(attribPos, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+            GL.VertexAttribPointer(attribNorm, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
+            GL.EnableVertexAttribArray(attribPos);
+            GL.EnableVertexAttribArray(attribNorm);
             // Drawing options
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             // Axes
@@ -118,19 +121,19 @@ namespace ResponseAnalyzer
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, axesBuffer);
             for (int iAxis = 0; iAxis != 3; ++iAxis)
             {
-                GL.Uniform4(colorLocation, axesColors[iAxis]);
+                shader.SetVector3("objectColor", LMSModel.convertColor(axesColors[iAxis]));
                 GL.DrawElements(PrimitiveType.Lines, 2, DrawElementsType.UnsignedInt, ptrDraw * sizeof(uint));
                 ptrDraw += 2;
             }
             // Box
-            GL.Uniform4(colorLocation, boxColor);
+            shader.SetVector3("objectColor", LMSModel.convertColor(boxColor));
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, boxBuffer);
             GL.DrawElements(PrimitiveType.Quads, 12, DrawElementsType.UnsignedInt, 0);
             // Tetra
             for (int iAxis = 0; iAxis != 3; ++iAxis)
             {
                 Color4 color = axesColors[iAxis];
-                GL.Uniform4(colorLocation, color);
+                shader.SetVector3("objectColor", LMSModel.convertColor(color));
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, tetrahedronBuffers[iAxis]);
                 GL.DrawElements(PrimitiveType.Triangles, 12, DrawElementsType.UnsignedInt, 0);
                 // Label
