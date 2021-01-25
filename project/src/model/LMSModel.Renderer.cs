@@ -44,7 +44,7 @@ namespace ResponseAnalyzer
                 Color4.DarkBlue, Color4.DarkCyan, Color4.Chocolate
             };
             selection_ = new Dictionary<string, List<uint>>();
-            selectionColor_ = Color4.Yellow;
+            selectionColor_ = Color4.HotPink;
             // Update drawing constants
             DrawOptions.update(glControl_.Width, glControl_.Height);
             // Transformations
@@ -75,6 +75,10 @@ namespace ResponseAnalyzer
             shader_.SetVector3("light.ambient", LightingOptions.lightAmbient);
             shader_.SetVector3("light.diffuse", LightingOptions.lightDiffuse); 
             shader_.SetVector3("light.specular", LightingOptions.lightSpecular);
+            // Light attenuation constants
+            shader_.SetFloat("light.constant", LightingOptions.lightConstant);
+            shader_.SetFloat("light.linear", LightingOptions.lightLinear);
+            shader_.SetFloat("light.quadratic", LightingOptions.lightQuadratic);
             // Material
             shader_.SetVector3("material.ambient", LightingOptions.materialAmbient);
             shader_.SetVector3("material.diffuse", LightingOptions.materialDiffuse);
@@ -158,14 +162,15 @@ namespace ResponseAnalyzer
             GL.PolygonMode(MaterialFace.FrontAndBack, polygonMode_);
             // Drawing the components
             Matrix4 model = modelRotation_ * modelScale_ * modelTranslation_;
-            Vector4 lightPos = model * LightingOptions.lightPosition;
+            Vector4 lightPos = LightingOptions.lightPosition * model * projection_;
+            Vector4 viewPos = LightingOptions.viewPosition * model * projection_;
             // Shader
             shader_.Use();
             shader_.SetMatrix4("model", model);
             shader_.SetMatrix4("view", view_);
             shader_.SetMatrix4("projection", projection_);
             shader_.SetVector3("light.position", lightPos.Xyz);
-            shader_.SetVector3("viewPos", Vector3.Zero);
+            shader_.SetVector3("viewPos", viewPos.Xyz);
             // Attributes
             int attribPos = shader_.GetAttribLocation("inPosition");
             int attribNorm = shader_.GetAttribLocation("inNormal");
@@ -331,16 +336,22 @@ namespace ResponseAnalyzer
         public class LightingOptions
         {
             public static int isEnabled = 1;
+            // Positions
+            public static Vector4 lightPosition = new Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+            public static Vector4 viewPosition = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
             // Light
-            public static Vector4 lightPosition = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
-            public static Vector3 lightAmbient = new Vector3(0.9f, 0.9f, 0.9f);
-            public static Vector3 lightDiffuse = new Vector3(0.5f, 0.5f, 0.5f);
-            public static Vector3 lightSpecular = new Vector3(1.0f, 1.0f, 1.0f);
+            public static Vector3 lightAmbient = new Vector3(0.8f);
+            public static Vector3 lightDiffuse = new Vector3(0.9f);
+            public static Vector3 lightSpecular = new Vector3(1.0f);
+            // Light attenuation constants
+            public static float lightConstant = 0.75f;
+            public static float lightLinear = 0.0009f;
+            public static float lightQuadratic = 0.0f;
             // Material
-            public static Vector3 materialAmbient = new Vector3(1.0f, 1.0f, 1.0f);
-            public static Vector3 materialDiffuse = new Vector3(1.0f, 1.0f, 1.0f);
-            public static Vector3 materialSpecular = new Vector3(0.5f, 0.5f, 0.5f);
-            public static float materialShininess = 32.0f;
+            public static Vector3 materialAmbient = new Vector3(1.0f);
+            public static Vector3 materialDiffuse = new Vector3(1.0f);
+            public static Vector3 materialSpecular = new Vector3(0.5f);
+            public static float materialShininess = 16.0f;
         }
     }
 }
