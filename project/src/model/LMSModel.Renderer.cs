@@ -164,11 +164,14 @@ namespace ResponseAnalyzer
             Matrix4 model = modelRotation_ * modelScale_ * modelTranslation_;
             Vector4 lightPos = LightingOptions.lightPosition * model * projection_;
             Vector4 viewPos = LightingOptions.viewPosition * model * projection_;
+            Matrix3 normalMatrix = new Matrix3(Matrix4.Transpose(Matrix4.Invert(model)));
             // Shader
             shader_.Use();
             shader_.SetMatrix4("model", model);
             shader_.SetMatrix4("view", view_);
             shader_.SetMatrix4("projection", projection_);
+            shader_.SetMatrix3("normalMatrix", normalMatrix);
+            // Positions
             shader_.SetVector3("light.position", lightPos.Xyz);
             shader_.SetVector3("viewPos", viewPos.Xyz);
             // Attributes

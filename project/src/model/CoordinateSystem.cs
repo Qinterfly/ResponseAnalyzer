@@ -99,9 +99,11 @@ namespace ResponseAnalyzer
 
         public void draw(Matrix4 model, Matrix4 view, Matrix4 projection)
         {
+            Matrix3 normalMatrix = new Matrix3(Matrix4.Transpose(Matrix4.Invert(model)));
             // Shader
             shader.SetMatrix4("model", model);
             shader.SetMatrix4("view", view);
+            shader.SetMatrix3("normalMatrix", normalMatrix);
             shader.SetInt("isLighting", 0);
             // Fonts
             fontDrawing.DrawingPrimitives.Clear();
