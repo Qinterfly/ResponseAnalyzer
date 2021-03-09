@@ -54,6 +54,8 @@ namespace ResponseAnalyzer
             modelRotation_ = Matrix4.Identity;
             view_ = Matrix4.Identity;
             projection_ = Matrix4.CreateOrthographic(glControl_.Width, glControl_.Height, DrawOptions.zNear, DrawOptions.zFar);
+            // Markers
+            isShowNodeMarkers = true;
             // Fonts
             isShowNodeNames = false;
             fontDrawing_ = new QFontDrawing();
@@ -72,6 +74,7 @@ namespace ResponseAnalyzer
             // Compiling the shader
             shader_ = new Shader(shaderPath_ + "shaders/shader.vert", shaderPath_ + "shaders/shader.frag");
             // Lighting
+            isLighting = true;
             shader_.SetVector3("light.ambient", LightingOptions.lightAmbient);
             shader_.SetVector3("light.diffuse", LightingOptions.lightDiffuse); 
             shader_.SetVector3("light.specular", LightingOptions.lightSpecular);
@@ -180,11 +183,12 @@ namespace ResponseAnalyzer
             int VAO, EBO, NBO;
             int sizeElement;
             int nVertices;
+            int iLight = isLighting ? 1 : 0;
             foreach (string component in componentNames_)
             {
                 if (!componentShowMask_[component])
                     continue;
-                shader_.SetInt("isLighting", LightingOptions.isEnabled);
+                shader_.SetInt("isLighting", iLight);
                 // VAO
                 VAO = componentBuffers_.vertexBufferObject[component];
                 GL.BindBuffer(BufferTarget.ArrayBuffer, VAO);
@@ -198,12 +202,15 @@ namespace ResponseAnalyzer
                 GL.EnableVertexAttribArray(attribNorm);
                 // Retrieve color
                 Color4 componentColor = componentSet_.colors[component];
-                // Points
-                GL.StencilMask(0xFF);
-                GL.StencilFunc(StencilFunction.Always, 1, 0xFF); // Drawing all the points
                 shader_.SetVector3("objectColor", convertColor(componentColor));
-                nVertices = componentSet_.vertices[component].Length / 3;
-                GL.DrawArrays(PrimitiveType.Points, 0, nVertices);
+                // Points
+                if (isShowNodeMarkers)
+                {
+                    GL.StencilMask(0xFF);
+                    GL.StencilFunc(StencilFunction.Always, 1, 0xFF); // Drawing all the points
+                    nVertices = componentSet_.vertices[component].Length / 3;
+                    GL.DrawArrays(PrimitiveType.Points, 0, nVertices);
+                }
                 // Elements
                 foreach (ElementType type in elementTypes_)
                 {
@@ -300,6 +307,8 @@ namespace ResponseAnalyzer
         private QFontRenderOptions fontRenderOptions_;
         // Show mode
         public bool isShowNodeNames { get; set; }
+        public bool isShowNodeMarkers { get; set; }
+        public bool isLighting { get; set; }
         private Dictionary<string, bool> componentShowMask_;
         // Cordinate system
         private CoordinateSystem coordinateSystem_;
@@ -338,7 +347,6 @@ namespace ResponseAnalyzer
 
         public class LightingOptions
         {
-            public static int isEnabled = 1;
             // Positions
             public static Vector4 lightPosition = new Vector4(0.1f, 0.1f, 0.1f, 1.0f);
             public static Vector4 viewPosition = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);

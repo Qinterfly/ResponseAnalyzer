@@ -127,7 +127,7 @@ namespace ResponseAnalyzer
                 insertInd = 0;
                 for (int i = 0; i != nLines; ++i)
                 {
-                    linesInd[insertInd] = mapNodes[(string)nodeNamesA.GetValue(i)];
+                    linesInd[insertInd]     = mapNodes[(string)nodeNamesA.GetValue(i)];
                     linesInd[insertInd + 1] = mapNodes[(string)nodeNamesB.GetValue(i)];
                     insertInd = insertInd + 2;
                 }
@@ -139,7 +139,7 @@ namespace ResponseAnalyzer
                 insertInd = 0;
                 for (int i = 0; i != nTrias; ++i)
                 {
-                    triasInd[insertInd] = mapNodes[(string)nodeNamesA.GetValue(i)];
+                    triasInd[insertInd]     = mapNodes[(string)nodeNamesA.GetValue(i)];
                     triasInd[insertInd + 1] = mapNodes[(string)nodeNamesB.GetValue(i)];
                     triasInd[insertInd + 2] = mapNodes[(string)nodeNamesC.GetValue(i)];
                     insertInd = insertInd + 3;
@@ -152,7 +152,7 @@ namespace ResponseAnalyzer
                 insertInd = 0;
                 for (int i = 0; i != nQuads; ++i)
                 {
-                    quadsInd[insertInd] = mapNodes[(string)nodeNamesA.GetValue(i)];
+                    quadsInd[insertInd]     = mapNodes[(string)nodeNamesA.GetValue(i)];
                     quadsInd[insertInd + 1] = mapNodes[(string)nodeNamesB.GetValue(i)];
                     quadsInd[insertInd + 2] = mapNodes[(string)nodeNamesC.GetValue(i)];
                     quadsInd[insertInd + 3] = mapNodes[(string)nodeNamesD.GetValue(i)];

@@ -48,6 +48,8 @@ namespace ResponseAnalyzer
                     if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftShift) || isEditSelection_)
                         isNewSelection = false;
                     Tuple <Vector3d, string, string> info = modelRenderer_.select(e.X, e.Y, isNewSelection);
+                    if (info == null)
+                        return;
                     modelRenderer_.draw();
                     // Show the information about the selection
                     const string format = "G6";
@@ -157,10 +159,25 @@ namespace ResponseAnalyzer
             modelRenderer_.draw();
         }
 
+        // Nodes
         // Show node names
-        private void stripNodeNames_CheckedChanged(object sender, EventArgs e)
+        private void glNodeNames_CheckedChanged(object sender, EventArgs e)
         {
-            modelRenderer_.isShowNodeNames = stripNodeNames.Checked;
+            modelRenderer_.isShowNodeNames = glNodeNames.Checked;
+            modelRenderer_.draw();
+        }
+
+        // Show node markers
+        private void glNodeMarkers_CheckedChanged(object sender, EventArgs e)
+        {
+            modelRenderer_.isShowNodeMarkers = glNodeMarkers.Checked;
+            modelRenderer_.draw();
+        }
+
+        // Enable lighting
+        private void stripLighting_CheckedChanged(object sender, EventArgs e)
+        {
+            modelRenderer_.isLighting = stripLighting.Checked;
             modelRenderer_.draw();
         }
 

@@ -114,6 +114,8 @@ namespace ResponseAnalyzer
 
         public Tuple<Vector3d, string, string> select(int mouseX, int mouseY, bool isNewSelection)
         {
+            if (!isCongruent())
+                return null;
             Matrix4 modelView = modelRotation_ * modelScale_ * modelTranslation_ * view_;
             Point mouseLocation = new Point(mouseX, mouseY);
             float minDist = float.MaxValue;
