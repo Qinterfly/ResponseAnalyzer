@@ -3,6 +3,7 @@ help
 examples/RRJ-95*
 examples/Airplane*
 examples/Yak130*
+examples/MC-21*
 project/bin
 project/obj
 TODO.txt

@@ -193,13 +193,14 @@ namespace ResponseAnalyzer
             {
                 buttonCopyTemplateObjects.Enabled = true;
                 string baseChart = buttonCopyTemplateObjects.Tag.ToString();
+				buttonCopyTemplateObjects.Tag = null;
                 if (baseChart.Equals(chart))
                     return;
                 listBoxTemplateCharts.SelectedItem = baseChart;
                 ChartTypes baseType = charts_.type[baseChart];
-                if (charts_.selection[chart].Count == 0 || baseType == ChartTypes.UNKNOWN || type == ChartTypes.UNKNOWN)
+                if (charts_.selection[baseChart].Count == 0 || baseType == ChartTypes.UNKNOWN || type == ChartTypes.UNKNOWN)
                     return;
-                convertSelection(baseChart, chart, baseType, type);
+                convertSelection(chart, baseChart, type, baseType);
                 type = baseType;
                 chart = baseChart;
             }

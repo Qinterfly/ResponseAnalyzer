@@ -88,6 +88,8 @@ namespace ResponseAnalyzer
                         sign = -1.0;
                     string componentName = properties["Point id component"];
                     string nodeName = properties["Point id node"];
+					if (!componentSet.mapNodeNames.ContainsKey(componentName) || !componentSet.mapNodeNames[componentName].ContainsKey(nodeName))
+						continue;
                     uint indNode = componentSet.mapNodeNames[componentName][nodeName];
                     double[,] refAngles = (double[,])componentSet.nodeAngles[componentName];
                     double multAngles = 1.0;

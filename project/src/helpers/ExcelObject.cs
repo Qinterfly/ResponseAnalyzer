@@ -82,11 +82,84 @@ namespace ResponseAnalyzer
                 chartSheets_ = new List<string>();
                 indMarkers_ = new Dictionary<string, int>();
                 customMarkers_ = new Dictionary<string, List<MarkerProperty>>();
+				indLines_ = new Dictionary<string, int>();
+				customLines_ = new Dictionary<string, List<LineProperty>>();
                 path_ = path;
                 retrieveCharts();
-                createMarkers(); // Specifying the styles sequence
+                createMarkers(); // Specifying the styles sequence of markers
+				createLines();   // Specifying the styles of lines
             }
         }
+		
+		public void createLines()
+		{
+			// Standard lines
+            standardLines_ = new List<LineProperty>();
+            standardLines_.Add(new LineProperty { lineStyle = eLineStyle.Solid, isMarkersEnabled = true, isTransparent = false });
+            List<string> chartNames = getChartNames();
+            foreach (string chart in chartNames)
+                customLines_.Add(chart, null);
+			ExcelWorksheet linesSheet = null;
+            foreach (ExcelWorksheet sheet in package_.Workbook.Worksheets)
+				if (sheet.Name == linesSheetName_)
+                    linesSheet = sheet;
+			if (linesSheet == null)
+				return;
+			int nColumns = linesSheet.Dimension.Columns;
+			int nRows = linesSheet.Dimension.Rows;
+			for (int iColumn = 1; iColumn <= nColumns; ++iColumn)
+			{
+				string chart = linesSheet.Cells[1, iColumn].Text;
+				if (String.IsNullOrEmpty(chart))
+					break;
+				if (!customLines_.ContainsKey(chart))
+					continue;
+				List<LineProperty> lineProperties = new List<LineProperty>();
+				for (int iRow = 2; iRow <= nRows; ++iRow)
+				{
+					string description = linesSheet.Cells[iRow, iColumn].Text.ToLower();
+					LineProperty line = new LineProperty();
+                    bool isCorrect = true;
+					switch (description)
+					{
+						case "━":
+							line.lineStyle = eLineStyle.Solid;
+							line.isMarkersEnabled = false;
+                            line.isTransparent = false;
+                            break;
+                        case "--":
+                            line.lineStyle = eLineStyle.Dash;
+                            line.isMarkersEnabled = false;
+                            line.isTransparent = false;
+                            break;
+                        case "x":
+                            line.lineStyle = eLineStyle.Solid;
+                            line.isMarkersEnabled = true;
+                            line.isTransparent = true;
+                            break;
+						case "x━":
+                            line.lineStyle = eLineStyle.Solid;
+                            line.isMarkersEnabled = true;
+                            line.isTransparent = false;
+                            break;
+                        case "x--":
+                            line.lineStyle = eLineStyle.Dash;
+                            line.isMarkersEnabled = true;
+                            line.isTransparent = false;
+                            break;
+                        default:
+                            isCorrect = false;
+                            break;
+                    }
+					// If a marker fits the set of the predefined words
+					if (isCorrect)
+						lineProperties.Add(line);
+					else
+						break;
+				}
+				customLines_[chart] = lineProperties;
+			}	
+		}
 
         public void createMarkers()
         {
@@ -106,72 +179,73 @@ namespace ResponseAnalyzer
             foreach (string chart in chartNames)
                 customMarkers_.Add(chart, null);
             ExcelWorksheet markersSheet = null;
-            foreach (ExcelWorksheet sheet in package_.Workbook.Worksheets){
+            foreach (ExcelWorksheet sheet in package_.Workbook.Worksheets)
+			{
                 if (sheet.Name == markersSheetName_)
                     markersSheet = sheet;
             }
+			// Reading the defined sequence of markers
             if (markersSheet == null)
-                return;
-            // Reading the defined sequence
-            int nColumns = markersSheet.Dimension.Columns;
-            int nRows = markersSheet.Dimension.Rows;
-            for (int iColumn = 1; iColumn <= nColumns; ++iColumn)
-            {
-                string chart = markersSheet.Cells[1, iColumn].Text;
-                if (String.IsNullOrEmpty(chart))
-                    break;
-                if (!customMarkers_.ContainsKey(chart))
-                    continue;
-                List<MarkerProperty> properties = new List<MarkerProperty>();
-                for (int iRow = 2; iRow <= nRows; ++iRow)
-                {
-                    string description = markersSheet.Cells[iRow, iColumn].Text.ToLower();
-                    MarkerProperty marker = new MarkerProperty();
-                    marker.style = eMarkerStyle.None;
-                    marker.fillColor = Color.White;
-                    switch (description)
-                    {
-                        case "□":
-                            marker.style = eMarkerStyle.Square;
-                            break;
-                        case "■":
-                            marker.style = eMarkerStyle.Square;
-                            marker.fillColor = Color.Black;
-                            break;
-                        case "○":
-                            marker.style = eMarkerStyle.Circle;
-                            break;
-                        case "●":
-                            marker.style = eMarkerStyle.Circle;
-                            marker.fillColor = Color.Black;
-                            break;
-                        case "△":
-                            marker.style = eMarkerStyle.Triangle;
-                            break;
-                        case "▲":
-                            marker.style = eMarkerStyle.Triangle;
-                            marker.fillColor = Color.Black;
-                            break;
-                        case "◇":
-                            marker.style = eMarkerStyle.Diamond;
-                            break;
-                        case "◆":
-                            marker.style = eMarkerStyle.Diamond;
-                            marker.fillColor = Color.Black;
-                            break;
-                        case "x":
-                            marker.style = eMarkerStyle.X;
-                            marker.fillColor = Color.Black;
-                            break;
-                    }
-                    // If a marker fits the set of the predefined words
-                    if (marker.style != eMarkerStyle.None)
-                        properties.Add(marker);
-                    else
-                        break;
-                }
-                customMarkers_[chart] = properties;
-            }
+				return;
+			int nColumns = markersSheet.Dimension.Columns;
+			int nRows = markersSheet.Dimension.Rows;
+			for (int iColumn = 1; iColumn <= nColumns; ++iColumn)
+			{
+				string chart = markersSheet.Cells[1, iColumn].Text;
+				if (String.IsNullOrEmpty(chart))
+					break;
+				if (!customMarkers_.ContainsKey(chart))
+					continue;
+				List<MarkerProperty> markerProperties = new List<MarkerProperty>();
+				for (int iRow = 2; iRow <= nRows; ++iRow)
+				{
+					string description = markersSheet.Cells[iRow, iColumn].Text.ToLower();
+					MarkerProperty marker = new MarkerProperty();
+					marker.style = eMarkerStyle.None;
+					marker.fillColor = Color.White;
+					switch (description)
+					{
+						case "□":
+							marker.style = eMarkerStyle.Square;
+							break;
+						case "■":
+							marker.style = eMarkerStyle.Square;
+							marker.fillColor = Color.Black;
+							break;
+						case "○":
+							marker.style = eMarkerStyle.Circle;
+							break;
+						case "●":
+							marker.style = eMarkerStyle.Circle;
+							marker.fillColor = Color.Black;
+							break;
+						case "△":
+							marker.style = eMarkerStyle.Triangle;
+							break;
+						case "▲":
+							marker.style = eMarkerStyle.Triangle;
+							marker.fillColor = Color.Black;
+							break;
+						case "◇":
+							marker.style = eMarkerStyle.Diamond;
+							break;
+						case "◆":
+							marker.style = eMarkerStyle.Diamond;
+							marker.fillColor = Color.Black;
+							break;
+						case "x":
+							marker.style = eMarkerStyle.X;
+							marker.fillColor = Color.Black;
+							break;
+					}
+					// If a marker fits the set of the predefined words
+					if (marker.style != eMarkerStyle.None)
+						markerProperties.Add(marker);
+					else
+						break;
+				}
+				customMarkers_[chart] = markerProperties;
+			}
         }
 
         public void addSeries(string chartName, double[,] data, string dataName)
@@ -235,17 +309,34 @@ namespace ResponseAnalyzer
             List<MarkerProperty> markers = customMarkers_[chartName]; 
             if (markers == null || markers.Count == 0)
                 markers = standardMarkers_;
-            MarkerProperty properties = markers[indMarkers_[chartName]];
-            serie.Border.Fill.Color = Color.Black;          // Line color
-            serie.Border.Width = 1;                         // Line width
-            serie.Marker.Border.Fill.Color = Color.Black;   // Marker border color
-            serie.Marker.Border.Width = 0.75;               // Marker border width
-            serie.Marker.Size = 5;                          // Marker size
-            serie.Marker.Fill.Color = properties.fillColor; // Fill color
-            serie.Marker.Style = properties.style;          // Style
+            MarkerProperty markerProperties = markers[indMarkers_[chartName]];
+			// Using the standard lines when custom ones are not available
+			List<LineProperty> lines = customLines_[chartName]; 
+            if (lines == null || lines.Count == 0)
+                lines = standardLines_;
+			LineProperty lineProperties = lines[indLines_[chartName]];
+            int transparency = lineProperties.isTransparent ? 100 : 0; // Perecentage
+			// Specifying the properties
+            serie.Border.Fill.Color = Color.Black;          	   // Line color
+            serie.Border.LineStyle = lineProperties.lineStyle;     // Line style
+            serie.Border.Fill.Transparancy = transparency;         // Line transparency
+            serie.Border.Width = 1.0;                              // Line width
+            serie.Marker.Border.Fill.Color = Color.Black;   	   // Marker border color
+            serie.Marker.Border.Width = 0.75;               	   // Marker border width
+            serie.Marker.Size = 5;                          	   // Marker size
+            serie.Marker.Fill.Color = markerProperties.fillColor;  // Marker fill color
+			// Marker style
+			if (lineProperties.isMarkersEnabled)
+				serie.Marker.Style = markerProperties.style;      
+			else
+				serie.Marker.Style = eMarkerStyle.None;
+			// Increment markers and lines indices
             ++indMarkers_[chartName];
             if (indMarkers_[chartName] >= markers.Count)
                 indMarkers_[chartName] = 0;
+			++indLines_[chartName];
+			if (indLines_[chartName] >= lines.Count)
+                indLines_[chartName] = 0;
             // Legend
             serie.Header = dataName;
             // Shifting data locations
@@ -285,9 +376,14 @@ namespace ResponseAnalyzer
             charts_ = another.charts_;
             chartSheets_ = another.chartSheets_;
             path_ = another.path_;
+			// Markers
             indMarkers_ = another.indMarkers_;
             standardMarkers_ = another.standardMarkers_;
             customMarkers_ = another.customMarkers_;
+			// Lines
+			indLines_ = another.indLines_;
+			standardLines_ = another.standardLines_;
+			customLines_ = another.customLines_;
         }
 
         public bool isOpened()
@@ -315,6 +411,7 @@ namespace ResponseAnalyzer
                         charts_.Add(drawing);
                         chartSheets_.Add(worksheet.Name);
                         indMarkers_.Add(drawing.Name, 0);
+						indLines_.Add(drawing.Name, 0);
                     }
                 }
             }
@@ -331,11 +428,16 @@ namespace ResponseAnalyzer
         // Worksheet
         ExcelWorksheet workSheet_ = null;
         const string workSheetName_ = "ChartData";
-        // Style
+        // Marker styles
         Dictionary<string, int> indMarkers_;
         List<MarkerProperty> standardMarkers_;
         Dictionary<string, List<MarkerProperty>> customMarkers_;
         const string markersSheetName_ = "Markers";
+		// Line styles
+	    Dictionary<string, int> indLines_;
+		List<LineProperty> standardLines_;
+		Dictionary<string, List<LineProperty>> customLines_;
+		const string linesSheetName_ = "Lines";
     }
 
     public struct ChartPosition
@@ -356,5 +458,12 @@ namespace ResponseAnalyzer
     {
         public Color fillColor;
         public eMarkerStyle style;
+    }
+	
+	public class LineProperty
+    {
+        public eLineStyle lineStyle;
+        public bool isMarkersEnabled;
+        public bool isTransparent;
     }
 }

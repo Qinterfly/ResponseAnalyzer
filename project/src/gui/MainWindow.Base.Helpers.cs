@@ -20,7 +20,7 @@ namespace ResponseAnalyzer
             {
                 // Nodes -> Nodes
                 if (isNodeType(refType))
-                    charts_.selection[baseChart] = tempObjects;
+                    charts_.selection[baseChart].AddRange(tempObjects);
                 // Lines -> Nodes
                 if (isLineType(refType))
                 {
@@ -37,7 +37,7 @@ namespace ResponseAnalyzer
             {
                 // Lines -> Lines
                 if (isLineType(refType))
-                    charts_.selection[baseChart] = tempObjects;
+                    charts_.selection[baseChart].AddRange(tempObjects);
                 // Nodes -> Line
                 if (isNodeType(refType))
                 {
