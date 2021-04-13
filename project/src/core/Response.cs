@@ -12,6 +12,7 @@ namespace ResponseAnalyzer
             data = new Dictionary<SignalUnits, double[,]>();
             data.Add(SignalUnits.MILLIMETERS, null);
             data.Add(SignalUnits.METERS_PER_SECOND2, null);
+            reference = null;
         }
 
         public bool equals(Response another)
@@ -81,5 +82,14 @@ namespace ResponseAnalyzer
         // Info
         public string signalName { get; set; }
         public string path { get; set; }
+        public ReferenceResponse reference { get; set; }
+    }
+
+    public class ReferenceResponse
+    {
+        public string component;
+        public string node;
+        public ChartDirection direction;
+        public double directionSign;
     }
 }

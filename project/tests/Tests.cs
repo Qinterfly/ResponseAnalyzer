@@ -9,8 +9,8 @@ namespace ResponseAnalyzer
             //string path = Path.GetFullPath(@"..\..\..\examples\Plate.lms");
             //string path = Path.GetFullPath(@"..\..\..\examples\Rib.lms");
             //string path = Path.GetFullPath(@"..\..\..\examples\Airplane.lms");
-            string path = Path.GetFullPath(@"..\..\..\examples\Yak130.lms");
-            //string path = Path.GetFullPath(@"..\..\..\examples\MC-21.lms");
+            //string path = Path.GetFullPath(@"..\..\..\examples\Yak130.lms");
+            string path = Path.GetFullPath(@"..\..\..\examples\MC-21.lms");
             project = new LMSProject(path);
             textBoxProjectPath.Text = path;
             modelRenderer_.setGeometry(project.geometry_);

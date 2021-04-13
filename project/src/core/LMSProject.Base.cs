@@ -35,8 +35,8 @@ namespace ResponseAnalyzer
 
         // User's methods
         public bool isProjectOpened()
-        { 
-            return app_ != null; 
+        {
+            return app_ != null;
         }
 
         // Clear signals selected at once
@@ -52,11 +52,12 @@ namespace ResponseAnalyzer
         }
 
         // Select a folder through the navigator
-        public int selectSignals(in ComponentGeometry componentSet, bool isAccumulate) 
+        public int selectSignals(in ComponentGeometry componentSet, bool isAccumulate)
         {
             DataWatch dataWatch = app_.ActiveBook.FindDataWatch("Navigator_SelectedOIDs");
             IData dataSelected = dataWatch.Data;
             int iSelected = 0;
+            const int kFRFType = 12;
             try
             {
                 AttributeMap attributeMap = dataSelected.AttributeMap;
@@ -68,7 +69,7 @@ namespace ResponseAnalyzer
                 {
                     signals_.Clear();
                     resultSignals = signals_;
-                }             
+                }
                 for (int iSignal = 0; iSignal != nSelected; ++iSignal)
                 {
                     DataWatch blockWatch = app_.FindDataWatch(attributeMap[iSignal]);
@@ -80,7 +81,7 @@ namespace ResponseAnalyzer
                     // Retreiving signals
                     IBlock2 signal = blockWatch.Data;
                     double[] frequency = (double[])signal.XValues;
-                    double[,] responseMS2  = (double[,])signal.YValues; // Units: m / s ^ 2
+                    double[,] responseMS2 = (double[,])signal.YValues; // Units: m/s^2 or (m/s^2)/N 
                     // Retrieving additional info
                     AttributeMap properties = signal.Properties;
                     double sign = 1.0;
@@ -88,8 +89,8 @@ namespace ResponseAnalyzer
                         sign = -1.0;
                     string componentName = properties["Point id component"];
                     string nodeName = properties["Point id node"];
-					if (!componentSet.mapNodeNames.ContainsKey(componentName) || !componentSet.mapNodeNames[componentName].ContainsKey(nodeName))
-						continue;
+                    if (!componentSet.mapNodeNames.ContainsKey(componentName) || !componentSet.mapNodeNames[componentName].ContainsKey(nodeName))
+                        continue;
                     uint indNode = componentSet.mapNodeNames[componentName][nodeName];
                     double[,] refAngles = (double[,])componentSet.nodeAngles[componentName];
                     double multAngles = 1.0;
@@ -98,7 +99,7 @@ namespace ResponseAnalyzer
                         multAngles *= Math.Cos(refAngles[indNode, k]);
                     // Integrating the acceleration twice
                     IBlock2 signalIntergral2 = app_.cmd.BLOCK_INTEGRATE(signal, 2, CONST_EnumIntegrationMethod.IntegrationMethodBode);
-                    double[,] responseMM = (double[,])signalIntergral2.YValues; // Units: m (!)
+                    double[,] responseMM = (double[,])signalIntergral2.YValues; // Units: m or m/N (!)
                     // Normalizing signals
                     double resMultMS2 = sign * multAngles;
                     double resMultMM = resMultMS2 * METERS_TO_MILLIMETERS;
@@ -119,20 +120,21 @@ namespace ResponseAnalyzer
                     currentResponse.frequency = frequency;
                     currentResponse.data[SignalUnits.MILLIMETERS] = responseMM;
                     currentResponse.data[SignalUnits.METERS_PER_SECOND2] = responseMS2;
-                    string direction = properties["Point direction absolute"];
-                    ChartDirection chartDir = ChartDirection.UNKNOWN;
-                    switch (direction)
+                    // Checking the reference point in case of FRF                        
+                    int iFunctionClass = properties["Function class"].AttributeMap["EnumValue"];
+                    bool isFRF = iFunctionClass == kFRFType;
+                    if (isFRF)
                     {
-                        case "X":
-                            chartDir = ChartDirection.X;
-                            break;
-                        case "Y":
-                            chartDir = ChartDirection.Y;
-                            break;
-                        case "Z":
-                            chartDir = ChartDirection.Z;
-                            break;
+                        ReferenceResponse reference = new ReferenceResponse();
+                        reference.component = properties["Reference point id component"];
+                        reference.node = properties["Reference point id node"];
+                        reference.direction = getDirection(properties["Reference point direction absolute"]);
+                        reference.directionSign = properties["Reference point direction sign"] == "-" ? -1.0 : 1.0;
+                        currentResponse.reference = reference;
                     }
+                    // Setting the direction
+                    string direction = properties["Point direction absolute"];
+                    ChartDirection chartDir = getDirection(direction);
                     // Adding the results
                     string nodeFullName = properties["Point id"];
                     if (!resultSignals.ContainsKey(nodeFullName)) {
@@ -153,15 +155,33 @@ namespace ResponseAnalyzer
                     }
                     // Each node may have several responses along one direction (selection from several folders)
                     if (!isDuplicate)
-                        existedResponses.Add(currentResponse); 
+                        existedResponses.Add(currentResponse);
                     ++iSelected;
                 }
                 return iSelected;
-        }
+            }
             catch
             {
                 return -1;
             }
+        }
+
+        public ChartDirection getDirection(string direction)
+        {
+            ChartDirection chartDir = ChartDirection.UNKNOWN;
+            switch (direction)
+            {
+                case "X":
+                    chartDir = ChartDirection.X;
+                    break;
+                case "Y":
+                    chartDir = ChartDirection.Y;
+                    break;
+                case "Z":
+                    chartDir = ChartDirection.Z;
+                    break;
+            }
+            return chartDir;
         }
 
         // Properties and fields
