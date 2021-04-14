@@ -29,9 +29,10 @@ namespace ResponseAnalyzer
             database_ = app_.ActiveBook.Database();
             geometry_ = (IGeometry)database_.GetItem("Geometry");
             // Allocating memory for further responses
-            forces_ = new ResponseArray();
             signals_ = new ResponseArray();
+            forces_ = new ResponseArray();
             multiSignals_ = new ResponseArray();
+            multiForces_ = new ResponseArray();
         }
 
         // User's methods
@@ -44,12 +45,14 @@ namespace ResponseAnalyzer
         public void clearSignals()
         {
             signals_.Clear();
+            forces_.Clear();
         }
 
         // Clear accumulated signals
-        public void clearAccumulatedSignals()
+        public void clearMultiSignals()
         {
             multiSignals_.Clear();
+            multiForces_.Clear();
         }
 
         // Select a folder through the navigator
@@ -63,6 +66,18 @@ namespace ResponseAnalyzer
             {
                 AttributeMap attributeMap = dataSelected.AttributeMap;
                 int nSelected = attributeMap.Count;
+                ResponseArray resultSignals;
+                ResponseArray resultForces;
+                if (isMulti)
+                {
+                    resultSignals = multiSignals_;
+                    resultForces = multiForces_;
+                }
+                else 
+                {
+                    resultSignals = signals_;
+                    resultForces = forces_;
+                }
                 for (int iSignal = 0; iSignal != nSelected; ++iSignal)
                 {
                     DataWatch blockWatch = app_.FindDataWatch(attributeMap[iSignal]);
@@ -79,17 +94,12 @@ namespace ResponseAnalyzer
                     bool isAdded = false;
                     if (measuredQuantity.Equals("Acceleration")) {
                         currentResponse = retrieveAcceleration(path, componentSet, signal, properties);
-                        ResponseArray resultSignals;
-                        if (isMulti)
-                            resultSignals = multiSignals_;
-                        else
-                            resultSignals = signals_;
                         isAdded = addResponse(properties, currentResponse, resultSignals);
                     }
                     else if (measuredQuantity.Equals("Force"))
                     {
                         currentResponse = retrieveForce(path, componentSet, signal, properties);
-                        isAdded = addResponse(properties, currentResponse, forces_);
+                        isAdded = addResponse(properties, currentResponse, resultForces);
                         isResolveReferences = true;
                     }
                     if (!isAdded)
@@ -97,10 +107,7 @@ namespace ResponseAnalyzer
                     ++iSelected;
                 }
                 if (isResolveReferences)
-                {
-                    resolveReferences(signals_);
-                    resolveReferences(multiSignals_);
-                }
+                    resolveReferences(resultSignals, isMulti);
                 return iSelected;
             }
             catch
@@ -145,7 +152,7 @@ namespace ResponseAnalyzer
             }
             // Creating the holder for the response
             Response currentResponse = new Response();
-            currentResponse.originalRun = properties["Original run"];
+            currentResponse.originalRun = properties["Original run"].AttributeMap["Contents"];
             currentResponse.signalName = signal.Label;
             currentResponse.path = path;
             currentResponse.frequency = frequency;
@@ -195,7 +202,7 @@ namespace ResponseAnalyzer
                 force[k, 1] *= multAngles * (-1.0); 
             }
             Response currentResponse = new Response();
-            currentResponse.originalRun = properties["Original run"];
+            currentResponse.originalRun = properties["Original run"].AttributeMap["Contents"];
             currentResponse.signalName = signal.Label;
             currentResponse.path = path;
             currentResponse.frequency = frequency;
@@ -203,7 +210,7 @@ namespace ResponseAnalyzer
             return currentResponse;
         }
 
-        public bool addResponse(in AttributeMap properties, in Response currentResponse, in ResponseArray resultSignals)
+        public bool addResponse(in AttributeMap properties, in Response currentResponse, in ResponseArray resultResponses)
         {
             if (currentResponse == null)
                 return false;
@@ -212,12 +219,12 @@ namespace ResponseAnalyzer
             ChartDirection chartDir = getDirection(direction);
             // Adding the results
             string nodeFullName = properties["Point id"];
-            if (!resultSignals.ContainsKey(nodeFullName))
+            if (!resultResponses.ContainsKey(nodeFullName))
             {
-                resultSignals.Add(nodeFullName, new Dictionary<ChartDirection, List<Response>>());
+                resultResponses.Add(nodeFullName, new Dictionary<ChartDirection, List<Response>>());
             }
             Dictionary<ChartDirection, List<Response>> dictDirections = null;
-            dictDirections = resultSignals[nodeFullName];
+            dictDirections = resultResponses[nodeFullName];
             if (!dictDirections.ContainsKey(chartDir))
                 dictDirections.Add(chartDir, new List<Response>());
             // Check if the signal duplicates an already added one
@@ -253,7 +260,7 @@ namespace ResponseAnalyzer
             return chartDir;
         }
 
-        void resolveReferences(in ResponseArray signals)
+        void resolveReferences(in ResponseArray signals, in bool isMulti)
         {
             var nodeKeys = signals.Keys;
             foreach (string node in nodeKeys)
@@ -268,7 +275,7 @@ namespace ResponseAnalyzer
                         ResponseReference reference = response.reference;
                         if (reference != null && !reference.isResolved)
                         {
-                            Response force = findForce(response.originalRun, reference);
+                            Response force = findForce(response.originalRun, reference, isMulti);
                             if (force == null)
                                 continue;
                             double[,] forceData = force.data[SignalUnits.NEWTON];
@@ -300,15 +307,20 @@ namespace ResponseAnalyzer
             }
         }
 
-        public Response findForce(in string originalRun, in ResponseReference reference)
+        public Response findForce(in string originalRun, in ResponseReference reference, bool isMulti)
         {
+            ResponseArray forces;
+            if (isMulti)
+                forces = multiForces_;
+            else
+                forces = forces_;
             string refNode = reference.nodeFullName;
             ChartDirection refDirection = reference.direction;
-            if (forces_.ContainsKey(refNode))
+            if (forces.ContainsKey(refNode))
             {
-                if (forces_[refNode].ContainsKey(refDirection))
+                if (forces[refNode].ContainsKey(refDirection))
                 {
-                    List<Response> listForces = forces_[refNode][refDirection];
+                    List<Response> listForces = forces[refNode][refDirection];
                     foreach (Response force in listForces)
                     {
                         if (force.originalRun.Equals(originalRun))
@@ -331,6 +343,7 @@ namespace ResponseAnalyzer
         public ResponseArray forces_ { get; set; }
         public ResponseArray signals_ { get; set; }
         public ResponseArray multiSignals_ { get; set; } // Signals from several folders
+        public ResponseArray multiForces_ { get; set; }  // Forces from several folders
         private string path_;
     }
 

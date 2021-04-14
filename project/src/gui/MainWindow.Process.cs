@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace ResponseAnalyzer
 {
+    using ResponseArray = Dictionary<string, Dictionary<ChartDirection, List<Response>>>;
     public enum SelectionMode { SINGLE, MULTI }
 
     public partial class ResponseAnalyzer
@@ -131,7 +132,7 @@ namespace ResponseAnalyzer
                     textBoxResonanceFrequency.Tag = -1;
                     break;
                 case SelectionMode.MULTI:
-                    project.clearAccumulatedSignals();
+                    project.clearMultiSignals();
                     multiFrequency_.Clear();
                     multiFrequencyIndices_.Clear();
                     mapResponses_.Clear();
@@ -221,7 +222,7 @@ namespace ResponseAnalyzer
                         }
                         Response response = project.signals_[node][direction][0];
                         // Slice data by the selected index
-                        if (!response.data.ContainsKey(units))
+                        if (!response.data.ContainsKey(units) || response.data[units] == null)
                             continue;
                         double[,] refFullData = response.data[units];
                         double[,] data = new double[nSingleFrequency, 2];
@@ -274,7 +275,7 @@ namespace ResponseAnalyzer
                             coordinates.Add(componentCoordinates[indNode, tInd]);
                             // Retreiving the function value
                             Response response = project.signals_[node][direction][0];
-                            if (!response.data.ContainsKey(units))
+                            if (!response.data.ContainsKey(units) || response.data[units] == null)
                                 continue;
                             double[,] refFullData = response.data[units];
                             values.Add(refFullData[indResonance, 1]); // Imaginary part of the signal
@@ -313,7 +314,7 @@ namespace ResponseAnalyzer
                         foreach (Response response in dirNodeSignals)
                         {
                             // Slice data by the selected index
-                            if (!response.data.ContainsKey(units))
+                            if (!response.data.ContainsKey(units) || response.data[units] == null)
                                 continue;
                             double[,] refFullData = response.data[units];
                             List<int> indices = multiFrequencyIndices_[mapResponses_[response.path]];
@@ -354,7 +355,7 @@ namespace ResponseAnalyzer
                         int k = 0;
                         foreach (Response response in dirNodeSignals)
                         {
-                            if (!response.data.ContainsKey(units))
+                            if (!response.data.ContainsKey(units) || response.data[units] == null)
                                 continue;
                             Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units);
                             if (pair != null) { 
@@ -384,61 +385,73 @@ namespace ResponseAnalyzer
         // Retrieve all the selected sets
         public void retrieveTestLabSelection()
         {
+            const string forcePrefix = "Force ";
             listBoxFoundSignals.Items.Clear();
             listBoxFrequency.Items.Clear();
             SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
             switch (mode)
             {
                 case SelectionMode.SINGLE:
-                    Response response = null;
-                    var signals = project.signals_;
-                    foreach (string nodeName in signals.Keys)
-                    {
-                        var nodeSignal = signals[nodeName];
-                        foreach (ChartDirection dir in nodeSignal.Keys)
-                        {
-                            response = nodeSignal[dir][0];
-                            listBoxFoundSignals.Items.Add(response.signalName);
-                        }
-                    }
+                    Response response = retrieveSingleSelection(project.signals_);
                     // If signals have been selected
                     if (response != null) 
                     {
                         foreach (double freq in response.frequency)
                             listBoxFrequency.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
                     }
+                    retrieveSingleSelection(project.forces_, forcePrefix);
                     break;
                 case SelectionMode.MULTI:
                     multiFrequency_.Clear();
                     multiFrequencyIndices_.Clear();
                     mapResponses_.Clear();
-                    var multiSignals = project.multiSignals_;
-                    string label;
-                    foreach (string nodeName in multiSignals.Keys)
-                    {
-                        var nodeSignal = multiSignals[nodeName];
-                        foreach (ChartDirection dir in nodeSignal.Keys)
-                        {
-                            var dirNodeSignal = multiSignals[nodeName][dir];
-                            foreach (Response multiResponse in dirNodeSignal)
-                            {
-                                label = multiResponse.signalName + " (" + getForceValue(multiResponse.path) + "H)";
-                                // Check if a label is a dubplicate
-                                foreach (string item in listBoxFoundSignals.Items)
-                                {
-                                    if (item.Equals(label))
-                                        label += "-Copy";
-                                }
-                                listBoxFoundSignals.Items.Add(label);
-                                multiFrequency_.Add(label, multiResponse.frequency);
-                                multiFrequencyIndices_.Add(label, Enumerable.Range(0, multiResponse.frequency.Length).ToList());
-                                mapResponses_.Add(multiResponse.path, label);
-                            }
-                        }
-                    }
+                    retrieveMultiSelection(project.multiSignals_); 
+                    retrieveMultiSelection(project.multiForces_, forcePrefix); 
                     if (listBoxFoundSignals.Items.Count > 0)
                         listBoxFoundSignals.SelectedIndex = listBoxFoundSignals.Items.Count - 1;
                     break;
+            }
+        }
+
+        private Response retrieveSingleSelection(ResponseArray signals, string prefixName = "")
+        {
+            Response response = null;
+            foreach (string nodeName in signals.Keys)
+            {
+                var nodeSignal = signals[nodeName];
+                foreach (ChartDirection dir in nodeSignal.Keys)
+                {
+                    response = nodeSignal[dir][0];
+                    listBoxFoundSignals.Items.Add(prefixName + response.signalName);
+                }
+            }
+            return response;
+        }
+
+        private void retrieveMultiSelection(ResponseArray multiSignals, string prefixName = "")
+        {
+            string label;
+            foreach (string nodeName in multiSignals.Keys)
+            {
+                var nodeSignal = multiSignals[nodeName];
+                foreach (ChartDirection dir in nodeSignal.Keys)
+                {
+                    var dirNodeSignal = multiSignals[nodeName][dir];
+                    foreach (Response multiResponse in dirNodeSignal)
+                    {
+                        label = multiResponse.signalName + " (" + getForceValue(multiResponse.path) + "H)";
+                        // Check if a label is a dubplicate
+                        foreach (string item in listBoxFoundSignals.Items)
+                        {
+                            if (item.Equals(label))
+                                label += "-Copy";
+                        }
+                        listBoxFoundSignals.Items.Add(label);
+                        multiFrequency_.Add(label, multiResponse.frequency);
+                        multiFrequencyIndices_.Add(label, Enumerable.Range(0, multiResponse.frequency.Length).ToList());
+                        mapResponses_.Add(multiResponse.path, label);
+                    }
+                }
             }
         }
 
