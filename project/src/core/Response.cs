@@ -82,13 +82,14 @@ namespace ResponseAnalyzer
         // Info
         public string signalName { get; set; }
         public string path { get; set; }
-        public ReferenceResponse reference { get; set; }
+        public string originalRun { get; set; }
+        public ResponseReference reference { get; set; }
     }
 
-    public class ReferenceResponse
+    public class ResponseReference
     {
-        public string component;
-        public string node;
+        public bool isResolved = false;
+        public string nodeFullName;
         public ChartDirection direction;
         public double directionSign;
     }

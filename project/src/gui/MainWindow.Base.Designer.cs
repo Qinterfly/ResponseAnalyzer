@@ -557,7 +557,9 @@ namespace ResponseAnalyzer
             this.comboBoxTemplateUnits.Items.AddRange(new object[] {
             "",
             "mm",
-            "m/s^2"});
+            "m/s^2",
+            "mm/N",
+            "(m/s^2)/N"});
             this.comboBoxTemplateUnits.Location = new System.Drawing.Point(258, 3);
             this.comboBoxTemplateUnits.Margin = new System.Windows.Forms.Padding(0);
             this.comboBoxTemplateUnits.Name = "comboBoxTemplateUnits";

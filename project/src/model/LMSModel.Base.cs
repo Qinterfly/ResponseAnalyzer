@@ -30,7 +30,8 @@ namespace ResponseAnalyzer
         MILLIMETERS,
         METERS_PER_SECOND2,
         MILLIMETERS_PER_FORCE,
-        METERS_PER_SECOND2_PER_FORCE 
+        METERS_PER_SECOND2_PER_FORCE,
+        NEWTON
     }
     public enum ChartDirection { UNKNOWN, X, Y, Z}
 

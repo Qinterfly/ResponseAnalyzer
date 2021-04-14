@@ -221,6 +221,8 @@ namespace ResponseAnalyzer
                         }
                         Response response = project.signals_[node][direction][0];
                         // Slice data by the selected index
+                        if (!response.data.ContainsKey(units))
+                            continue;
                         double[,] refFullData = response.data[units];
                         double[,] data = new double[nSingleFrequency, 2];
                         int iSelected;
@@ -272,17 +274,22 @@ namespace ResponseAnalyzer
                             coordinates.Add(componentCoordinates[indNode, tInd]);
                             // Retreiving the function value
                             Response response = project.signals_[node][direction][0];
+                            if (!response.data.ContainsKey(units))
+                                continue;
                             double[,] refFullData = response.data[units];
                             values.Add(refFullData[indResonance, 1]); // Imaginary part of the signal
                         }
-                        int nNodes = coordinates.Count;
-                        double[,] data = new double[nNodes, 2];
-                        for (int i = 0; i != nNodes; ++i)
-                        {
-                            data[i, indX] = coordinates[i] / norm;
-                            data[i, indY] = values[i] * signData;
+                        if (values.Count > 0)
+                        { 
+                            int nNodes = coordinates.Count;
+                            double[,] data = new double[nNodes, 2];
+                            for (int i = 0; i != nNodes; ++i)
+                            {
+                                data[i, indX] = coordinates[i] / norm;
+                                data[i, indY] = values[i] * signData;
+                            }
+                            excelResult.addSeries(chart, data, nameLine);
                         }
-                        excelResult.addSeries(chart, data, nameLine);
                     }
                 }
                 // Multi-FRF
@@ -306,6 +313,8 @@ namespace ResponseAnalyzer
                         foreach (Response response in dirNodeSignals)
                         {
                             // Slice data by the selected index
+                            if (!response.data.ContainsKey(units))
+                                continue;
                             double[,] refFullData = response.data[units];
                             List<int> indices = multiFrequencyIndices_[mapResponses_[response.path]];
                             int nIndices = indices.Count;
@@ -318,8 +327,11 @@ namespace ResponseAnalyzer
                                 data[i, indY] = refFullData[iSelected, iType] * signData;
                             }
                             // Retrieving force value
-                            string force = "F = " + getForceValue(response.path) + " Н";
-                            excelResult.addSeries(chart, data, force);
+                            if (data.GetLength(0) > 0)
+                            {
+                                string force = "F = " + getForceValue(response.path) + " Н";
+                                excelResult.addSeries(chart, data, force);
+                            }
                         }
                     }
                 }
@@ -342,6 +354,8 @@ namespace ResponseAnalyzer
                         int k = 0;
                         foreach (Response response in dirNodeSignals)
                         {
+                            if (!response.data.ContainsKey(units))
+                                continue;
                             Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units);
                             if (pair != null) { 
                                 data[k, indX] = pair.Item1; // Frequency
@@ -349,8 +363,11 @@ namespace ResponseAnalyzer
                                 ++k;
                             }
                         }
-                        string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
-                        excelResult.addSeries(chart, data, ptrNode);
+                        if (data.GetLength(0) > 0)
+                        {
+                            string ptrNode = "т. " + node.Split(selectionDelimiter_)[1];
+                            excelResult.addSeries(chart, data, ptrNode);
+                        }
                     }
                 }
             }
