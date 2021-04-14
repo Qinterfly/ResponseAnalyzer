@@ -277,18 +277,22 @@ namespace ResponseAnalyzer
                             if (nResponse != forceData.GetLength(0))
                                 continue;
                             double[,] frfDisplacementData = response.data[SignalUnits.MILLIMETERS_PER_FORCE];
+                            double[,] displacementData = new double[nResponse, 2];
+                            double[,] accelerationData = new double[nResponse, 2];
                             double realForce, imagForce;
                             for (int i = 0; i != nResponse; ++i)
                             {
                                 realForce = forceData[i, 0];
                                 imagForce = forceData[i, 1];
                                 // Acceleration
-                                frfAccelerationData[i, 0] *= realForce;
-                                frfAccelerationData[i, 1] *= imagForce;
+                                accelerationData[i, 0] = frfAccelerationData[i, 0] * realForce;
+                                accelerationData[i, 1] = frfAccelerationData[i, 1] * imagForce;
                                 // Displacement
-                                frfDisplacementData[i, 0] *= realForce;
-                                frfDisplacementData[i, 1] *= imagForce;
+                                displacementData[i, 0] = frfDisplacementData[i, 0] * realForce;
+                                displacementData[i, 1] = frfDisplacementData[i, 1] * imagForce;
                             }
+                            response.data[SignalUnits.MILLIMETERS] = displacementData;
+                            response.data[SignalUnits.METERS_PER_SECOND2] = accelerationData;
                             reference.isResolved = true;
                         }
                     }
