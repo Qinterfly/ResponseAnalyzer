@@ -46,7 +46,7 @@ namespace ResponseAnalyzer
                 modelRenderer_.draw();
                 createComponentStrips();
                 if (excelTemplate_ != null && excelTemplate_.isOpened())
-                    updateExcelTemplateList();
+                    updateExcelTemplateList(true);
                 setProjectEnabled();
             }
             else if (dialogResult != DialogResult.Cancel)
@@ -76,7 +76,7 @@ namespace ResponseAnalyzer
                 if (excelTemplate_.isOpened())
                 {
                     textBoxExcelTemplatePath.Text = filePath;
-                    updateExcelTemplateList();
+                    updateExcelTemplateList(false);
                     setProjectEnabled();
                     setStatus("The Excel template file was successfully opened");
                 }
@@ -93,17 +93,20 @@ namespace ResponseAnalyzer
         }
 
         // Updating all template properties
-        private void updateExcelTemplateList()
+        private void updateExcelTemplateList(bool isNewSelection)
         {
             listBoxTemplateCharts.Items.Clear();
             treeTemplateObjects.Nodes.Clear();
             List<string> chartNames = excelTemplate_.getChartNames();
             // Preparing containers to hold the properties of charts
             charts_ = new ChartsData();
-            singleFrequencyIndices_ = new List<int>();
-            multiFrequency_ = new Dictionary<string, double[]>();
-            multiFrequencyIndices_ = new Dictionary<string, List<int>>();
-            mapResponses_ = new Dictionary<string, string>();
+            if (isNewSelection) 
+            { 
+                singleFrequencyIndices_ = new List<int>();
+                multiFrequency_ = new Dictionary<string, double[]>();
+                multiFrequencyIndices_ = new Dictionary<string, List<int>>();
+                mapResponses_ = new Dictionary<string, string>();
+            }
             foreach (string chart in chartNames) { 
                 listBoxTemplateCharts.Items.Add(chart);
                 ChartTypes defaultType = ChartTypes.UNKNOWN;
