@@ -333,6 +333,7 @@ namespace ResponseAnalyzer
         // Save changes
         public void save()
         {
+            finishAllProcesses();
             package_.Save();
         }
 
@@ -354,9 +355,8 @@ namespace ResponseAnalyzer
             }
             catch
             {
-                if (process_ != null)
-                    process_.CloseMainWindow();
-                process_ = Process.Start(path_);
+                finishAllProcesses();
+                Process.Start("EXCEL.EXE", path_);
             }
         }
 
@@ -389,13 +389,7 @@ namespace ResponseAnalyzer
             }
             catch
             {
-                var processes = Process.GetProcessesByName("Excel");
-                string windowTitle = name + extension + " - Excel";
-                foreach (var proc in processes)
-                {
-                    if (proc.MainWindowTitle.Equals(windowTitle))
-                        proc.CloseMainWindow();
-                }
+                finishAllProcesses();
                 // Copying the template
                 while (--nTryCopy > 0)
                 {
@@ -409,6 +403,13 @@ namespace ResponseAnalyzer
                     }
                 }
             }
+        }
+
+        private void finishAllProcesses()
+        {
+            var processes = Process.GetProcessesByName("Excel");
+            foreach (var proc in processes)
+                proc.CloseMainWindow();
         }
 
         private void Copy(ExcelObject another)
@@ -459,7 +460,6 @@ namespace ResponseAnalyzer
         }
 
         Excel.Application application_;
-        Process process_ = null;
         ExcelPackage package_;
         string path_ { get; set;  }
         string lastSheet_; 

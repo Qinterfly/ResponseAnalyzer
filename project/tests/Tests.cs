@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Collections.Generic;
 
 namespace ResponseAnalyzer
 {
@@ -26,6 +27,10 @@ namespace ResponseAnalyzer
             textBoxExcelTemplatePath.Text = path;
             textBoxDirectoryExcel.Text = @"C:\Users\qinterfly\Desktop";
             textBoxNameExcel.Text = "TestMe";
+            singleFrequencyIndices_ = new List<int>();
+            multiFrequency_ = new Dictionary<string, double[]>();
+            multiFrequencyIndices_ = new Dictionary<string, List<int>>();
+            mapResponses_ = new Dictionary<string, string>();
             updateExcelTemplateList();
             setProjectEnabled();
             charts_.read(templateDir + "MC-21.rep", modelRenderer_.containesNode, selectionDelimiter_);
