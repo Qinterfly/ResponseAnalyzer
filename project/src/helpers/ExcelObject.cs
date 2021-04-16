@@ -5,7 +5,8 @@ using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Drawing.Chart;
-using Microsoft.Office.Interop.Excel;
+using System.Diagnostics;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace ResponseAnalyzer
 {
@@ -13,8 +14,9 @@ namespace ResponseAnalyzer
     {
         public ExcelObject(ExcelObject template, string path, string name)
         {
+            const string extension = ".xlsx";
             string originalPath = template.path_;
-            string resPath = path + "\\" + name + ".xlsx";
+            string resPath = path + "\\" + name + extension;
             // Looking for an available name if a template equals a resulting file
             if (Path.GetFileNameWithoutExtension(originalPath).Equals(name))
             {
@@ -22,31 +24,12 @@ namespace ResponseAnalyzer
                 while (!isAvailable)
                 {
                     name += "-copy";
-                    resPath = path + "\\" + name + ".xlsx";
+                    resPath = path + "\\" + name + extension;
                     isAvailable = !(new FileInfo(name).Exists);
                 }
             }
-            // Retreiving a copy of an already running application
-            try 
-            { 
-                excelApplication_ = (Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
-                excelApplication_.Visible = true;
-            }
-            catch
-            {
-                excelApplication_ = new Application();
-                excelApplication_.Visible = true;
-            }
-            // Copying the template
-            try
-            { 
-                File.Copy(originalPath, resPath, true);
-            }
-            catch
-            {
-                excelApplication_.Workbooks.Close();
-                File.Copy(originalPath, resPath, true);
-            }
+            // Try creating an Excel instance
+            createExcelInstance(originalPath, resPath, name, extension);
             Copy(new ExcelObject(resPath));
             // Delete the data worksheet if existed
             ExcelWorkbook book = package_.Workbook;
@@ -355,18 +338,76 @@ namespace ResponseAnalyzer
 
         public void open()
         {
-            if (excelApplication_ == null)
-                return;
-            Workbook book = excelApplication_.Workbooks.Open(path_);
-            excelApplication_.Visible = true;
             try
             {
-                if (!string.IsNullOrEmpty(lastSheet_))
-                    book.Worksheets[lastSheet_].Activate();
+                Excel.Workbook book = application_.Workbooks.Open(path_);
+                application_.Visible = true;
+                try
+                {
+                    if (!string.IsNullOrEmpty(lastSheet_))
+                        book.Worksheets[lastSheet_].Activate();
+                }
+                catch
+                {
+
+                }
             }
             catch
             {
+                if (process_ != null)
+                    process_.CloseMainWindow();
+                process_ = Process.Start(path_);
+            }
+        }
 
+        public void createExcelInstance(string originalPath, string resPath, string name, string extension)
+        {
+            int nTryCopy = 100;
+            try
+            {
+                // Retreiving a copy of an already running application
+                try
+                {
+                    application_ = (Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
+                    application_.Visible = true;
+                }
+                catch
+                {
+                    application_ = new Excel.Application();
+                    application_.Visible = true;
+                }
+                // Copying the template
+                try
+                {
+                    File.Copy(originalPath, resPath, true);
+                }
+                catch
+                {
+                    application_.Workbooks.Close();
+                    File.Copy(originalPath, resPath, true);
+                }
+            }
+            catch
+            {
+                var processes = Process.GetProcessesByName("Excel");
+                string windowTitle = name + extension + " - Excel";
+                foreach (var proc in processes)
+                {
+                    if (proc.MainWindowTitle.Equals(windowTitle))
+                        proc.CloseMainWindow();
+                }
+                // Copying the template
+                while (--nTryCopy > 0)
+                {
+                    try
+                    {
+                        File.Copy(originalPath, resPath, true);
+                    }
+                    catch
+                    {
+
+                    }
+                }
             }
         }
 
@@ -417,7 +458,8 @@ namespace ResponseAnalyzer
             }
         }
 
-        Application excelApplication_;
+        Excel.Application application_;
+        Process process_ = null;
         ExcelPackage package_;
         string path_ { get; set;  }
         string lastSheet_; 
