@@ -45,8 +45,12 @@ namespace ResponseAnalyzer
                 modelRenderer_.setView(LMSModel.Views.ISOMETRIC);
                 modelRenderer_.draw();
                 createComponentStrips();
+                singleFrequencyIndices_ = new List<int>();
+                multiFrequency_ = new Dictionary<string, double[]>();
+                multiFrequencyIndices_ = new Dictionary<string, List<int>>();
+                mapResponses_ = new Dictionary<string, string>();
                 if (excelTemplate_ != null && excelTemplate_.isOpened())
-                    updateExcelTemplateList(true);
+                    updateExcelTemplateList();
                 setProjectEnabled();
             }
             else if (dialogResult != DialogResult.Cancel)
@@ -76,7 +80,7 @@ namespace ResponseAnalyzer
                 if (excelTemplate_.isOpened())
                 {
                     textBoxExcelTemplatePath.Text = filePath;
-                    updateExcelTemplateList(false);
+                    updateExcelTemplateList();
                     setProjectEnabled();
                     setStatus("The Excel template file was successfully opened");
                 }
@@ -93,20 +97,13 @@ namespace ResponseAnalyzer
         }
 
         // Updating all template properties
-        private void updateExcelTemplateList(bool isNewSelection)
+        private void updateExcelTemplateList()
         {
             listBoxTemplateCharts.Items.Clear();
             treeTemplateObjects.Nodes.Clear();
             List<string> chartNames = excelTemplate_.getChartNames();
             // Preparing containers to hold the properties of charts
             charts_ = new ChartsData();
-            if (isNewSelection) 
-            { 
-                singleFrequencyIndices_ = new List<int>();
-                multiFrequency_ = new Dictionary<string, double[]>();
-                multiFrequencyIndices_ = new Dictionary<string, List<int>>();
-                mapResponses_ = new Dictionary<string, string>();
-            }
             foreach (string chart in chartNames) { 
                 listBoxTemplateCharts.Items.Add(chart);
                 ChartTypes defaultType = ChartTypes.UNKNOWN;

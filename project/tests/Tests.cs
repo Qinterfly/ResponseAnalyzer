@@ -9,8 +9,8 @@ namespace ResponseAnalyzer
             //string path = Path.GetFullPath(@"..\..\..\examples\Plate.lms");
             //string path = Path.GetFullPath(@"..\..\..\examples\Rib.lms");
             //string path = Path.GetFullPath(@"..\..\..\examples\Airplane.lms");
-            string path = Path.GetFullPath(@"..\..\..\examples\Yak130.lms");
-            //string path = Path.GetFullPath(@"..\..\..\examples\MC-21.lms");
+            //string path = Path.GetFullPath(@"..\..\..\examples\Yak130.lms");
+            string path = Path.GetFullPath(@"..\..\..\examples\MC-21PoslePV.lms");
             project = new LMSProject(path);
             textBoxProjectPath.Text = path;
             modelRenderer_.setGeometry(project.geometry_);
@@ -21,14 +21,14 @@ namespace ResponseAnalyzer
         private void testExcel()
         {
             string templateDir = @"..\..\..\templates\";
-            string path = Path.GetFullPath(templateDir + "Base.xlsx");
+            string path = Path.GetFullPath(templateDir + "MC-21.xlsx");
             excelTemplate_ = new ExcelObject(path);
             textBoxExcelTemplatePath.Text = path;
             textBoxDirectoryExcel.Text = @"C:\Users\qinterfly\Desktop";
             textBoxNameExcel.Text = "TestMe";
-            updateExcelTemplateList(true);
+            updateExcelTemplateList();
             setProjectEnabled();
-            charts_.read(templateDir + "Base.rep", modelRenderer_.containesNode, selectionDelimiter_);
+            charts_.read(templateDir + "MC-21.rep", modelRenderer_.containesNode, selectionDelimiter_);
             listBoxTemplateCharts_SelectedIndexChanged();
         }
     }

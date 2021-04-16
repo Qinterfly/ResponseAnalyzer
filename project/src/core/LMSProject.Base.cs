@@ -92,7 +92,8 @@ namespace ResponseAnalyzer
                     string measuredQuantity = properties["Measured quantity"];
                     Response currentResponse = null;
                     bool isAdded = false;
-                    if (measuredQuantity.Equals("Acceleration")) {
+                    if (measuredQuantity.Equals("Acceleration")) 
+                    {
                         currentResponse = retrieveAcceleration(path, componentSet, signal, properties);
                         isAdded = addResponse(properties, currentResponse, resultSignals);
                     }
