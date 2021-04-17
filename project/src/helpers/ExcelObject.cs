@@ -231,7 +231,7 @@ namespace ResponseAnalyzer
 			}
         }
 
-        public void addSeries(string chartName, double[,] data, string dataName)
+        public void addSeries(string chartName, double[,] data, string dataName, string infoChart = "")
         {
             // Finding the chart
             ExcelDrawing objChart = null;
@@ -260,7 +260,7 @@ namespace ResponseAnalyzer
                     availablePosition = new Position { row = ChartPosition.lastRow + 3, col = 1}
                 };
                 // Write the header
-                workSheet_.Cells[pos.header.row, pos.header.col].Value = objChart.Name;
+                workSheet_.Cells[pos.header.row, pos.header.col].Value = objChart.Name + infoChart;
                 posCharts_.Add(objChart, pos);
                 ChartPosition.lastRow += pos.length + 3;
             }
@@ -333,8 +333,15 @@ namespace ResponseAnalyzer
         // Save changes
         public void save()
         {
-            finishAllProcesses();
-            package_.Save();
+            try 
+            {
+                package_.Save();
+            }
+            catch
+            {
+                finishAllProcesses();
+                package_.Save();
+            }
         }
 
         public void open()

@@ -273,7 +273,7 @@ namespace ResponseAnalyzer
                             double[,] componentCoordinates = (double[,])modelRenderer_.componentSet_.nodeCoordinates[selectionInfo[0]];
                             int tInd = (int)axis - 1;
                             coordinates.Add(componentCoordinates[indNode, tInd]);
-                            // Retreiving the function value
+                            // Retrieving the function value
                             Response response = project.signals_[node][direction][0];
                             if (!response.data.ContainsKey(units) || response.data[units] == null)
                                 continue;
@@ -289,7 +289,8 @@ namespace ResponseAnalyzer
                                 data[i, indX] = coordinates[i] / norm;
                                 data[i, indY] = values[i] * signData;
                             }
-                            excelResult.addSeries(chart, data, nameLine);
+                            string frequencyInfo = $" - {textBoxResonanceFrequency.Text} Гц";
+                            excelResult.addSeries(chart, data, nameLine, frequencyInfo);
                         }
                     }
                 }
