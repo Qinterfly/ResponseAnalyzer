@@ -160,6 +160,16 @@ namespace ResponseAnalyzer
         // Processing all the data
         private void buttonProcess_Click(object sender = null, EventArgs e = null)
         {
+            if (String.IsNullOrEmpty(textBoxNameExcel.Text))
+            {
+                MessageBox.Show("Filename to save is not specified", "Empty filename", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (String.IsNullOrEmpty(textBoxDirectoryExcel.Text))
+            {
+                MessageBox.Show("Directory to save is not specified", "Empty directory name", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             ExcelObject excelResult = new ExcelObject(excelTemplate_, textBoxDirectoryExcel.Text, textBoxNameExcel.Text);
             // Checking the project, template and selected signals
             if (!project.isProjectOpened() || !excelTemplate_.isOpened())

@@ -362,8 +362,12 @@ namespace ResponseAnalyzer
             }
             catch
             {
+                const string kQuotes = "\"";
                 finishAllProcesses();
-                Process.Start("EXCEL.EXE", path_);
+                ProcessStartInfo processInfo = new ProcessStartInfo();
+                processInfo.FileName = "EXCEL.EXE";
+                processInfo.Arguments = kQuotes + path_ + kQuotes;
+                Process.Start(processInfo);
             }
         }
 
@@ -372,7 +376,7 @@ namespace ResponseAnalyzer
             int nTryCopy = 100;
             try
             {
-                // Retreiving a copy of an already running application
+                // Retrieving a copy of an already running application
                 try
                 {
                     application_ = (Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
@@ -397,12 +401,12 @@ namespace ResponseAnalyzer
             catch
             {
                 finishAllProcesses();
-                // Copying the template
                 while (--nTryCopy > 0)
                 {
                     try
                     {
                         File.Copy(originalPath, resPath, true);
+						break;
                     }
                     catch
                     {
@@ -416,7 +420,10 @@ namespace ResponseAnalyzer
         {
             var processes = Process.GetProcessesByName("Excel");
             foreach (var proc in processes)
+            { 
                 proc.CloseMainWindow();
+                proc.Close();
+            }
         }
 
         private void Copy(ExcelObject another)

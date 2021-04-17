@@ -235,6 +235,7 @@ namespace ResponseAnalyzer
             this.tabStages.Alignment = System.Windows.Forms.TabAlignment.Bottom;
             this.tabStages.Controls.Add(this.tabTemplate);
             this.tabStages.Controls.Add(this.tabProcess);
+            this.tabStages.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabStages.Location = new System.Drawing.Point(3, 56);
             this.tabStages.Name = "tabStages";
             this.tabStages.SelectedIndex = 0;
@@ -290,7 +291,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel8.ColumnCount = 3;
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 18.47826F));
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 81.52174F));
-            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 40F));
+            this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 41F));
             this.tableLayoutPanel8.Controls.Add(this.labelExcelPath, 0, 0);
             this.tableLayoutPanel8.Controls.Add(this.textBoxExcelTemplatePath, 1, 0);
             this.tableLayoutPanel8.Controls.Add(this.buttonOpenExcelTemplate, 2, 0);
@@ -320,7 +321,7 @@ namespace ResponseAnalyzer
             this.textBoxExcelTemplatePath.Location = new System.Drawing.Point(59, 5);
             this.textBoxExcelTemplatePath.Name = "textBoxExcelTemplatePath";
             this.textBoxExcelTemplatePath.ReadOnly = true;
-            this.textBoxExcelTemplatePath.Size = new System.Drawing.Size(242, 21);
+            this.textBoxExcelTemplatePath.Size = new System.Drawing.Size(241, 21);
             this.textBoxExcelTemplatePath.TabIndex = 1;
             // 
             // buttonOpenExcelTemplate
@@ -328,7 +329,7 @@ namespace ResponseAnalyzer
             this.buttonOpenExcelTemplate.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenExcelTemplate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.buttonOpenExcelTemplate.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonOpenExcelTemplate.Location = new System.Drawing.Point(307, 4);
+            this.buttonOpenExcelTemplate.Location = new System.Drawing.Point(306, 4);
             this.buttonOpenExcelTemplate.Name = "buttonOpenExcelTemplate";
             this.buttonOpenExcelTemplate.Size = new System.Drawing.Size(34, 23);
             this.buttonOpenExcelTemplate.TabIndex = 2;
@@ -707,7 +708,7 @@ namespace ResponseAnalyzer
             this.tabProcess.Location = new System.Drawing.Point(4, 4);
             this.tabProcess.Name = "tabProcess";
             this.tabProcess.Padding = new System.Windows.Forms.Padding(3);
-            this.tabProcess.Size = new System.Drawing.Size(352, 614);
+            this.tabProcess.Size = new System.Drawing.Size(363, 614);
             this.tabProcess.TabIndex = 2;
             this.tabProcess.Text = "Process";
             this.tabProcess.UseVisualStyleBackColor = true;
@@ -727,7 +728,7 @@ namespace ResponseAnalyzer
             this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 84.20139F));
             this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 15.79861F));
             this.layoutProcess.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 31F));
-            this.layoutProcess.Size = new System.Drawing.Size(346, 608);
+            this.layoutProcess.Size = new System.Drawing.Size(357, 608);
             this.layoutProcess.TabIndex = 0;
             // 
             // groupBoxChannelSelection
@@ -738,7 +739,7 @@ namespace ResponseAnalyzer
             this.groupBoxChannelSelection.Location = new System.Drawing.Point(0, 0);
             this.groupBoxChannelSelection.Margin = new System.Windows.Forms.Padding(0);
             this.groupBoxChannelSelection.Name = "groupBoxChannelSelection";
-            this.groupBoxChannelSelection.Size = new System.Drawing.Size(346, 485);
+            this.groupBoxChannelSelection.Size = new System.Drawing.Size(357, 485);
             this.groupBoxChannelSelection.TabIndex = 0;
             this.groupBoxChannelSelection.TabStop = false;
             this.groupBoxChannelSelection.Text = "Channel selection";
@@ -760,7 +761,7 @@ namespace ResponseAnalyzer
             this.layoutChannelSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 7.356322F));
             this.layoutChannelSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 92.64368F));
             this.layoutChannelSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29F));
-            this.layoutChannelSelection.Size = new System.Drawing.Size(340, 465);
+            this.layoutChannelSelection.Size = new System.Drawing.Size(351, 465);
             this.layoutChannelSelection.TabIndex = 0;
             // 
             // layoutSelectionTestlabMode
@@ -769,10 +770,11 @@ namespace ResponseAnalyzer
             this.layoutSelectionTestlabMode.Controls.Add(this.comboBoxTestlabSelectionMode);
             this.layoutSelectionTestlabMode.Controls.Add(this.splitter1);
             this.layoutSelectionTestlabMode.Controls.Add(this.buttonSelectTestLab);
+            this.layoutSelectionTestlabMode.Dock = System.Windows.Forms.DockStyle.Fill;
             this.layoutSelectionTestlabMode.Location = new System.Drawing.Point(0, 0);
             this.layoutSelectionTestlabMode.Margin = new System.Windows.Forms.Padding(0);
             this.layoutSelectionTestlabMode.Name = "layoutSelectionTestlabMode";
-            this.layoutSelectionTestlabMode.Size = new System.Drawing.Size(340, 30);
+            this.layoutSelectionTestlabMode.Size = new System.Drawing.Size(351, 30);
             this.layoutSelectionTestlabMode.TabIndex = 10;
             // 
             // labelTestlabSelectionMode
@@ -807,7 +809,7 @@ namespace ResponseAnalyzer
             this.splitter1.BackColor = System.Drawing.Color.White;
             this.splitter1.Location = new System.Drawing.Point(208, 3);
             this.splitter1.Name = "splitter1";
-            this.splitter1.Size = new System.Drawing.Size(6, 23);
+            this.splitter1.Size = new System.Drawing.Size(14, 23);
             this.splitter1.TabIndex = 2;
             this.splitter1.TabStop = false;
             // 
@@ -815,7 +817,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonSelectTestLab.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonSelectTestLab.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.buttonSelectTestLab.Location = new System.Drawing.Point(220, 3);
+            this.buttonSelectTestLab.Location = new System.Drawing.Point(228, 3);
             this.buttonSelectTestLab.Name = "buttonSelectTestLab";
             this.buttonSelectTestLab.Size = new System.Drawing.Size(117, 23);
             this.buttonSelectTestLab.TabIndex = 1;
@@ -832,7 +834,7 @@ namespace ResponseAnalyzer
             this.flowLayoutPanel5.Location = new System.Drawing.Point(0, 435);
             this.flowLayoutPanel5.Margin = new System.Windows.Forms.Padding(0);
             this.flowLayoutPanel5.Name = "flowLayoutPanel5";
-            this.flowLayoutPanel5.Size = new System.Drawing.Size(340, 30);
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(351, 30);
             this.flowLayoutPanel5.TabIndex = 7;
             // 
             // labelResonanceFrequency
@@ -872,16 +874,17 @@ namespace ResponseAnalyzer
             // layoutTestlabSelection
             // 
             this.layoutTestlabSelection.ColumnCount = 2;
-            this.layoutTestlabSelection.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 67.65578F));
-            this.layoutTestlabSelection.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 32.34422F));
+            this.layoutTestlabSelection.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 68.09117F));
+            this.layoutTestlabSelection.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 31.90883F));
             this.layoutTestlabSelection.Controls.Add(this.labelSelectionInfo, 0, 0);
             this.layoutTestlabSelection.Controls.Add(this.buttonClearTestlabSelection, 1, 0);
+            this.layoutTestlabSelection.Dock = System.Windows.Forms.DockStyle.Fill;
             this.layoutTestlabSelection.Location = new System.Drawing.Point(0, 30);
             this.layoutTestlabSelection.Margin = new System.Windows.Forms.Padding(0);
             this.layoutTestlabSelection.Name = "layoutTestlabSelection";
             this.layoutTestlabSelection.RowCount = 1;
             this.layoutTestlabSelection.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.layoutTestlabSelection.Size = new System.Drawing.Size(340, 29);
+            this.layoutTestlabSelection.Size = new System.Drawing.Size(351, 29);
             this.layoutTestlabSelection.TabIndex = 2;
             // 
             // labelSelectionInfo
@@ -891,14 +894,14 @@ namespace ResponseAnalyzer
             this.labelSelectionInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.labelSelectionInfo.Location = new System.Drawing.Point(3, 7);
             this.labelSelectionInfo.Name = "labelSelectionInfo";
-            this.labelSelectionInfo.Size = new System.Drawing.Size(224, 15);
+            this.labelSelectionInfo.Size = new System.Drawing.Size(233, 15);
             this.labelSelectionInfo.TabIndex = 2;
             this.labelSelectionInfo.Text = "Selected signals: ";
             // 
             // buttonClearTestlabSelection
             // 
             this.buttonClearTestlabSelection.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.buttonClearTestlabSelection.Location = new System.Drawing.Point(233, 3);
+            this.buttonClearTestlabSelection.Location = new System.Drawing.Point(242, 3);
             this.buttonClearTestlabSelection.Name = "buttonClearTestlabSelection";
             this.buttonClearTestlabSelection.Size = new System.Drawing.Size(104, 23);
             this.buttonClearTestlabSelection.TabIndex = 3;
@@ -914,7 +917,7 @@ namespace ResponseAnalyzer
             this.layoutSelectedSignals.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 32.05882F));
             this.layoutSelectedSignals.Controls.Add(this.listBoxFoundSignals, 0, 0);
             this.layoutSelectedSignals.Controls.Add(this.listBoxFrequency, 1, 0);
-            this.layoutSelectedSignals.Location = new System.Drawing.Point(0, 59);
+            this.layoutSelectedSignals.Location = new System.Drawing.Point(5, 59);
             this.layoutSelectedSignals.Margin = new System.Windows.Forms.Padding(0);
             this.layoutSelectedSignals.Name = "layoutSelectedSignals";
             this.layoutSelectedSignals.RowCount = 1;
@@ -958,7 +961,7 @@ namespace ResponseAnalyzer
             this.groupBoxExcelResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.groupBoxExcelResult.Location = new System.Drawing.Point(3, 488);
             this.groupBoxExcelResult.Name = "groupBoxExcelResult";
-            this.groupBoxExcelResult.Size = new System.Drawing.Size(340, 85);
+            this.groupBoxExcelResult.Size = new System.Drawing.Size(351, 85);
             this.groupBoxExcelResult.TabIndex = 2;
             this.groupBoxExcelResult.TabStop = false;
             this.groupBoxExcelResult.Text = "Excel";
@@ -975,7 +978,7 @@ namespace ResponseAnalyzer
             this.layoutExcel.RowCount = 2;
             this.layoutExcel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.60241F));
             this.layoutExcel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 49.39759F));
-            this.layoutExcel.Size = new System.Drawing.Size(334, 65);
+            this.layoutExcel.Size = new System.Drawing.Size(345, 65);
             this.layoutExcel.TabIndex = 0;
             // 
             // layoutExcelName
@@ -990,7 +993,7 @@ namespace ResponseAnalyzer
             this.layoutExcelName.Name = "layoutExcelName";
             this.layoutExcelName.RowCount = 1;
             this.layoutExcelName.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.layoutExcelName.Size = new System.Drawing.Size(328, 26);
+            this.layoutExcelName.Size = new System.Drawing.Size(339, 26);
             this.layoutExcelName.TabIndex = 0;
             // 
             // labelNameExcel
@@ -1008,9 +1011,9 @@ namespace ResponseAnalyzer
             // 
             this.textBoxNameExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxNameExcel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxNameExcel.Location = new System.Drawing.Point(55, 3);
+            this.textBoxNameExcel.Location = new System.Drawing.Point(56, 3);
             this.textBoxNameExcel.Name = "textBoxNameExcel";
-            this.textBoxNameExcel.Size = new System.Drawing.Size(270, 21);
+            this.textBoxNameExcel.Size = new System.Drawing.Size(280, 21);
             this.textBoxNameExcel.TabIndex = 1;
             // 
             // tableLayoutPanel14
@@ -1018,7 +1021,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel14.ColumnCount = 3;
             this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 23.80952F));
             this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 76.19048F));
-            this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.tableLayoutPanel14.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.tableLayoutPanel14.Controls.Add(this.labelDirectoryExcel, 0, 0);
             this.tableLayoutPanel14.Controls.Add(this.buttonSelectDirectory, 2, 0);
             this.tableLayoutPanel14.Controls.Add(this.textBoxDirectoryExcel, 1, 0);
@@ -1028,7 +1031,7 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel14.Name = "tableLayoutPanel14";
             this.tableLayoutPanel14.RowCount = 1;
             this.tableLayoutPanel14.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel14.Size = new System.Drawing.Size(334, 33);
+            this.tableLayoutPanel14.Size = new System.Drawing.Size(345, 33);
             this.tableLayoutPanel14.TabIndex = 1;
             // 
             // labelDirectoryExcel
@@ -1047,7 +1050,7 @@ namespace ResponseAnalyzer
             this.buttonSelectDirectory.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonSelectDirectory.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.buttonSelectDirectory.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonSelectDirectory.Location = new System.Drawing.Point(292, 5);
+            this.buttonSelectDirectory.Location = new System.Drawing.Point(302, 5);
             this.buttonSelectDirectory.Name = "buttonSelectDirectory";
             this.buttonSelectDirectory.Size = new System.Drawing.Size(32, 22);
             this.buttonSelectDirectory.TabIndex = 1;
@@ -1058,10 +1061,10 @@ namespace ResponseAnalyzer
             // 
             this.textBoxDirectoryExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxDirectoryExcel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.textBoxDirectoryExcel.Location = new System.Drawing.Point(72, 6);
+            this.textBoxDirectoryExcel.Location = new System.Drawing.Point(74, 6);
             this.textBoxDirectoryExcel.Name = "textBoxDirectoryExcel";
             this.textBoxDirectoryExcel.ReadOnly = true;
-            this.textBoxDirectoryExcel.Size = new System.Drawing.Size(214, 21);
+            this.textBoxDirectoryExcel.Size = new System.Drawing.Size(222, 21);
             this.textBoxDirectoryExcel.TabIndex = 2;
             // 
             // tableLayoutPanel1
@@ -1077,13 +1080,13 @@ namespace ResponseAnalyzer
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(346, 32);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(357, 32);
             this.tableLayoutPanel1.TabIndex = 3;
             // 
             // buttonProcess
             // 
             this.buttonProcess.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.buttonProcess.Location = new System.Drawing.Point(268, 4);
+            this.buttonProcess.Location = new System.Drawing.Point(279, 4);
             this.buttonProcess.Name = "buttonProcess";
             this.buttonProcess.Size = new System.Drawing.Size(75, 23);
             this.buttonProcess.TabIndex = 4;
@@ -1125,7 +1128,7 @@ namespace ResponseAnalyzer
             this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15.95745F));
             this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 84.04256F));
             this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 33F));
-            this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 36F));
+            this.layoutProjectPath.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 37F));
             this.layoutProjectPath.Controls.Add(this.labelProjectPath, 0, 0);
             this.layoutProjectPath.Controls.Add(this.buttonOpenProject, 2, 0);
             this.layoutProjectPath.Controls.Add(this.buttonUpdateProject, 3, 0);
@@ -1154,7 +1157,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonOpenProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonOpenProject.Image = global::ResponseAnalyzer.Properties.Resources.add;
-            this.buttonOpenProject.Location = new System.Drawing.Point(298, 4);
+            this.buttonOpenProject.Location = new System.Drawing.Point(297, 4);
             this.buttonOpenProject.Name = "buttonOpenProject";
             this.buttonOpenProject.Size = new System.Drawing.Size(27, 22);
             this.buttonOpenProject.TabIndex = 2;
@@ -1165,7 +1168,7 @@ namespace ResponseAnalyzer
             // 
             this.buttonUpdateProject.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.buttonUpdateProject.Image = global::ResponseAnalyzer.Properties.Resources.refresh;
-            this.buttonUpdateProject.Location = new System.Drawing.Point(331, 4);
+            this.buttonUpdateProject.Location = new System.Drawing.Point(330, 4);
             this.buttonUpdateProject.Name = "buttonUpdateProject";
             this.buttonUpdateProject.Size = new System.Drawing.Size(30, 22);
             this.buttonUpdateProject.TabIndex = 3;
@@ -1178,7 +1181,7 @@ namespace ResponseAnalyzer
             this.textBoxProjectPath.Location = new System.Drawing.Point(50, 4);
             this.textBoxProjectPath.Name = "textBoxProjectPath";
             this.textBoxProjectPath.ReadOnly = true;
-            this.textBoxProjectPath.Size = new System.Drawing.Size(242, 21);
+            this.textBoxProjectPath.Size = new System.Drawing.Size(241, 21);
             this.textBoxProjectPath.TabIndex = 1;
             // 
             // glWindow
