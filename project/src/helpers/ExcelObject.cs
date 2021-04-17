@@ -257,7 +257,7 @@ namespace ResponseAnalyzer
                 {
                     header = new Position { row = ChartPosition.lastRow + 1, col = 1 },
                     length = data.GetLength(0),
-                    availablePosition = new Position { row = ChartPosition.lastRow + 3, col = 1}
+                    availablePosition = new Position { row = ChartPosition.lastRow + 3, col = 1 }
                 };
                 // Write the header
                 workSheet_.Cells[pos.header.row, pos.header.col].Value = objChart.Name + infoChart;
@@ -274,51 +274,54 @@ namespace ResponseAnalyzer
             int nData = data.GetLength(0);
             for (int k = 0; k != nData; ++k)
             {
-                workSheet_.Cells[iRow + k, jCol    ].Value = data[k, 0];
+                workSheet_.Cells[iRow + k, jCol].Value = data[k, 0];
                 workSheet_.Cells[iRow + k, jCol + 1].Value = data[k, 1];
             }
             workSheet_.Cells[pos.header.row + 1, jCol + 1].Value = dataName; // Set the name
             // Retrieving the data address
-            ExcelScatterChart scatterChart = (ExcelScatterChart) objChart;
-            string xVals = ExcelRange.GetAddress(iRow,             jCol,
+            ExcelScatterChart scatterChart = (ExcelScatterChart)objChart;
+            string xVals = ExcelRange.GetAddress(iRow, jCol,
                                                  iRow + nData - 1, jCol);
-            string yVals = ExcelRange.GetAddress(iRow,             jCol + 1,
+            string yVals = ExcelRange.GetAddress(iRow, jCol + 1,
                                                  iRow + nData - 1, jCol + 1);
             xVals = ExcelRange.GetFullAddress(workSheetName_, xVals);
             yVals = ExcelRange.GetFullAddress(workSheetName_, yVals);
             // Creating the serie
             ExcelScatterChartSerie serie = scatterChart.Series.Add(yVals, xVals);
             // Using the standard markers when custom ones are not available
-            List<MarkerProperty> markers = customMarkers_[chartName]; 
+            List<MarkerProperty> markers = customMarkers_[chartName];
             if (markers == null || markers.Count == 0)
                 markers = standardMarkers_;
             MarkerProperty markerProperties = markers[indMarkers_[chartName]];
-			// Using the standard lines when custom ones are not available
-			List<LineProperty> lines = customLines_[chartName]; 
+            // Using the standard lines when custom ones are not available
+            List<LineProperty> lines = customLines_[chartName];
             if (lines == null || lines.Count == 0)
                 lines = standardLines_;
-			LineProperty lineProperties = lines[indLines_[chartName]];
+            LineProperty lineProperties = lines[indLines_[chartName]];
             int transparency = lineProperties.isTransparent ? 100 : 0; // Perecentage
-			// Specifying the properties
-            serie.Border.Fill.Color = Color.Black;          	   // Line color
-            serie.Border.LineStyle = lineProperties.lineStyle;     // Line style
-            serie.Border.Fill.Transparancy = transparency;         // Line transparency
-            serie.Border.Width = 1.0;                              // Line width
-            serie.Marker.Border.Fill.Color = Color.Black;   	   // Marker border color
-            serie.Marker.Border.Width = 0.75;               	   // Marker border width
-            serie.Marker.Size = 5;                          	   // Marker size
-            serie.Marker.Fill.Color = markerProperties.fillColor;  // Marker fill color
-			// Marker style
-			if (lineProperties.isMarkersEnabled)
-				serie.Marker.Style = markerProperties.style;      
-			else
-				serie.Marker.Style = eMarkerStyle.None;
-			// Increment markers and lines indices
-            ++indMarkers_[chartName];
-            if (indMarkers_[chartName] >= markers.Count)
-                indMarkers_[chartName] = 0;
-			++indLines_[chartName];
-			if (indLines_[chartName] >= lines.Count)
+            // Specifying the properties
+            serie.Border.Fill.Color = Color.Black;              // Line color
+            serie.Border.LineStyle = lineProperties.lineStyle;  // Line style
+            serie.Border.Fill.Transparancy = transparency;      // Line transparency
+            serie.Border.Width = 1.0;                           // Line width
+            if (serie.Marker != null)
+            {
+                serie.Marker.Border.Fill.Color = Color.Black;          // Marker border color
+                serie.Marker.Border.Width = 0.75;                      // Marker border width
+                serie.Marker.Size = 5;                                 // Marker size
+                serie.Marker.Fill.Color = markerProperties.fillColor;  // Marker fill color
+                // Marker style
+                if (lineProperties.isMarkersEnabled)
+                    serie.Marker.Style = markerProperties.style;
+                else
+                    serie.Marker.Style = eMarkerStyle.None;
+                // Increment markers and lines indices
+                ++indMarkers_[chartName];
+                if (indMarkers_[chartName] >= markers.Count)
+                    indMarkers_[chartName] = 0;
+            }
+            ++indLines_[chartName];
+            if (indLines_[chartName] >= lines.Count)
                 indLines_[chartName] = 0;
             // Legend
             serie.Header = dataName;
