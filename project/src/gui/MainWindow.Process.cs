@@ -341,8 +341,9 @@ namespace ResponseAnalyzer
                             // Retrieving force value
                             if (data.GetLength(0) > 0)
                             {
-                                string force = "F = " + getForceValue(response.path) + " Н";
-                                excelResult.addSeries(chart, data, force);
+                                string force = $"F = {getForceValue(response.path)} Н";
+                                string info = $"[{node}]";
+                                excelResult.addSeries(chart, data, force, info);
                             }
                         }
                     }

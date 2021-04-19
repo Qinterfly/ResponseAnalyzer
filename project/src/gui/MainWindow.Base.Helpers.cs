@@ -92,7 +92,22 @@ namespace ResponseAnalyzer
         {
             string slaveChart = null;
             string masterChart = null;
-            foreach (string chart in charts_.type.Keys)
+            // Check if there are several charts with the same type. 
+            // If it is the case, we do not have enough information to create dependencies
+            var listCharts = charts_.type.Keys;
+            int iMasterType = 0;
+            int iSlaveType = 0;
+            foreach (string chart in listCharts)
+            {
+                if (charts_.type[chart] == masterType)
+                    ++iMasterType;
+                if (charts_.type[chart] == slaveType)
+                    ++iSlaveType;
+            }
+            if (iMasterType > 1 || iSlaveType > 1)
+                return;
+            // Create dependencies
+            foreach (string chart in listCharts)
             {
                 if (charts_.type[chart] == masterType)
                     masterChart = chart;
