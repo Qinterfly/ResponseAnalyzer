@@ -269,6 +269,7 @@ namespace ResponseAnalyzer
                         List<string> lineNodes = (List<string>)currentLine.retrieveSelection();
                         List<double> coordinates = new List<double>();
                         List<double> values = new List<double>();
+                        double resonanceFrequency = -1.0;
                         foreach (string node in lineNodes)
                         {
                             // Check if there is an appropriate signal
@@ -289,6 +290,8 @@ namespace ResponseAnalyzer
                                 continue;
                             double[,] refFullData = response.data[units];
                             values.Add(refFullData[indResonance, 1]); // Imaginary part of the signal
+                            if (resonanceFrequency < 0)
+                                resonanceFrequency = response.frequency[indResonance];
                         }
                         if (values.Count > 0)
                         { 
@@ -299,7 +302,9 @@ namespace ResponseAnalyzer
                                 data[i, indX] = coordinates[i] / norm;
                                 data[i, indY] = values[i] * signData;
                             }
-                            string frequencyInfo = $" - {textBoxResonanceFrequency.Text} Гц";
+                            string frequencyInfo = null;
+                            if (resonanceFrequency > 0 )
+                                frequencyInfo = $" - {resonanceFrequency.ToString("G3", CultureInfo.InvariantCulture)} Гц";
                             excelResult.addSeries(chart, data, nameLine, frequencyInfo);
                         }
                     }
@@ -370,7 +375,8 @@ namespace ResponseAnalyzer
                             if (!response.data.ContainsKey(units) || response.data[units] == null)
                                 continue;
                             Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units);
-                            if (pair != null) { 
+                            if (pair != null)
+                            { 
                                 data[k, indX] = pair.Item1; // Frequency
                                 data[k, indY] = pair.Item2; // Amplitude
                                 ++k;
