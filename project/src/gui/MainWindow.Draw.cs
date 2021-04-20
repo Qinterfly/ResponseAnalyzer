@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
+using Keyboard = System.Windows.Input.Keyboard;
+using Key = System.Windows.Input.Key;
 
 namespace ResponseAnalyzer
 {
@@ -38,14 +40,14 @@ namespace ResponseAnalyzer
                 case MouseButtons.Middle:
                     lastMousePosition_[0] = e.X;
                     lastMousePosition_[1] = e.Y;
-                    if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl))
+                    if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
                         isTranslation_ = true;
                     else
                         isRotation_ = true;
                     break;
                 case MouseButtons.Left:
                     bool isNewSelection = true;
-                    if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftShift) || isEditSelection_)
+                    if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift) || isEditSelection_)
                         isNewSelection = false;
                     Tuple <Vector3d, string, string> info = modelRenderer_.select(e.X, e.Y, isNewSelection);
                     if (info == null)
@@ -95,7 +97,7 @@ namespace ResponseAnalyzer
                 isTranslation_ = false;
                 isRotation_ = false;
             }
-            if (System.Windows.Input.Keyboard.IsKeyUp(System.Windows.Input.Key.LeftCtrl))
+            if (Keyboard.IsKeyUp(Key.LeftCtrl) || Keyboard.IsKeyUp(Key.RightCtrl))
                 isTranslation_ = false;
         }
 
