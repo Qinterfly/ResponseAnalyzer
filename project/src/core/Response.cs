@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MathNet.Numerics.Interpolation;
 
 namespace ResponseAnalyzer
 {
@@ -22,56 +23,81 @@ namespace ResponseAnalyzer
 
         public PairDouble evaluateResonanceFrequency(ChartTypes type, SignalUnits units)
         {
+            const int kNumSteps = 2048;
+            double[,] complexData = data[units];
+            int nData = frequency.Length;
+            double[] realPart = new double[nData];
+            double[] imaginaryPart = new double[nData];
+            for (int i = 0; i != nData; ++i)
+            {
+                realPart[i] = complexData[i, 0];
+                imaginaryPart[i] = complexData[i, 1];
+            }
+            CubicSpline splineRealPart = CubicSpline.InterpolateNatural(frequency, realPart);
+            CubicSpline splineImaginaryPart = CubicSpline.InterpolateNatural(frequency, imaginaryPart);
             switch (type)
             {
                 case ChartTypes.REAL_FREQUENCY:
-                    return findRoot(frequency, data[units], 0);
+                    return findRoot(splineRealPart, splineImaginaryPart, frequency[0], frequency[nData - 1], kNumSteps);
                 case ChartTypes.IMAG_FREQUENCY:
-                    return findPeak(frequency, data[units], 1);
+                    return findPeak(splineRealPart, splineImaginaryPart, frequency[0], frequency[nData - 1], kNumSteps);
             }
             return null;
         }
 
-        private PairDouble findPeak(double[] X, double[,] Y, int iColumn)
+        private PairDouble findPeak(in CubicSpline realPart, in CubicSpline imaginaryPart, double startX, double endX, int numSteps)
         {
             double maxValue = 0.0;
             double tempValue;
             double amplitude = 0.0;
             double root = -1.0;
-            int nY = Y.GetLength(0);
-            for (int i = 0; i != nY; ++i)
+            double X;
+            double YReal, YImaginary;
+            double step = (endX - startX) / (numSteps - 1);
+            for (int i = 0; i != numSteps; ++i)
             {
-                tempValue = Math.Abs(Y[i, iColumn]);
+                X = startX + i * step;
+                YImaginary = imaginaryPart.Interpolate(X);
+                tempValue = Math.Abs(YImaginary);
                 if (tempValue > maxValue)
                 {
-                    maxValue = tempValue; 
-                    amplitude = Math.Sqrt(Math.Pow(Y[i, 0], 2.0) + Math.Pow(Y[i, 1], 2.0));
-                    root = X[i];
+                    YReal = realPart.Interpolate(X);
+                    maxValue = tempValue;
+                    amplitude = Math.Sqrt(Math.Pow(YReal, 2.0) + Math.Pow(YImaginary, 2.0));
+                    root = X;
                 }
             }
             return new PairDouble(root, amplitude);
         }
 
-        private PairDouble findRoot(double[] X, double[,] Y, int iColumn)
+        private PairDouble findRoot(in CubicSpline realPart, in CubicSpline imaginaryPart, double startX, double endX, int numSteps)
         {
-            double prevValue = Y[0, iColumn];
             double root = -1.0;
             double amplitude = 0.0;
             bool isFound = false;
-            int nY = Y.GetLength(0);
-            for (int i = 1; i != nY; ++i)
+            double previousX, previousYReal;
+            double currentX, currentYReal;
+            previousX = startX;
+            previousYReal = realPart.Interpolate(startX);
+            double step = (endX - startX) / (numSteps - 1);
+            for (int i = 1; i != numSteps; ++i)
             {
-                isFound = Y[i, iColumn] * prevValue < 0.0;
+                currentX = previousX + step;
+                currentYReal = realPart.Interpolate(currentX);
+                isFound = currentYReal * previousYReal < 0.0;
                 if (isFound)
                 {
-                    root = (X[i] + X[i - 1]) / 2.0;
+                    root = (currentX + previousX) / 2.0;
                     // Calculating amplitude
-                    amplitude = Math.Sqrt(Math.Pow(Y[i - 1, 0], 2.0) + Math.Pow(Y[i - 1, 1], 2.0)); // First
-                    amplitude += Math.Sqrt(Math.Pow(Y[i, 0], 2.0) + Math.Pow(Y[i, 1], 2.0));        // Second
-                    amplitude /= 2.0;                                                               // Mean
+                    double previousYImaginary = imaginaryPart.Interpolate(previousX);
+                    double currentYImaginary = imaginaryPart.Interpolate(currentX);
+                    amplitude = Math.Sqrt(Math.Pow(previousYReal, 2.0) + Math.Pow(previousYImaginary, 2.0)); 
+                    amplitude += Math.Sqrt(Math.Pow(currentYReal, 2.0) + Math.Pow(currentYImaginary, 2.0));        
+                    amplitude /= 2.0;                                                               
                     break;
                 }
-                prevValue = Y[i, iColumn];
+                previousX = currentX;
+                previousYReal = currentYReal;
             }
             return isFound ? new PairDouble(root, amplitude) : null;
         }
