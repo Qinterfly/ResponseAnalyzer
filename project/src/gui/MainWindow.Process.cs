@@ -374,7 +374,7 @@ namespace ResponseAnalyzer
                         {
                             if (!response.data.ContainsKey(units) || response.data[units] == null)
                                 continue;
-                            Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units);
+                            Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units, getFrequencyValue(response.path));
                             if (pair != null)
                             { 
                                 data[k, indX] = pair.Item1; // Frequency

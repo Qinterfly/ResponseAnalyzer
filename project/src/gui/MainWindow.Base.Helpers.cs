@@ -148,19 +148,22 @@ namespace ResponseAnalyzer
             }
         }
 
-        // Retrieve force value from a signal path
+        // Retrieve values by units from a signal path
         private string getForceValue(string path)
         {
+            path = path.Replace(",", ".");
             int lenPath = path.Length;
             bool isFound = false;
             bool isValueStarted = false;
             string force = null;
+            bool isValue;
             for (int k = lenPath - 1; k >= 0; --k)
             {
                 if (isFound)
                 {
                     // Copying value
-                    if (double.TryParse(path[k].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out double tempVal))
+                    isValue = double.TryParse(path[k].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out double tempVal);
+                    if (isValue || path[k] == '.')
                     {
                         force = path[k] + force;
                         isValueStarted = true;
@@ -175,6 +178,35 @@ namespace ResponseAnalyzer
                     isFound = true;
             }
             return force;
+        }
+
+        private double getFrequencyValue(string path)
+        {
+            double frequency = 0.0;
+            int indFrequency = Math.Max(path.IndexOf("Гц"), path.IndexOf("Hz"));
+            if (indFrequency < 0)
+                return 0.0;
+            string strFrequency = null;
+            bool isValue;
+            bool isSequence = false;
+            path = path.Replace(",", ".");
+            while (indFrequency > 0)
+            {
+                --indFrequency;
+                 isValue = double.TryParse(path[indFrequency].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out double tempVal);
+                if (isValue || path[indFrequency] == '.')
+                {
+                    strFrequency = path[indFrequency] + strFrequency;
+                    isSequence = true;
+                }
+                else if (isSequence)
+                {
+                    break;
+                }
+                    
+            }
+            double.TryParse(strFrequency, NumberStyles.Any, CultureInfo.InvariantCulture, out frequency);
+            return frequency;
         }
     }
 
