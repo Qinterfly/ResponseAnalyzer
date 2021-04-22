@@ -304,7 +304,7 @@ namespace ResponseAnalyzer
                             }
                             string frequencyInfo = null;
                             if (resonanceFrequency > 0 )
-                                frequencyInfo = $" - {resonanceFrequency.ToString("G3", CultureInfo.InvariantCulture)} Гц";
+                                frequencyInfo = $" - {resonanceFrequency.ToString("F3", CultureInfo.InvariantCulture)} Гц";
                             excelResult.addSeries(chart, data, nameLine, frequencyInfo);
                         }
                     }

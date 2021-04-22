@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using MathNet.Numerics.Interpolation;
+using MathNet.Numerics.RootFinding;
 
 namespace ResponseAnalyzer
 {
@@ -23,8 +24,7 @@ namespace ResponseAnalyzer
 
         public PairDouble evaluateResonanceFrequency(ChartTypes type, SignalUnits units, double approximationResonanceFrequency = 0.0)
         {
-            const int kNumSteps = 4096;
-            const double kAccuracy = 1e-4;
+            int kNumSteps = 4096;
             double[,] complexData = data[units];
             int nData = frequency.Length;
             double[] realPart = new double[nData];
@@ -36,15 +36,25 @@ namespace ResponseAnalyzer
             }
             CubicSpline splineRealPart = CubicSpline.InterpolateNatural(frequency, realPart);
             CubicSpline splineImagPart = CubicSpline.InterpolateNatural(frequency, imagPart);
-            List<PairDouble> resFrequencies = null;
+            List<double> resFrequencies = null;
+            Func<double, double> fun = null;
+            Func<double, double> diffFun = null;
             switch (type)
             {
                 case ChartTypes.REAL_FREQUENCY:
-                    return findPhaseRootNewton(splineRealPart, splineImagPart, approximationResonanceFrequency, kAccuracy, kNumSteps);
+                    fun = x => splineRealPart.Interpolate(x);
+                    diffFun = x => splineRealPart.Differentiate(x);
+                    break;
                 case ChartTypes.IMAG_FREQUENCY:
-                    resFrequencies = findImagRootBisection(splineRealPart, splineImagPart, frequency[0], frequency[nData - 1], kNumSteps);
+                    fun = x => splineImagPart.Differentiate(x);
+                    diffFun = x => splineRealPart.Differentiate2(x);
                     break;
             }
+            if (fun == null || diffFun == null)
+                return null;
+            double startFrequency = frequency[0];
+            double endFrequency = frequency[nData - 1];
+            resFrequencies = findAllRootsBisection(fun, startFrequency, endFrequency, kNumSteps);
             if (resFrequencies == null || resFrequencies.Count == 0)
                 return null;
             double distance;
@@ -53,7 +63,8 @@ namespace ResponseAnalyzer
             int numFrequencies = resFrequencies.Count;
             for (int i = 0; i != numFrequencies; ++i)
             {
-                distance = Math.Abs(resFrequencies[i].Item1 - approximationResonanceFrequency);
+                resFrequencies[i] = NewtonRaphson.FindRootNearGuess(fun, diffFun, resFrequencies[i], startFrequency, endFrequency);
+                distance = Math.Abs(resFrequencies[i] - approximationResonanceFrequency);
                 if (distance < minDistance)
                 {
                     minDistance = distance;
@@ -61,105 +72,32 @@ namespace ResponseAnalyzer
                 }
 
             }
-            return resFrequencies[indClosestResonance];
+            double resonanceFrequency = resFrequencies[indClosestResonance];
+            double realPeak = splineRealPart.Interpolate(resonanceFrequency);
+            double imagPeak = splineImagPart.Interpolate(resonanceFrequency);
+            double ampPeak = Math.Sqrt(Math.Pow(realPeak, 2.0) + Math.Pow(imagPeak, 2.0));
+            return new PairDouble(resonanceFrequency, ampPeak);
         }
 
-        private List<PairDouble> findImagRootBisection(in CubicSpline realPart, in CubicSpline imagPart, double startX, double endX, int numSteps)
+        private List<double> findAllRootsBisection(Func<double, double> fun, double leftBound, double rightBound, int numSteps)
         {
-            double previousX;
-            double currentX;
-            double previousDiffYImag, currentDiffYImag;
-            previousX = startX;
-            previousDiffYImag = imagPart.Differentiate(startX);
-            double step = (endX - startX) / (numSteps - 1);
-            double root, amplitude;
+            List<double> roots = new List<double>();
+            double step = (rightBound - leftBound) / (numSteps - 1);
             bool isFound;
-            List<PairDouble> resFrequencies = new List<PairDouble>();
+            double previousX = leftBound;
+            double previousY = fun(leftBound);
+            double currentX, currentY;
             for (int i = 1; i != numSteps; ++i)
             {
                 currentX = previousX + step;
-                currentDiffYImag = imagPart.Differentiate(currentX);
-                isFound = currentDiffYImag * previousDiffYImag < 0.0;
+                currentY = fun(currentX);
+                isFound = currentY * previousY < 0.0;
                 if (isFound)
-                {
-                    root = (currentX + previousX) / 2.0;
-                    // Calculating amplitude
-                    double previousYReal = realPart.Interpolate(previousX);
-                    double currentYReal = realPart.Interpolate(currentX);
-                    double previousYImag = imagPart.Interpolate(previousX);
-                    double currentYImag = imagPart.Interpolate(currentX);
-                    amplitude = Math.Sqrt(Math.Pow(previousYReal, 2.0) + Math.Pow(previousYImag, 2.0));
-                    amplitude += Math.Sqrt(Math.Pow(currentYReal, 2.0) + Math.Pow(currentYImag, 2.0));
-                    amplitude /= 2.0;
-                    resFrequencies.Add(new PairDouble(root, amplitude));
-                }
+                    roots.Add((currentX + previousX) / 2.0);
                 previousX = currentX;
-                previousDiffYImag = currentDiffYImag;
+                previousY = currentY;
             }
-            return resFrequencies;
-        }
-
-        private PairDouble findPhaseRootNewton(in CubicSpline realPart, in CubicSpline imagPart, double approximation, double targetAccuracy, int maxIterationNumber)
-        {
-            int iterationNumber = 0;
-            bool isFound = true;
-            double prevRoot = approximation;
-            double root = approximation;
-            double accuracy = 1.0;
-            while (accuracy > targetAccuracy)
-            {
-                if (iterationNumber >= maxIterationNumber)
-                {
-                    isFound = false;
-                    break;
-                }
-                root = prevRoot - realPart.Interpolate(prevRoot) / realPart.Differentiate(prevRoot);
-                accuracy = Math.Abs(realPart.Interpolate(root));
-                prevRoot = root;
-                ++iterationNumber;
-
-            }
-            if (isFound)
-            {
-                double amplitude = Math.Sqrt(Math.Pow(realPart.Interpolate(root), 2.0) + Math.Pow(imagPart.Interpolate(root), 2.0));
-                return new PairDouble(root, amplitude);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private List<PairDouble> findPhaseRootBisection(in CubicSpline realPart, in CubicSpline imagPart, double startX, double endX, int numSteps)
-        {
-            double previousX, previousYReal;
-            double currentX, currentYReal;
-            previousX = startX;
-            previousYReal = realPart.Interpolate(startX);
-            double step = (endX - startX) / (numSteps - 1);
-            List<PairDouble> resFrequencies = new List<PairDouble>();
-            double root, amplitude;
-            bool isFound;
-            for (int i = 1; i != numSteps; ++i)
-            {
-                currentX = previousX + step;
-                currentYReal = realPart.Interpolate(currentX);
-                isFound = currentYReal * previousYReal < 0.0;
-                if (isFound)
-                {
-                    root = (currentX + previousX) / 2.0;
-                    // Calculating amplitude
-                    double previousYImag = imagPart.Interpolate(previousX);
-                    double currentYImag = imagPart.Interpolate(currentX);
-                    amplitude = Math.Sqrt(Math.Pow(previousYReal, 2.0) + Math.Pow(previousYImag, 2.0));
-                    amplitude += Math.Sqrt(Math.Pow(currentYReal, 2.0) + Math.Pow(currentYImag, 2.0));
-                    amplitude /= 2.0;
-                    resFrequencies.Add(new PairDouble(root, amplitude));
-                }
-                previousX = currentX;
-                previousYReal = currentYReal;
-            }
-            return resFrequencies;
+            return roots;
         }
 
         // Data
