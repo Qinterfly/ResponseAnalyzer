@@ -145,6 +145,8 @@ namespace ResponseAnalyzer
                 }
             }
             addToSelection(minComponent, minNode, isNewSelection);
+            if (!componentSet_.nodeNames.ContainsKey(minComponent))
+                return null;
             string[] nodeNames = (string[])componentSet_.nodeNames[minComponent];
             return new Tuple<Vector3d, string, string>(getNodeCoordinates(minComponent, minNode), minComponent, nodeNames[minNode]);
         }
