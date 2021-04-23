@@ -382,13 +382,12 @@ namespace ResponseAnalyzer
                             string label = mapResponses_[response.path];
                             int indexMultiResonance = multiResonanceFrequencyIndices_[label];
                             double resonanceFrequency = multiFrequency_[label][indexMultiResonance];
-                            Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units, resonanceFrequency);
-                            if (pair != null)
-                            { 
-                                data[k, indX] = pair.Item1; // Frequency
-                                data[k, indY] = pair.Item2; // Amplitude
-                                ++k;
-                            }
+                            double[,] responseData = response.data[units];
+                            double realPart = responseData[indexMultiResonance, 0];
+                            double imagPart = responseData[indexMultiResonance, 1];
+                            data[k, indX] = resonanceFrequency;                                          
+                            data[k, indY] = Math.Sqrt(Math.Pow(realPart, 2.0) + Math.Pow(imagPart, 2.0)); 
+                            ++k;
                         }
                         if (data.GetLength(0) > 0)
                         {
@@ -499,7 +498,12 @@ namespace ResponseAnalyzer
             {
                 if (vector[i] >= findValue)
                 {
-                    indClosest = i;
+                    double previousDistance = Math.Abs(vector[i - 1] - findValue);
+                    double currentDistance  = Math.Abs(vector[i    ] - findValue);
+                    if (previousDistance < currentDistance)
+                        indClosest = i - 1;
+                    else
+                        indClosest = i;
                     break;
                 }
             }
