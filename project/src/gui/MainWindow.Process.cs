@@ -498,6 +498,8 @@ namespace ResponseAnalyzer
             {
                 if (vector[i] >= findValue)
                 {
+                    if (i == 0)
+                        break;
                     double previousDistance = Math.Abs(vector[i - 1] - findValue);
                     double currentDistance  = Math.Abs(vector[i    ] - findValue);
                     if (previousDistance < currentDistance)
