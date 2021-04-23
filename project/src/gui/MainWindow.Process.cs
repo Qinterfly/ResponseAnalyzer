@@ -29,9 +29,7 @@ namespace ResponseAnalyzer
             if (mode == SelectionMode.SINGLE)
             {
                 selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged);
-                // Resonance frequency
-                textBoxResonanceFrequency.Clear();
-                textBoxResonanceFrequency.Tag = -1;
+                textBoxResonanceFrequency.Text = listBoxFrequency.Items[indexSingleResonanceFrequency_].ToString();
             }
             nSelected = listBoxFoundSignals.Items.Count;
             labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
@@ -71,6 +69,7 @@ namespace ResponseAnalyzer
             foreach (double freq in frequency)
                 listBoxFrequency.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
             selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged, multiFrequencyIndices_[label]);
+            textBoxResonanceFrequency.Text = listBoxFrequency.Items[multiResonanceFrequencyIndices_[label]].ToString();
         }
 
         // Changing selection mode
@@ -80,22 +79,19 @@ namespace ResponseAnalyzer
                 return;
             SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
             // Specifying the states of the controls
-            buttonSelectResonanceFrequency.Enabled = mode != SelectionMode.MULTI;
             if (mode == SelectionMode.SINGLE)
                 listBoxFoundSignals.SelectionMode = System.Windows.Forms.SelectionMode.None;
             else if (mode == SelectionMode.MULTI)
             {
                 listBoxFoundSignals.SelectionMode = System.Windows.Forms.SelectionMode.One;
-                textBoxResonanceFrequency.Text = "";
             }
             // Acquiring the Testlab selection
             retrieveTestLabSelection();
+            textBoxResonanceFrequency.Text = "";
             if (mode == SelectionMode.SINGLE && project.signals_.Count != 0)
             {
                 selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged, singleFrequencyIndices_);
-                int indResonanceFrequency = (int)textBoxResonanceFrequency.Tag;
-                if (indResonanceFrequency > 0)
-                    textBoxResonanceFrequency.Text = listBoxFrequency.Items[indResonanceFrequency].ToString();
+                textBoxResonanceFrequency.Text = listBoxFrequency.Items[indexSingleResonanceFrequency_].ToString();
             }
             int nSelected = listBoxFoundSignals.Items.Count;
             labelSelectionInfo.Text = "Selected signals: " + nSelected.ToString();
@@ -124,17 +120,18 @@ namespace ResponseAnalyzer
         private void buttonClearTestlabSelection_Click(object sender, EventArgs e)
         {
             SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
+            textBoxResonanceFrequency.Text = "";
             switch (mode)
             {
                 case SelectionMode.SINGLE:
                     project.clearSignals();
-                    textBoxResonanceFrequency.Text = "";
-                    textBoxResonanceFrequency.Tag = -1;
+                    indexSingleResonanceFrequency_ = 0;
                     break;
                 case SelectionMode.MULTI:
                     project.clearMultiSignals();
                     multiFrequency_.Clear();
                     multiFrequencyIndices_.Clear();
+                    multiResonanceFrequencyIndices_.Clear();
                     mapResponses_.Clear();
                     break;
             }
@@ -149,10 +146,19 @@ namespace ResponseAnalyzer
             if (listBoxFrequency.SelectedIndices.Count == 0)
                 return;
             SelectionMode mode = (SelectionMode)comboBoxTestlabSelectionMode.SelectedIndex;
-            if (mode != SelectionMode.SINGLE)
-                return;
-            textBoxResonanceFrequency.Tag = listBoxFrequency.SelectedIndices[0];
-            textBoxResonanceFrequency.Text = listBoxFrequency.Items[(int)textBoxResonanceFrequency.Tag].ToString();
+            if (mode == SelectionMode.SINGLE)
+            {
+                indexSingleResonanceFrequency_ = listBoxFrequency.SelectedIndices[0];
+                textBoxResonanceFrequency.Text = listBoxFrequency.Items[indexSingleResonanceFrequency_].ToString();
+            }
+            else
+            {
+                int iSelectedSignal = listBoxFoundSignals.SelectedIndices[0];
+                string label = listBoxFoundSignals.Items[iSelectedSignal].ToString();
+                int indexMultiResonanceFrequency = listBoxFrequency.SelectedIndices[0];
+                multiResonanceFrequencyIndices_[label] = indexMultiResonanceFrequency;
+                textBoxResonanceFrequency.Text = listBoxFrequency.Items[indexMultiResonanceFrequency].ToString();
+            }
             selectItems(listBoxFrequency, listBoxFrequency_SelectedIndexChanged);
             listBoxFrequency_SelectedIndexChanged();
         }
@@ -250,13 +256,12 @@ namespace ResponseAnalyzer
                 // Modeset
                 else if (type == ChartTypes.MODESET && project.signals_.Count != 0)
                 {
-                    int indResonance = (int)textBoxResonanceFrequency.Tag;
                     if (axis == ChartDirection.UNKNOWN)
                     {
                         throwError(ref iError, "The coordinate axis for '" + chart + "' is not specified");
                         continue;
                     }
-                    if (indResonance < 0)
+                    if (indexSingleResonanceFrequency_ < 0)
                     {
                         throwError(ref iError, "The resonance frequency is not chosen");
                         continue;
@@ -289,9 +294,9 @@ namespace ResponseAnalyzer
                             if (!response.data.ContainsKey(units) || response.data[units] == null)
                                 continue;
                             double[,] refFullData = response.data[units];
-                            values.Add(refFullData[indResonance, 1]); // Imaginary part of the signal
+                            values.Add(refFullData[indexSingleResonanceFrequency_, 1]); // Imaginary part of the signal
                             if (resonanceFrequency < 0)
-                                resonanceFrequency = response.frequency[indResonance];
+                                resonanceFrequency = response.frequency[indexSingleResonanceFrequency_];
                         }
                         if (values.Count > 0)
                         { 
@@ -374,7 +379,10 @@ namespace ResponseAnalyzer
                         {
                             if (!response.data.ContainsKey(units) || response.data[units] == null)
                                 continue;
-                            Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units, getFrequencyValue(response.path));
+                            string label = mapResponses_[response.path];
+                            int indexMultiResonance = multiResonanceFrequencyIndices_[label];
+                            double resonanceFrequency = multiFrequency_[label][indexMultiResonance];
+                            Tuple<double, double> pair = response.evaluateResonanceFrequency(type, units, resonanceFrequency);
                             if (pair != null)
                             { 
                                 data[k, indX] = pair.Item1; // Frequency
@@ -416,6 +424,7 @@ namespace ResponseAnalyzer
                     {
                         foreach (double freq in response.frequency)
                             listBoxFrequency.Items.Add(freq.ToString("G4", CultureInfo.InvariantCulture));
+                        textBoxResonanceFrequency.Text = listBoxFrequency.Items[indexSingleResonanceFrequency_].ToString();
                     }
                     retrieveSingleSelection(project.forces_, forcePrefix);
                     break;
@@ -423,6 +432,7 @@ namespace ResponseAnalyzer
                     multiFrequency_.Clear();
                     multiFrequencyIndices_.Clear();
                     mapResponses_.Clear();
+                    multiResonanceFrequencyIndices_.Clear();
                     retrieveMultiSelection(project.multiSignals_); 
                     retrieveMultiSelection(project.multiForces_, forcePrefix); 
                     if (listBoxFoundSignals.Items.Count > 0)
@@ -442,6 +452,10 @@ namespace ResponseAnalyzer
                     response = nodeSignal[dir][0];
                     listBoxFoundSignals.Items.Add(prefixName + response.signalName);
                 }
+            }
+            if (response != null) {
+                double resonanceFrequency = getFrequencyValue(response.path);
+                indexSingleResonanceFrequency_ = findIndexClosest(resonanceFrequency, response.frequency);
             }
             return response;
         }
@@ -467,10 +481,29 @@ namespace ResponseAnalyzer
                         listBoxFoundSignals.Items.Add(label);
                         multiFrequency_.Add(label, multiResponse.frequency);
                         multiFrequencyIndices_.Add(label, Enumerable.Range(0, multiResponse.frequency.Length).ToList());
+                        // Retrieve resonance frequency
+                        double resonanceFrequency = getFrequencyValue(multiResponse.path);
+                        int indexMultiResonance = findIndexClosest(resonanceFrequency, multiResponse.frequency);
+                        multiResonanceFrequencyIndices_.Add(label, indexMultiResonance);
                         mapResponses_.Add(multiResponse.path, label);
                     }
                 }
             }
+        }
+
+        private int findIndexClosest(double findValue, double[] vector)
+        {
+            int indClosest = 0;
+            int lenVector = vector.Length;
+            for (int i = 0; i != lenVector; ++i)
+            {
+                if (vector[i] >= findValue)
+                {
+                    indClosest = i;
+                    break;
+                }
+            }
+            return indClosest;
         }
 
         // Accumulate errors

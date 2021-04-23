@@ -47,7 +47,7 @@ namespace ResponseAnalyzer
                     break;
                 case ChartTypes.IMAG_FREQUENCY:
                     fun = x => splineImagPart.Differentiate(x);
-                    diffFun = x => splineRealPart.Differentiate2(x);
+                    diffFun = x => splineImagPart.Differentiate2(x);
                     break;
             }
             if (fun == null || diffFun == null)
@@ -63,7 +63,14 @@ namespace ResponseAnalyzer
             int numFrequencies = resFrequencies.Count;
             for (int i = 0; i != numFrequencies; ++i)
             {
-                resFrequencies[i] = NewtonRaphson.FindRootNearGuess(fun, diffFun, resFrequencies[i], startFrequency, endFrequency);
+                try
+                { 
+                    resFrequencies[i] = NewtonRaphson.FindRootNearGuess(fun, diffFun, resFrequencies[i], startFrequency, endFrequency);
+                }
+                catch
+                {
+
+                }
                 distance = Math.Abs(resFrequencies[i] - approximationResonanceFrequency);
                 if (distance < minDistance)
                 {

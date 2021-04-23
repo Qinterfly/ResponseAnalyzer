@@ -48,6 +48,7 @@ namespace ResponseAnalyzer
                 singleFrequencyIndices_ = new List<int>();
                 multiFrequency_ = new Dictionary<string, double[]>();
                 multiFrequencyIndices_ = new Dictionary<string, List<int>>();
+                multiResonanceFrequencyIndices_ = new Dictionary<string, int>();
                 mapResponses_ = new Dictionary<string, string>();
                 if (excelTemplate_ != null && excelTemplate_.isOpened())
                     updateExcelTemplateList();

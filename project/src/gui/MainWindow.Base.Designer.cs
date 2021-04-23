@@ -38,6 +38,8 @@ namespace ResponseAnalyzer
         private bool isEditSelection_ = false;
         private int iSelectedSet_ = -1;
         // Selection for processing
+        private int indexSingleResonanceFrequency_;
+        private Dictionary<string, int> multiResonanceFrequencyIndices_;
         private List<int> singleFrequencyIndices_;
         private Dictionary<string, double[]> multiFrequency_;
         private Dictionary<string, List<int>> multiFrequencyIndices_;
