@@ -7,10 +7,6 @@ namespace ResponseAnalyzer
     {
         private void testRender()
         {
-            //string path = Path.GetFullPath(@"..\..\..\examples\Plate.lms");
-            //string path = Path.GetFullPath(@"..\..\..\examples\Rib.lms");
-            //string path = Path.GetFullPath(@"..\..\..\examples\Airplane.lms");
-            //string path = Path.GetFullPath(@"..\..\..\examples\Yak130.lms");
             string path = Path.GetFullPath(@"..\..\..\examples\MC-21PoslePV.lms");
             project = new LMSProject(path);
             textBoxProjectPath.Text = path;

@@ -146,10 +146,10 @@ namespace ResponseAnalyzer
             {
                 // Meters per seconds2
                 responseMS2[k, 0] *= resMultMS2;
-                responseMS2[k, 1] *= resMultMS2 * (-1.0);
+                responseMS2[k, 1] *= resMultMS2;
                 // Meters -> Millimeters
                 responseMM[k, 0] *= resMultMM;
-                responseMM[k, 1] *= resMultMM * (-1.0);
+                responseMM[k, 1] *= resMultMM;
             }
             // Creating the holder for the response
             Response currentResponse = new Response();
@@ -200,7 +200,7 @@ namespace ResponseAnalyzer
             for (int k = 0; k != nResponse; ++k)
             {
                 force[k, 0] *= multAngles;
-                force[k, 1] *= multAngles * (-1.0); 
+                force[k, 1] *= multAngles; 
             }
             Response currentResponse = new Response();
             currentResponse.originalRun = properties["Original run"].AttributeMap["Contents"];
